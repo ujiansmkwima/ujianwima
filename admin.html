@@ -946,6 +946,7 @@
     });
 
     let successCount = 0;
+    const credentials = [];
     if(newItems.length > 0){
       if(type === 'users' || type === 'guru'){
         const role = type === 'users' ? 'siswa' : 'guru';
@@ -960,6 +961,7 @@
           } else {
             item.id = res.id;
             successCount++;
+            if(res.password) credentials.push({ nama: item.nama, username: item.username, password: res.password });
             if(type === 'users') users.push(item); else guru.push(item);
           }
         }
@@ -982,10 +984,23 @@
       }
     }
 
-    renderImportResult(type, successCount, errors);
+    renderImportResult(type, successCount, errors, credentials);
   }
 
-  function renderImportResult(type, addedCount, errors){
+  function downloadCredentials(type, credentials){
+    if(typeof XLSX === 'undefined'){
+      alert('Pustaka Excel belum termuat. Periksa koneksi internet lalu coba lagi.');
+      return;
+    }
+    const rows = [['Nama Lengkap','Username','Kata Sandi'], ...credentials.map(c => [c.nama, c.username, c.password])];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 26 }, { wch: 20 }, { wch: 16 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Kredensial');
+    XLSX.writeFile(wb, `kredensial-${type}-${Date.now()}.xlsx`);
+  }
+
+  function renderImportResult(type, addedCount, errors, credentials){
     const el = document.getElementById(importConfig[type].resultId);
     if(addedCount === 0 && errors.length === 0){
       el.style.display = 'none';
@@ -995,6 +1010,19 @@
     let html = '';
     if(addedCount > 0){
       html += `<div class="import-line import-ok">${addedCount} data berhasil ditambahkan.</div>`;
+    }
+    if(credentials && credentials.length > 0){
+      const credRows = credentials.map(c =>
+        `<tr><td>${escapeHtml(c.nama)}</td><td>${escapeHtml(c.username)}</td><td><code>${escapeHtml(c.password)}</code></td></tr>`
+      ).join('');
+      const credId = `${importConfig[type].resultId}-cred-${Date.now()}`;
+      html += `<div class="import-line import-ok" style="background:#fff;border:1.5px solid var(--emerald,#0E9F6E);">
+        <strong>Catat kata sandi ini sekarang — tidak akan ditampilkan lagi:</strong>
+        <table id="${credId}" style="width:100%;margin-top:8px;border-collapse:collapse;font-size:12.5px;">
+          <thead><tr style="text-align:left;"><th style="padding:4px 6px;">Nama</th><th style="padding:4px 6px;">Username</th><th style="padding:4px 6px;">Kata Sandi</th></tr></thead>
+          <tbody>${credRows}</tbody>
+        </table>
+      </div>`;
     }
     if(errors.length > 0){
       const shown = errors.slice(0, 5);
@@ -1006,6 +1034,16 @@
     }
     el.innerHTML = html;
     el.style.display = 'block';
+
+    if(credentials && credentials.length > 0){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-secondary';
+      btn.style.marginTop = '8px';
+      btn.textContent = 'Unduh daftar username & password (Excel)';
+      btn.onclick = () => downloadCredentials(type, credentials);
+      el.appendChild(btn);
+    }
   }
 
   /* ============================================================
