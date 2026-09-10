@@ -61,7 +61,10 @@ Deno.serve(async (req: Request) => {
       if (!["siswa", "guru", "admin"].includes(role)) {
         return json({ error: "Role tidak valid" }, 400);
       }
-      const password = body.password || randomPassword();
+      const password = (body.password && String(body.password).trim()) || randomPassword();
+      if (password.length < 6) {
+        return json({ error: "Kata sandi minimal 6 karakter" }, 400);
+      }
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email,
         password,
@@ -122,7 +125,10 @@ Deno.serve(async (req: Request) => {
     if (action === "reset_password") {
       const { id } = body;
       if (!id) return json({ error: "id wajib diisi" }, 400);
-      const password = body.password || randomPassword();
+      const password = (body.password && String(body.password).trim()) || randomPassword();
+      if (password.length < 6) {
+        return json({ error: "Kata sandi minimal 6 karakter" }, 400);
+      }
       const { error: updErr } = await admin.auth.admin.updateUserById(id, { password });
       if (updErr) return json({ error: updErr.message }, 400);
       return json({ ok: true, password });

@@ -492,6 +492,10 @@
           <span>Ruang ujian</span>
           <input type="text" id="u-ruang" placeholder="Contoh: Ruang 12" required>
         </label>
+        <label class="field full">
+          <span>Kata sandi (opsional)</span>
+          <input type="text" id="u-password" placeholder="Kosongkan agar dibuatkan otomatis (min. 6 karakter)" minlength="6">
+        </label>
       </div>
       <div class="card-actions">
         <button type="submit" class="btn-primary" id="u-submit-btn">
@@ -556,6 +560,10 @@
         <label class="field">
           <span>Email</span>
           <input type="email" id="g-email" placeholder="nama@contoh.sch.id" required>
+        </label>
+        <label class="field full">
+          <span>Kata sandi (opsional)</span>
+          <input type="text" id="g-password" placeholder="Kosongkan agar dibuatkan otomatis (min. 6 karakter)" minlength="6">
         </label>
       </div>
       <div class="card-actions">
@@ -777,15 +785,15 @@
     users: {
       filename: 'template-pengguna.xlsx',
       sheetName: 'Pengguna',
-      headers: ['Nama Lengkap','Username','Email','Kelas','Ruang Ujian'],
-      example: ['Ahmad Fauzan','ahmad.fauzan','ahmad.fauzan@contoh.sch.id','XI RPL 2','Ruang 12'],
+      headers: ['Nama Lengkap','Username','Email','Kelas','Ruang Ujian','Kata Sandi (opsional)'],
+      example: ['Ahmad Fauzan','ahmad.fauzan','ahmad.fauzan@contoh.sch.id','XI RPL 2','Ruang 12',''],
       resultId: 'u-import-result'
     },
     guru: {
       filename: 'template-guru.xlsx',
       sheetName: 'Guru',
-      headers: ['Nama Lengkap','Username','Email'],
-      example: ['Siti Rahayu, S.Kom.','siti.rahayu','siti.rahayu@contoh.sch.id'],
+      headers: ['Nama Lengkap','Username','Email','Kata Sandi (opsional)'],
+      example: ['Siti Rahayu, S.Kom.','siti.rahayu','siti.rahayu@contoh.sch.id',''],
       resultId: 'g-import-result'
     },
     subjects: {
@@ -878,8 +886,13 @@
         const email = getField(row, ['email']);
         const kelas = getField(row, ['kelas']);
         const ruang = getField(row, ['ruang ujian','ruang']);
+        const password = getField(row, ['kata sandi (opsional)','kata sandi','password','sandi']);
         if(!nama || !username || !email || !kelas || !ruang){
           errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
+          return;
+        }
+        if(password && password.length < 6){
+          errors.push(`Baris ${rowNum}: kata sandi untuk "${username}" minimal 6 karakter, dilewati`);
           return;
         }
         const dup = users.some(u => u.username.toLowerCase() === username.toLowerCase())
@@ -888,15 +901,20 @@
           errors.push(`Baris ${rowNum}: username "${username}" sudah terdaftar`);
           return;
         }
-        newItems.push({ id: genId(), nama, username, email, kelas, ruang });
+        newItems.push({ id: genId(), nama, username, email, kelas, ruang, password: password || undefined });
       }
 
       if(type === 'guru'){
         const nama = getField(row, ['nama lengkap','nama']);
         const username = getField(row, ['username']);
         const email = getField(row, ['email']);
+        const password = getField(row, ['kata sandi (opsional)','kata sandi','password','sandi']);
         if(!nama || !username || !email){
           errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
+          return;
+        }
+        if(password && password.length < 6){
+          errors.push(`Baris ${rowNum}: kata sandi untuk "${username}" minimal 6 karakter, dilewati`);
           return;
         }
         const dup = guru.some(g => g.username.toLowerCase() === username.toLowerCase())
@@ -905,7 +923,7 @@
           errors.push(`Baris ${rowNum}: username "${username}" sudah terdaftar`);
           return;
         }
-        newItems.push({ id: genId(), nama, username, email });
+        newItems.push({ id: genId(), nama, username, email, password: password || undefined });
       }
 
       if(type === 'subjects'){
@@ -954,15 +972,17 @@
           const res = await callAdminFn({
             action: 'create_user', role,
             nama: item.nama, username: item.username, email: item.email,
-            kelas: item.kelas || null, ruang: item.ruang || null
+            kelas: item.kelas || null, ruang: item.ruang || null,
+            ...(item.password ? { password: item.password } : {})
           });
           if(res.error){
             errors.push(`"${item.username}": ${res.error}`);
           } else {
-            item.id = res.id;
+            const { password, ...record } = item;
+            record.id = res.id;
             successCount++;
-            if(res.password) credentials.push({ nama: item.nama, username: item.username, password: res.password });
-            if(type === 'users') users.push(item); else guru.push(item);
+            if(res.password) credentials.push({ nama: record.nama, username: record.username, password: res.password });
+            if(type === 'users') users.push(record); else guru.push(record);
           }
         }
         if(type === 'users') renderUsers();
@@ -1059,6 +1079,11 @@
       kelas: document.getElementById('u-kelas').value.trim(),
       ruang: document.getElementById('u-ruang').value.trim()
     };
+    const password = document.getElementById('u-password').value.trim();
+    if(password && password.length < 6){
+      alert('Kata sandi minimal 6 karakter.');
+      return false;
+    }
     btn.disabled = true;
     try{
       if(editingUserId){
@@ -1067,10 +1092,10 @@
         const idx = users.findIndex(u => u.id === editingUserId);
         if(idx > -1) users[idx] = { ...users[idx], ...record };
       } else {
-        const res = await callAdminFn({ action: 'create_user', role: 'siswa', ...record });
+        const res = await callAdminFn({ action: 'create_user', role: 'siswa', ...record, ...(password ? { password } : {}) });
         if(res.error){ alert(res.error); return false; }
         users.push({ id: res.id, ...record });
-        if(res.password) alert(`Akun dibuat. Kata sandi awal: ${res.password}\n(Catat sekarang, tidak ditampilkan lagi)`);
+        if(res.password && !password) alert(`Akun dibuat. Kata sandi awal: ${res.password}\n(Catat sekarang, tidak ditampilkan lagi)`);
       }
       cancelEdit('user');
       renderUsers();
@@ -1088,6 +1113,7 @@
     document.getElementById('u-email').value = u.email;
     document.getElementById('u-kelas').value = u.kelas;
     document.getElementById('u-ruang').value = u.ruang;
+    document.getElementById('u-password').value = '';
     document.getElementById('u-card-title').textContent = 'Edit pengguna';
     document.getElementById('u-submit-btn').lastChild.textContent = ' Simpan perubahan';
     document.getElementById('u-form').classList.add('editing');
@@ -1149,6 +1175,11 @@
       username: document.getElementById('g-username').value.trim(),
       email: document.getElementById('g-email').value.trim()
     };
+    const password = document.getElementById('g-password').value.trim();
+    if(password && password.length < 6){
+      alert('Kata sandi minimal 6 karakter.');
+      return false;
+    }
     btn.disabled = true;
     try{
       if(editingGuruId){
@@ -1157,10 +1188,10 @@
         const idx = guru.findIndex(g => g.id === editingGuruId);
         if(idx > -1) guru[idx] = { ...guru[idx], ...record };
       } else {
-        const res = await callAdminFn({ action: 'create_user', role: 'guru', ...record });
+        const res = await callAdminFn({ action: 'create_user', role: 'guru', ...record, ...(password ? { password } : {}) });
         if(res.error){ alert(res.error); return false; }
         guru.push({ id: res.id, ...record });
-        if(res.password) alert(`Akun dibuat. Kata sandi awal: ${res.password}\n(Catat sekarang, tidak ditampilkan lagi)`);
+        if(res.password && !password) alert(`Akun dibuat. Kata sandi awal: ${res.password}\n(Catat sekarang, tidak ditampilkan lagi)`);
       }
       cancelEdit('guru');
       renderGuru();
@@ -1177,6 +1208,7 @@
     document.getElementById('g-nama').value = g.nama;
     document.getElementById('g-username').value = g.username;
     document.getElementById('g-email').value = g.email;
+    document.getElementById('g-password').value = '';
     document.getElementById('g-card-title').textContent = 'Edit guru';
     document.getElementById('g-submit-btn').lastChild.textContent = ' Simpan perubahan';
     document.getElementById('g-form').classList.add('editing');
