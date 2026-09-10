@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk — Asesmen SMK Widya Mandala</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#161A23;
+    --navy-deep:#0B0E17;
+    --navy:#1C2333;
+    --paper:#FFFFFF;
+    --slate:#68707E;
+    --mist:#F3F4F7;
+    --line:#E7E9EE;
+
+    --indigo:#4F46E5;   --indigo-soft:#E9E7FC;
+    --emerald:#0E9F6E;  --emerald-soft:#DCF5EA;
+    --violet:#7C3AED;   --violet-soft:#EEE6FD;
+
+    --accent:var(--indigo);
+    --accent-soft:var(--indigo-soft);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 20% 15%, #1f2740 0%, transparent 50%),
+      radial-gradient(circle at 85% 85%, #171d30 0%, transparent 55%),
+      var(--navy-deep);
+    background-attachment:fixed;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  a{ color:inherit; }
+  button{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+  .login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 18px;
+    position:relative;
+  }
+
+  .glow{
+    position:absolute;
+    width:380px; height:380px;
+    background:var(--accent);
+    opacity:0.22;
+    filter:blur(100px);
+    border-radius:50%;
+    top:50%; left:50%;
+    transform:translate(-50%,-55%);
+    transition:background-color 0.3s ease;
+    pointer-events:none;
+  }
+
+  .login-card{
+    position:relative;
+    width:100%;
+    max-width:396px;
+    background:var(--paper);
+    border-radius:18px;
+    padding:36px 32px 32px;
+    box-shadow:0 24px 60px -18px rgba(8,12,26,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:24px;
+  }
+  .emblem{ width:32px; height:32px; flex-shrink:0; }
+  .brand .school{
+    font-weight:700;
+    font-size:14.5px;
+    line-height:1.2;
+    letter-spacing:-0.01em;
+  }
+  .brand .product{ font-size:12px; color:var(--slate); }
+
+  h1{
+    font-weight:700;
+    font-size:23px;
+    letter-spacing:-0.02em;
+    margin:0 0 6px;
+  }
+  .sub{
+    font-size:13.5px;
+    color:var(--slate);
+    margin:0 0 24px;
+    line-height:1.5;
+  }
+
+  /* ---- segmented tabs ---- */
+  .tabs{
+    position:relative;
+    display:flex;
+    background:var(--mist);
+    border-radius:11px;
+    padding:4px;
+    margin-bottom:26px;
+  }
+  .tab-indicator{
+    position:absolute;
+    top:4px; left:4px;
+    width:calc(33.333% - 4px);
+    height:calc(100% - 8px);
+    background:var(--accent);
+    border-radius:8px;
+    transition:transform 0.25s cubic-bezier(.4,0,.2,1), background-color 0.25s ease;
+  }
+  .tab{
+    position:relative;
+    z-index:1;
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:9px 4px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--slate);
+    border-radius:8px;
+    cursor:pointer;
+    transition:color 0.25s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .tab svg{ width:15px; height:15px; }
+  .tab.active{ color:#fff; }
+
+  /* ---- form ---- */
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .field span{ font-size:12.5px; font-weight:600; color:var(--ink); }
+  .field input{
+    font-family:inherit;
+    font-size:14.5px;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    background:#FAFAFB;
+    color:var(--ink);
+    width:100%;
+    transition:border-color 0.2s ease, background 0.2s ease;
+  }
+  .field input:focus{
+    border-color:var(--accent);
+    background:var(--paper);
+  }
+
+  .password-wrap{ position:relative; }
+  .password-wrap input{ padding-right:42px; }
+  .toggle-pw{
+    position:absolute;
+    right:6px; top:50%;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    padding:6px;
+    color:var(--slate);
+    cursor:pointer;
+    display:flex;
+  }
+  .toggle-pw svg{ width:18px; height:18px; }
+  .toggle-pw:hover{ color:var(--ink); }
+
+  .row-between{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:2px 0 22px;
+    font-size:13px;
+  }
+  .remember{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:var(--slate);
+  }
+  .remember input{ accent-color:var(--accent); width:15px; height:15px; }
+  .forgot{ color:var(--slate); text-decoration:none; }
+  .forgot:hover{ color:var(--ink); text-decoration:underline; }
+
+  .submit-btn{
+    width:100%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    padding:13px 16px;
+    font-size:14.5px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    cursor:pointer;
+    transition:background-color 0.25s ease, transform 0.1s ease;
+  }
+  .submit-btn:active{ transform:scale(0.98); }
+
+  .form-note{
+    font-size:12.5px;
+    color:var(--slate);
+    text-align:center;
+    margin:14px 0 0;
+    min-height:16px;
+  }
+  .form-note.show{ color:var(--emerald); }
+
+  @media (max-width:400px){
+    .login-card{ padding:28px 22px 24px; border-radius:16px; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{ transition:none !important; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<main class="login-wrap">
+  <div class="glow" id="glow"></div>
+
+  <div class="login-card">
+    <div class="brand">
+      <svg class="emblem" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" fill="#1C2333"/>
+        <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" stroke="#4F46E5" stroke-width="1.5"/>
+        <text x="24" y="29" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#F5F5F7">WM</text>
+      </svg>
+      <div>
+        <div class="school">SMK Widya Mandala</div>
+        <div class="product">Asesmen</div>
+      </div>
+    </div>
+
+    <h1>Masuk ke akun kamu</h1>
+    <p class="sub">Pilih peran, lalu masuk dengan username dan kata sandi.</p>
+
+    <div class="tabs">
+      <div class="tab-indicator" id="tabIndicator"></div>
+      <button type="button" class="tab active" data-role="siswa" onclick="selectRole('siswa', 0, this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+        Siswa
+      </button>
+      <button type="button" class="tab" data-role="guru" onclick="selectRole('guru', 1, this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2Z"/><path d="M4 19.5A2 2 0 0 0 6 21h13"/></svg>
+        Guru
+      </button>
+      <button type="button" class="tab" data-role="admin" onclick="selectRole('admin', 2, this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87 2 2 0 1 1-2.83 2.83 1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.35a1.7 1.7 0 0 0-1.87.34 2 2 0 1 1-2.83-2.83A1.7 1.7 0 0 0 4.65 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.65 9a1.7 1.7 0 0 0-.34-1.87 2 2 0 1 1 2.83-2.83A1.7 1.7 0 0 0 9 4.65a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.65a1.7 1.7 0 0 0 1.87-.34 2 2 0 1 1 2.83 2.83A1.7 1.7 0 0 0 19.35 9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+        Admin
+      </button>
+    </div>
+
+    <form onsubmit="return handleLogin(event)">
+      <label class="field">
+        <span>Username</span>
+        <input type="text" id="username" placeholder="Masukkan username siswa" autocomplete="username" required>
+      </label>
+
+      <label class="field">
+        <span>Kata sandi</span>
+        <div class="password-wrap">
+          <input type="password" id="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
+          <button type="button" class="toggle-pw" id="togglePw" onclick="togglePassword()" aria-label="Tampilkan kata sandi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </label>
+
+      <div class="row-between">
+        <label class="remember"><input type="checkbox"> Ingat saya</label>
+        <a class="forgot" href="#">Lupa kata sandi?</a>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Masuk sebagai Siswa</button>
+      <p class="form-note" id="formNote"></p>
+    </form>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = 'https://cnciipsdowdcljjnacxy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const pageByRole = { siswa: 'siswa.html', guru: 'guru.html', admin: 'admin.html' };
+
+  const roles = {
+    siswa: { label:'Siswa', accent:'#4F46E5', placeholder:'Masukkan username siswa' },
+    guru:  { label:'Guru',  accent:'#0E9F6E', placeholder:'Masukkan username guru' },
+    admin: { label:'Admin', accent:'#7C3AED', placeholder:'Masukkan username admin' }
+  };
+
+  let selectedRole = 'siswa';
+
+  /* Jika sudah login & rolenya cocok halaman ini, langsung lempar ke dashboard */
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session) return;
+    const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
+    if(profile && pageByRole[profile.role]) window.location.href = pageByRole[profile.role];
+  })();
+
+  function selectRole(role, index, el){
+    selectedRole = role;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tabIndicator').style.transform = `translateX(${index * 100}%)`;
+
+    const r = roles[role];
+    document.documentElement.style.setProperty('--accent', r.accent);
+    document.getElementById('username').placeholder = r.placeholder;
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('submitBtn').textContent = 'Masuk sebagai ' + r.label;
+
+    const note = document.getElementById('formNote');
+    note.textContent = '';
+    note.classList.remove('show');
+  }
+
+  function togglePassword(){
+    const pw = document.getElementById('password');
+    const btn = document.getElementById('togglePw');
+    const isHidden = pw.type === 'password';
+    pw.type = isHidden ? 'text' : 'password';
+    btn.setAttribute('aria-label', isHidden ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+  }
+
+  async function handleLogin(event){
+    event.preventDefault();
+    const note = document.getElementById('formNote');
+    const btn = document.getElementById('submitBtn');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    note.classList.remove('show');
+    note.style.color = '';
+    note.textContent = 'Memeriksa akun…';
+    btn.disabled = true;
+
+    try{
+      const { data: email, error: emailErr } = await sb.rpc('email_for_username', { p_username: username });
+      if(emailErr || !email){
+        note.textContent = 'Username tidak ditemukan.';
+        return false;
+      }
+
+      const { data: signInData, error: signInErr } = await sb.auth.signInWithPassword({ email, password });
+      if(signInErr){
+        note.textContent = 'Username atau kata sandi salah.';
+        return false;
+      }
+
+      const { data: profile, error: profErr } = await sb
+        .from('profiles').select('role').eq('id', signInData.user.id).single();
+
+      if(profErr || !profile){
+        note.textContent = 'Profil akun tidak ditemukan. Hubungi admin.';
+        await sb.auth.signOut();
+        return false;
+      }
+
+      if(profile.role !== selectedRole){
+        note.textContent = `Akun ini terdaftar sebagai ${roles[profile.role]?.label || profile.role}, bukan ${roles[selectedRole].label}.`;
+        await sb.auth.signOut();
+        return false;
+      }
+
+      note.classList.add('show');
+      note.textContent = 'Berhasil masuk, mengalihkan…';
+      window.location.href = pageByRole[profile.role];
+    } finally {
+      btn.disabled = false;
+    }
+    return false;
+  }
+</script>
+
+</body>
+</html>

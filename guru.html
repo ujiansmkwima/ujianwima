@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guru — Asesmen SMK Widya Mandala</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#161A23;
+    --navy:#1C2333;
+    --paper:#FFFFFF;
+    --cream:#F8F8FA;
+    --slate:#68707E;
+    --line:#E7E9EE;
+    --mist:#F3F4F7;
+
+    --emerald:#0E9F6E;
+    --emerald-soft:#DCF5EA;
+    --emerald-dark:#0B7D57;
+    --amber:#B8862E;
+    --amber-soft:#F3E9D2;
+    --red:#C0392B;
+    --red-soft:#FBE4E1;
+    --indigo:#4F46E5;
+    --indigo-soft:#E9E7FC;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-weight:700; letter-spacing:-0.02em; margin:0; }
+  button,select,textarea,input{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--emerald); outline-offset:2px; }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:16px 20px;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:20;
+    flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .emblem{ width:32px; height:32px; flex-shrink:0; }
+  .brand .school{ font-weight:700; font-size:14.5px; line-height:1.2; letter-spacing:-0.01em; }
+  .brand .product{ font-size:11.5px; color:var(--slate); }
+
+  .header-right{ display:flex; align-items:center; gap:10px; }
+  .guru-switch{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    background:var(--emerald-soft);
+    color:var(--emerald-dark);
+    font-size:12.5px;
+    font-weight:600;
+    padding:6px 10px 6px 8px;
+    border-radius:99px;
+  }
+  .guru-switch .dot{
+    width:22px; height:22px;
+    border-radius:50%;
+    background:var(--emerald);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .guru-switch svg{ width:12px; height:12px; }
+  .guru-switch select{
+    border:none;
+    background:transparent;
+    color:var(--emerald-dark);
+    font-weight:700;
+    font-size:12.5px;
+    cursor:pointer;
+    max-width:150px;
+  }
+
+  /* ---------- Storage notice ---------- */
+  .notice{ max-width:1040px; margin:14px auto 0; padding:0 16px; }
+  .notice-inner{
+    display:flex; gap:10px; align-items:flex-start;
+    background:var(--amber-soft); border:1px solid #E4CE96; color:#5E4B1C;
+    border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5;
+  }
+  .notice-inner svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; }
+  .notice-inner.info{ background:var(--indigo-soft); border-color:#C9C4F5; color:#332C8C; }
+
+  /* ---------- Main tabs ---------- */
+  .tabs-wrap{ background:var(--paper); border-bottom:1px solid var(--line); position:sticky; top:65px; z-index:19; }
+  .tabs{ max-width:1040px; margin:0 auto; display:flex; gap:4px; padding:0 16px; overflow-x:auto; }
+  .tab{
+    position:relative; display:flex; align-items:center; gap:7px;
+    background:none; border:none; padding:14px 8px; font-size:13.5px; font-weight:600;
+    color:var(--slate); cursor:pointer; white-space:nowrap;
+  }
+  .tab svg{ width:16px; height:16px; }
+  .tab.active{ color:var(--emerald-dark); }
+  .tab::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:2.5px;
+    background:var(--emerald); border-radius:2px 2px 0 0; transform:scaleX(0); transition:transform 0.2s ease;
+  }
+  .tab.active::after{ transform:scaleX(1); }
+
+  /* ---------- Sub tabs (pill) ---------- */
+  .subtabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+  .subtab{
+    background:var(--paper); border:1.5px solid var(--line); color:var(--slate);
+    font-size:13px; font-weight:600; padding:8px 14px; border-radius:99px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .subtab svg{ width:14px; height:14px; }
+  .subtab.active{ background:var(--emerald); border-color:var(--emerald); color:#fff; }
+  .subpanel{ display:none; }
+  .subpanel.active{ display:block; }
+
+  /* ---------- Shell ---------- */
+  .shell{ max-width:1040px; margin:0 auto; padding:26px 16px 60px; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+  .section-head{ margin-bottom:18px; }
+  .section-head h1{ font-size:22px; letter-spacing:-0.01em; }
+  .section-head p{ margin:5px 0 0; font-size:13.5px; color:var(--slate); }
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding:20px; margin-bottom:22px; box-shadow:0 1px 2px rgba(20,20,30,0.03);
+  }
+  .card-title{ font-size:13px; font-weight:700; color:var(--emerald-dark); margin-bottom:14px; display:block; }
+
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-grid .field.full{ grid-column:1 / -1; }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field span{ font-size:12.5px; font-weight:600; }
+  .field input, .field select, .field textarea{
+    font-family:inherit; font-size:14.5px; padding:10px 12px; border:1.5px solid var(--line);
+    border-radius:8px; background:var(--cream); color:var(--ink); width:100%;
+  }
+  .field textarea{ resize:vertical; min-height:64px; line-height:1.5; }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--emerald); background:var(--paper); }
+  .field-hint{ font-size:12px; color:var(--slate); }
+
+  .card-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--emerald); color:#fff; border:none; border-radius:8px; padding:11px 20px;
+    font-size:14px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn-primary:hover{ background:var(--emerald-dark); }
+  .btn-primary:disabled{ background:var(--line); color:var(--slate); cursor:not-allowed; }
+  .btn-primary svg{ width:16px; height:16px; }
+  .btn-secondary{
+    display:inline-flex; align-items:center; gap:7px; background:var(--paper); color:var(--ink);
+    border:1.5px solid var(--line); border-radius:8px; padding:9px 14px; font-size:12.5px; font-weight:600;
+    cursor:pointer; white-space:nowrap;
+  }
+  .btn-secondary:hover{ border-color:var(--emerald); color:var(--emerald-dark); }
+  .btn-secondary svg{ width:15px; height:15px; flex-shrink:0; }
+  .btn-danger{ color:var(--red); border-color:var(--red-soft); }
+  .btn-danger:hover{ border-color:var(--red); color:var(--red); }
+  .btn-ghost{ background:none; border:none; color:var(--slate); font-size:12.5px; font-weight:600; text-decoration:underline; cursor:pointer; }
+
+  /* ---------- Dropzone ---------- */
+  .dropzone{
+    position:relative; border:1.5px dashed var(--line); border-radius:14px; background:var(--mist);
+    padding:28px 18px; text-align:center; margin-bottom:6px;
+  }
+  .dropzone input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .dropzone svg{ width:30px; height:30px; color:var(--emerald); margin-bottom:8px; }
+  .dropzone strong{ display:block; font-size:14px; margin-bottom:3px; }
+  .dropzone span{ font-size:12.5px; color:var(--slate); }
+  .dropzone.disabled{ opacity:0.55; pointer-events:none; }
+
+  .format-guide{
+    background:var(--mist); border-radius:10px; padding:12px 14px; font-size:12.5px;
+    color:var(--slate); line-height:1.6; margin-top:14px;
+  }
+  .format-guide strong{ color:var(--ink); }
+  .format-guide code{ background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:12px; }
+
+  /* ---------- List / table ---------- */
+  .list-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,0.03);
+  }
+  .list-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px;
+    border-bottom:1px solid var(--line); flex-wrap:wrap;
+  }
+  .list-count{ font-size:12.5px; color:var(--slate); font-weight:600; }
+  .search-wrap{ position:relative; }
+  .search-wrap svg{ position:absolute; left:10px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--slate); }
+  .search-wrap input{
+    font-family:inherit; font-size:13.5px; padding:8px 10px 8px 32px; border:1.5px solid var(--line);
+    border-radius:8px; background:var(--cream); width:190px; max-width:45vw;
+  }
+  .search-wrap input:focus{ border-color:var(--emerald); background:var(--paper); }
+
+  table{ width:100%; border-collapse:collapse; }
+  thead th{ text-align:left; font-size:11.5px; font-weight:700; color:var(--slate); padding:10px 16px; border-bottom:1px solid var(--line); background:var(--mist); }
+  tbody td{ padding:12px 16px; font-size:13.5px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  .cell-primary{ font-weight:600; }
+  .cell-muted{ color:var(--slate); }
+  .row-actions{ display:flex; gap:4px; justify-content:flex-end; }
+  .icon-btn{ background:none; border:none; color:var(--slate); cursor:pointer; padding:6px; border-radius:6px; display:flex; }
+  .icon-btn:hover{ color:var(--emerald-dark); background:var(--emerald-soft); }
+  .icon-btn svg{ width:16px; height:16px; }
+
+  .empty-state{ padding:36px 20px; text-align:center; color:var(--slate); font-size:13.5px; }
+  .empty-state strong{ display:block; color:var(--ink); font-size:14.5px; margin-bottom:4px; }
+
+  /* ---------- Badges ---------- */
+  .badge{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; }
+  .badge-draft{ background:var(--mist); color:var(--slate); }
+  .badge-siap{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .badge-terjadwal{ background:var(--indigo-soft); color:var(--indigo); }
+  .badge-berlangsung{ background:var(--amber-soft); color:#8A6414; }
+  .badge-selesai{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .badge-belum{ background:var(--mist); color:var(--slate); }
+  .badge-mengerjakan{ background:var(--amber-soft); color:#8A6414; }
+  .badge-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .badge-mengerjakan .badge-dot{ animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  /* ---------- Toggle switch ---------- */
+  .toggle-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 0; border-bottom:1px solid var(--line);
+  }
+  .toggle-row:last-child{ border-bottom:none; }
+  .toggle-row-text strong{ display:block; font-size:13.5px; font-weight:600; }
+  .toggle-row-text span{ font-size:12px; color:var(--slate); }
+  .switch{ position:relative; width:42px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch-track{
+    position:absolute; inset:0; background:var(--line); border-radius:99px; cursor:pointer; transition:background 0.2s ease;
+  }
+  .switch-track::before{
+    content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%;
+    transition:transform 0.2s ease; box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch input:checked + .switch-track{ background:var(--emerald); }
+  .switch input:checked + .switch-track::before{ transform:translateX(18px); }
+
+  /* ---------- Checklist grid (kelas / peserta) ---------- */
+  .chip-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .chip-check{ position:relative; }
+  .chip-check input{ position:absolute; opacity:0; }
+  .chip-check label{
+    display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600;
+    padding:8px 12px; border:1.5px solid var(--line); border-radius:9px; cursor:pointer; background:var(--cream);
+  }
+  .chip-check input:checked + label{ border-color:var(--emerald); background:var(--emerald-soft); color:var(--emerald-dark); }
+  .chip-check input:disabled + label{ opacity:0.5; cursor:not-allowed; }
+
+  .peserta-list{ max-height:260px; overflow-y:auto; border:1px solid var(--line); border-radius:10px; margin-top:6px; }
+  .peserta-row{
+    display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .peserta-row:last-child{ border-bottom:none; }
+  .peserta-row input{ width:16px; height:16px; accent-color:var(--emerald); flex-shrink:0; }
+  .peserta-row .p-name{ font-weight:600; flex:1; }
+  .peserta-row .p-meta{ color:var(--slate); font-size:12px; }
+  .peserta-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; font-size:12.5px; color:var(--slate); }
+  .peserta-toolbar button{ background:none; border:none; color:var(--emerald-dark); font-weight:700; cursor:pointer; font-size:12.5px; }
+
+  /* ---------- Question editor ---------- */
+  .qcard{ border:1.5px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--cream); }
+  .qcard-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .qcard-head .qnum{ font-size:12.5px; font-weight:700; color:var(--emerald-dark); }
+  .qcard-flag{ font-size:11.5px; color:var(--red); font-weight:600; display:flex; align-items:center; gap:4px; }
+  .qcard-flag svg{ width:13px; height:13px; }
+  .img-preview{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+  .img-preview img{ width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+  .img-upload-btn{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--slate);
+    border:1.5px dashed var(--line); border-radius:8px; padding:7px 11px; cursor:pointer; position:relative; background:var(--paper);
+  }
+  .img-upload-btn input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+  .img-upload-btn svg{ width:14px; height:14px; }
+  .img-remove{ background:none; border:none; color:var(--red); font-size:11.5px; font-weight:600; cursor:pointer; }
+
+  .opt-row{ display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; padding:10px; background:var(--paper); border:1.5px solid var(--line); border-radius:10px; }
+  .opt-row.is-key{ border-color:var(--emerald); background:var(--emerald-soft); }
+  .opt-row input[type=radio]{ margin-top:11px; width:16px; height:16px; accent-color:var(--emerald); flex-shrink:0; }
+  .opt-row .opt-body{ flex:1; display:flex; flex-direction:column; gap:6px; }
+  .opt-row textarea{ min-height:38px; font-size:13.5px; padding:8px 10px; border:1.5px solid var(--line); border-radius:7px; background:var(--cream); width:100%; resize:vertical; }
+  .opt-row .opt-remove{ background:none; border:none; color:var(--slate); cursor:pointer; padding:4px; flex-shrink:0; }
+  .opt-row .opt-remove:hover{ color:var(--red); }
+  .opt-row .opt-remove svg{ width:15px; height:15px; }
+  .opt-letter{ font-weight:700; font-size:13px; color:var(--slate); width:18px; text-align:center; margin-top:9px; flex-shrink:0; }
+
+  .qcard-actions{ display:flex; justify-content:space-between; margin-top:6px; }
+
+  .editor-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .editor-toolbar h2{ font-size:17px; }
+  .editor-meta{ font-size:12.5px; color:var(--slate); margin-top:2px; }
+
+  /* ---------- Monitoring ---------- */
+  .stat-pills{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  .stat-pill{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 16px; min-width:120px; }
+  .stat-pill .num{ font-size:22px; font-weight:800; letter-spacing:-0.02em; }
+  .stat-pill .lbl{ font-size:12px; color:var(--slate); font-weight:600; margin-top:2px; }
+  .stat-pill.emerald .num{ color:var(--emerald-dark); }
+  .stat-pill.amber .num{ color:#8A6414; }
+  .stat-pill.slate .num{ color:var(--slate); }
+
+  .room-group{ margin-bottom:18px; }
+  .room-group-title{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; margin-bottom:8px; color:var(--ink); }
+  .room-group-title svg{ width:15px; height:15px; color:var(--emerald-dark); }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:680px){
+    .form-grid{ grid-template-columns:1fr; }
+    .list-head{ flex-direction:column; align-items:stretch; }
+    .search-wrap input{ width:100%; max-width:none; }
+    table thead{ display:none; }
+    table, tbody, tr, td{ display:block; width:100%; }
+    tbody tr{ padding:12px 16px; border-bottom:1px solid var(--line); }
+    tbody td{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 0; border-bottom:none; font-size:13.5px; }
+    tbody td::before{ content:attr(data-label); font-size:11.5px; font-weight:700; color:var(--slate); flex-shrink:0; }
+    tbody td.cell-action{ justify-content:flex-end; }
+    tbody td.cell-action::before{ content:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <svg class="emblem" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" fill="#1C2333"/>
+      <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" stroke="#0E9F6E" stroke-width="1.5"/>
+      <text x="24" y="29" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#F5F5F7">WM</text>
+    </svg>
+    <div>
+      <div class="school">SMK Widya Mandala</div>
+      <div class="product">Asesmen</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="guru-switch">
+      <span class="dot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2Z"/><path d="M4 19.5A2 2 0 0 0 6 21h13"/></svg>
+      </span>
+      <span id="guruNameLabel" style="font-size:13px; font-weight:600;"></span>
+    </div>
+    <button type="button" onclick="logout()" style="margin-left:10px; background:none; border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:600; color:var(--slate); cursor:pointer;">Keluar</button>
+  </div>
+</header>
+
+<div class="notice" id="storageNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span id="storageNoticeText"></span>
+  </div>
+</div>
+
+<div class="notice" id="noGuruNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>Belum ada data guru. Tambahkan guru terlebih dahulu lewat halaman Admin.</span>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <nav class="tabs">
+    <button class="tab active" onclick="showPanel('panel-asesmen', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Asesmen
+    </button>
+    <button class="tab" onclick="showPanel('panel-monitoring', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Monitoring
+    </button>
+    <button class="tab" onclick="showPanel('panel-rekap', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+      Rekap
+    </button>
+  </nav>
+</div>
+
+<div class="shell">
+
+  <!-- ============================================================ PANEL: ASESMEN ============================================================ -->
+  <section id="panel-asesmen" class="panel active">
+    <div class="section-head">
+      <h1>Asesmen</h1>
+      <p>Buat soal dari file Word, sunting secara manual, lalu jadwalkan ujiannya.</p>
+    </div>
+
+    <div class="subtabs">
+      <button class="subtab active" onclick="showSubtab('sub-buat', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Buat Soal
+      </button>
+      <button class="subtab" onclick="showSubtab('sub-bank', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2Z"/><path d="M4 19.5A2 2 0 0 0 6 21h13"/></svg>
+        Bank Soal &amp; Edit
+      </button>
+      <button class="subtab" onclick="showSubtab('sub-jadwal', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Jadwal Soal
+      </button>
+    </div>
+
+    <!-- ---------- SUB: BUAT SOAL ---------- -->
+    <div id="sub-buat" class="subpanel active">
+      <div class="card">
+        <span class="card-title">1. Informasi paket soal</span>
+        <div class="form-grid">
+          <label class="field">
+            <span>Mata pelajaran</span>
+            <select id="bs-mapel"></select>
+            <span class="field-hint" id="bs-mapel-hint"></span>
+          </label>
+          <label class="field">
+            <span>Judul paket soal</span>
+            <input type="text" id="bs-judul" placeholder="Contoh: UH Bab 3 - Struktur Data">
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="card-title">2. Unggah file Word (.docx)</span>
+        <div class="dropzone" id="bs-dropzone">
+          <input type="file" id="bs-file" accept=".docx" onchange="handleWordUpload(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          <strong id="bs-drop-text">Klik atau seret file Word ke sini</strong>
+          <span>Hanya format .docx yang didukung</span>
+        </div>
+        <div class="format-guide">
+          <strong>Format yang dikenali saat ini:</strong> nomor soal ditulis <code>1.</code>, opsi jawaban ditulis <code>A.</code> sampai <code>E.</code>, dan kunci jawaban ditandai dengan <strong>huruf tebal (bold)</strong> pada opsi yang benar — atau tulis baris <code>Kunci: B</code> setelah opsi.
+          Soal yang tidak terbaca sempurna akan ditandai untuk ditinjau ulang di menu Edit Soal.
+          <br><br>
+          Format resmi bisa disesuaikan lagi begitu contoh dokumen ujian sudah dikirim.
+        </div>
+        <p class="field-hint" id="bs-status" style="margin-top:10px;"></p>
+      </div>
+
+      <div class="card" id="bs-preview-card" style="display:none;">
+        <span class="card-title">3. Pratinjau hasil unggahan</span>
+        <div id="bs-preview-summary" style="margin-bottom:12px; font-size:13.5px;"></div>
+        <div id="bs-preview-list"></div>
+        <div class="card-actions">
+          <button type="button" class="btn-secondary" onclick="cancelUpload()">Batal</button>
+          <button type="button" class="btn-primary" onclick="saveDraftFromUpload()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Simpan sebagai Draft
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- SUB: BANK SOAL & EDIT ---------- -->
+    <div id="sub-bank" class="subpanel">
+      <div id="bank-list-view">
+        <div class="list-card">
+          <div class="list-head">
+            <span class="list-count" id="bank-count">Memuat…</span>
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="bank-search" placeholder="Cari judul paket soal" oninput="renderQuestionBank()">
+            </div>
+          </div>
+          <div id="bank-table-wrap"></div>
+        </div>
+      </div>
+
+      <div id="bank-editor-view" style="display:none;">
+        <div class="editor-toolbar">
+          <div>
+            <h2 id="ed-judul">—</h2>
+            <div class="editor-meta" id="ed-meta">—</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-secondary" onclick="backToBank()">← Kembali</button>
+            <button class="btn-secondary" onclick="toggleSetStatus()" id="ed-status-btn">Tandai Siap</button>
+            <button class="btn-primary" onclick="saveEditor()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+
+        <label class="field full" style="margin-bottom:18px;">
+          <span>Judul paket soal</span>
+          <input type="text" id="ed-judul-input">
+        </label>
+
+        <div id="ed-questions"></div>
+
+        <button class="btn-secondary" onclick="addQuestion()" style="width:100%; justify-content:center; padding:12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Tambah Soal Baru
+        </button>
+      </div>
+    </div>
+
+    <!-- ---------- SUB: JADWAL SOAL ---------- -->
+    <div id="sub-jadwal" class="subpanel">
+      <form class="card" id="jd-form" onsubmit="return submitJadwal(event)">
+        <span class="card-title" id="jd-card-title">Buat jadwal ujian</span>
+        <div class="form-grid">
+          <label class="field full">
+            <span>Paket soal (status Siap)</span>
+            <select id="jd-set" required></select>
+            <span class="field-hint" id="jd-set-hint"></span>
+          </label>
+          <label class="field">
+            <span>Tanggal ujian</span>
+            <input type="date" id="jd-tanggal" required>
+          </label>
+          <label class="field">
+            <span>Jam mulai</span>
+            <input type="time" id="jd-jam" required>
+          </label>
+          <label class="field">
+            <span>Durasi (menit)</span>
+            <input type="number" id="jd-durasi" min="5" step="5" placeholder="Contoh: 90" required>
+          </label>
+          <label class="field">
+            <span>Tingkat</span>
+            <select id="jd-tingkat" onchange="onTingkatChange()" required></select>
+          </label>
+          <label class="field full">
+            <span>Kelas</span>
+            <div class="chip-grid" id="jd-kelas-grid"></div>
+          </label>
+          <label class="field full">
+            <span>Peserta</span>
+            <div class="peserta-toolbar">
+              <span id="jd-peserta-count">0 peserta dipilih</span>
+              <div>
+                <button type="button" onclick="togglePesertaAll(true)">Pilih semua</button> ·
+                <button type="button" onclick="togglePesertaAll(false)">Kosongkan</button>
+              </div>
+            </div>
+            <div class="peserta-list" id="jd-peserta-list"></div>
+          </label>
+        </div>
+
+        <div class="card" style="background:var(--mist); border-style:dashed; margin-top:16px; margin-bottom:0;">
+          <span class="card-title" style="color:var(--ink);">Pengaturan soal</span>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><strong>Acak urutan soal</strong><span>Setiap peserta mendapat urutan soal berbeda</span></div>
+            <label class="switch"><input type="checkbox" id="jd-acak-soal"><span class="switch-track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><strong>Acak urutan opsi jawaban</strong><span>Urutan A/B/C/D/E diacak per peserta</span></div>
+            <label class="switch"><input type="checkbox" id="jd-acak-opsi"><span class="switch-track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><strong>Nilai langsung muncul</strong><span>Siswa melihat nilai begitu selesai mengerjakan</span></div>
+            <label class="switch"><input type="checkbox" id="jd-tampil-nilai"><span class="switch-track"></span></label>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button type="button" class="btn-ghost" id="jd-cancel-btn" style="display:none;" onclick="cancelJadwalEdit()">Batal edit</button>
+          <button type="submit" class="btn-primary" id="jd-submit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Simpan Jadwal
+          </button>
+        </div>
+      </form>
+
+      <div class="list-card">
+        <div class="list-head">
+          <span class="list-count" id="jd-count">Memuat…</span>
+        </div>
+        <div id="jd-table-wrap"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ PANEL: MONITORING ============================================================ -->
+  <section id="panel-monitoring" class="panel">
+    <div class="section-head">
+      <h1>Monitoring Ujian</h1>
+      <p>Pantau peserta yang sedang mengerjakan ujian di ruang yang kamu awasi.</p>
+    </div>
+
+    <div id="mon-not-supervisor" class="notice" style="margin:0 0 18px; padding:0;">
+      <div class="notice-inner info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span>Akun ini belum terdaftar sebagai guru pengawas di halaman Admin, jadi belum ada ruang ujian yang bisa dipantau.</span>
+      </div>
+    </div>
+
+    <div id="mon-content" style="display:none;">
+      <div class="stat-pills" id="mon-stats"></div>
+
+      <label class="field" style="max-width:340px; margin-bottom:18px;">
+        <span>Ruang ujian yang diawasi</span>
+        <select id="mon-ruang" onchange="renderMonitoring()"></select>
+      </label>
+
+      <div style="margin-bottom:14px;">
+        <button type="button" class="btn-secondary" onclick="refreshMonitoring()">↻ Refresh status peserta</button>
+      </div>
+
+      <div id="mon-list"></div>
+
+      <div class="format-guide" style="margin-top:16px;">
+        Status peserta di sini terisi otomatis begitu siswa membuka dan mengerjakan ujian. Klik <strong>Refresh</strong> untuk melihat status terbaru.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ PANEL: REKAP ============================================================ -->
+  <section id="panel-rekap" class="panel">
+    <div class="section-head">
+      <h1>Rekap Ujian</h1>
+      <p>Daftar peserta yang telah menyelesaikan ujian per jadwal.</p>
+    </div>
+
+    <label class="field" style="max-width:420px; margin-bottom:18px;">
+      <span>Pilih jadwal ujian</span>
+      <select id="rk-jadwal" onchange="renderRekap()"></select>
+    </label>
+
+    <div class="stat-pills" id="rk-stats"></div>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span class="list-count" id="rk-count">—</span>
+      </div>
+      <div id="rk-table-wrap"></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   SUPABASE
+============================================================ */
+const SUPABASE_URL = 'https://cnciipsdowdcljjnacxy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function requireGuru(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ window.location.href = 'index.html'; return null; }
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if(!profile || profile.role !== 'guru'){ window.location.href = 'index.html'; return null; }
+  return profile;
+}
+async function logout(){ await sb.auth.signOut(); window.location.href = 'index.html'; }
+
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function nl2sp(str){ return String(str||'').replace(/\s+/g,' ').trim(); }
+
+/* ============================================================
+   STATE
+============================================================ */
+let guruList = [];       // seluruh guru (untuk lihat nama di rekap dsb)
+let subjects = [];
+let users = [];           // siswa
+let supervisors = [];
+let questionSets = [];
+let schedules = [];
+let attempts = [];
+
+let selectedGuruId = null;   // = guru yang sedang login
+let uploadParsed = null;       // { subjectId, judul, questions, warnings }
+let editingSetId = null;
+let editingSet = null;         // working copy while in editor
+let editingJadwalId = null;
+let jdSelectedKelas = new Set();
+let jdSelectedPeserta = new Set();
+
+function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
+function mapSupervisor(row){ return { id: row.id, guruId: row.guru_id, ruang: row.ruang }; }
+
+function mapQuestionSet(row){
+  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, soal: row.soal || [] };
+}
+function mapSchedule(row){
+  return {
+    id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
+    durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
+    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai
+  };
+}
+function mapAttempt(row){
+  return {
+    id: row.id, scheduleId: row.schedule_id, userId: row.user_id, status: row.status,
+    mulai: row.mulai ? new Date(row.mulai).getTime() : null,
+    selesai: row.selesai ? new Date(row.selesai).getTime() : null,
+    nilai: row.nilai, urutanSoal: row.urutan_soal || [], urutanOpsi: row.urutan_opsi || {}, jawaban: row.jawaban || {}
+  };
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+async function init(){
+  const me = await requireGuru();
+  if(!me) return;
+  selectedGuruId = me.id;
+  document.getElementById('guruNameLabel').textContent = me.nama;
+
+  const [guruRes, subjRes, usersRes, supvRes, qsRes, schRes, atRes] = await Promise.all([
+    sb.from('profiles').select('id,nama,username,email').eq('role', 'guru'),
+    sb.from('subjects').select('*'),
+    sb.from('profiles').select('id,nama,username,kelas,ruang').eq('role', 'siswa'),
+    sb.from('supervisors').select('*'),
+    sb.from('question_sets').select('*'),
+    sb.from('schedules').select('*'),
+    sb.from('exam_attempts').select('*')
+  ]);
+  guruList = guruRes.data || [];
+  subjects = (subjRes.data || []).map(mapSubject);
+  users = usersRes.data || [];
+  supervisors = (supvRes.data || []).map(mapSupervisor);
+  questionSets = (qsRes.data || []).map(mapQuestionSet);
+  schedules = (schRes.data || []).map(mapSchedule);
+  attempts = (atRes.data || []).map(mapAttempt);
+
+  document.getElementById('noGuruNotice').style.display = 'none';
+
+  refreshAll();
+}
+
+function mySubjects(){
+  return subjects.filter(s => s.guruId === selectedGuruId);
+}
+function mySupervisorRooms(){
+  return supervisors.filter(p => p.guruId === selectedGuruId).map(p => p.ruang);
+}
+
+function refreshAll(){
+  populateMapelSelect();
+  renderQuestionBank();
+  backToBank();
+  populateJadwalSetSelect();
+  populateTingkatSelect();
+  renderJadwalList();
+  renderMonitoringGate();
+  populateRekapJadwalSelect();
+  renderRekap();
+}
+
+/* ---------- tab / subtab switching ---------- */
+function showPanel(id, el){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function showSubtab(id, el){
+  document.querySelectorAll('.subpanel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.subtabs .subtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ============================================================
+   BUAT SOAL (upload Word)
+============================================================ */
+function populateMapelSelect(){
+  const sel = document.getElementById('bs-mapel');
+  const my = mySubjects();
+  const hint = document.getElementById('bs-mapel-hint');
+  const dz = document.getElementById('bs-dropzone');
+  if(my.length === 0){
+    sel.innerHTML = `<option value="">Belum ada mata pelajaran</option>`;
+    sel.disabled = true;
+    hint.textContent = 'Akun ini belum ditugaskan sebagai penyusun soal untuk mata pelajaran apa pun (atur di halaman Admin).';
+    dz.classList.add('disabled');
+  } else {
+    sel.disabled = false;
+    hint.textContent = '';
+    dz.classList.remove('disabled');
+    sel.innerHTML = my.map(s => `<option value="${s.id}">${escapeHtml(s.nama)}</option>`).join('');
+  }
+}
+
+async function handleWordUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('bs-status');
+  const mapelId = document.getElementById('bs-mapel').value;
+  if(!mapelId){
+    statusEl.textContent = 'Pilih mata pelajaran terlebih dahulu.';
+    event.target.value = '';
+    return;
+  }
+  if(typeof mammoth === 'undefined'){
+    statusEl.textContent = 'Gagal memuat pustaka pembaca Word. Periksa koneksi internet lalu coba lagi.';
+    return;
+  }
+  statusEl.textContent = 'Membaca dokumen…';
+  document.getElementById('bs-drop-text').textContent = file.name;
+
+  try{
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer });
+    const { questions, warnings } = parseQuestionsFromHtml(result.value);
+
+    if(questions.length === 0){
+      statusEl.textContent = 'Tidak ada soal yang berhasil terbaca dari dokumen ini. Pastikan format penomoran sesuai panduan di bawah.';
+      document.getElementById('bs-preview-card').style.display = 'none';
+      return;
+    }
+
+    uploadParsed = {
+      subjectId: mapelId,
+      judul: document.getElementById('bs-judul').value.trim(),
+      questions, warnings
+    };
+    statusEl.textContent = `Berhasil membaca ${questions.length} soal dari "${file.name}".`;
+    renderUploadPreview();
+  }catch(e){
+    statusEl.textContent = 'Gagal membaca file. Pastikan formatnya .docx dan tidak rusak.';
+  }
+}
+
+function parseQuestionsFromHtml(html){
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const paragraphs = Array.from(container.querySelectorAll('p, li'));
+  const questions = [];
+  let current = null;
+
+  const qRe = /^(\d{1,3})[\.\)]\s+(.+)$/;
+  const optRe = /^([A-Ea-e])[\.\)]\s+(.+)$/;
+  const keyRe = /^(kunci|jawaban)\s*[:\-]?\s*([A-Ea-e])\b/i;
+
+  function extractImg(p){ const img = p.querySelector('img'); return img ? img.getAttribute('src') : null; }
+  function isFullyBold(p){
+    const strongs = p.querySelectorAll('strong, b');
+    if(strongs.length === 0) return false;
+    const total = p.textContent.trim().length;
+    let boldLen = 0;
+    strongs.forEach(s => boldLen += s.textContent.trim().length);
+    return total > 0 && boldLen >= total * 0.85;
+  }
+
+  paragraphs.forEach(p => {
+    const text = nl2sp(p.textContent);
+    const img = extractImg(p);
+    if(!text && !img) return;
+    let m;
+    if((m = text.match(qRe))){
+      if(current) questions.push(current);
+      current = { id: genId(), teks: m[2].trim(), gambar: img, opsi: [], kunciId: null, poin: 1 };
+      return;
+    }
+    if(current && (m = text.match(optRe))){
+      const optId = genId();
+      current.opsi.push({ id: optId, teks: m[2].trim(), gambar: img });
+      if(isFullyBold(p)) current.kunciId = optId;
+      return;
+    }
+    if(current && (m = text.match(keyRe))){
+      const letter = m[2].toUpperCase();
+      const idx = letter.charCodeAt(0) - 65;
+      if(current.opsi[idx]) current.kunciId = current.opsi[idx].id;
+      return;
+    }
+    if(current){
+      if(current.opsi.length > 0){
+        current.opsi[current.opsi.length - 1].teks += ' ' + text;
+      } else if(text){
+        current.teks += ' ' + text;
+      }
+      if(img && current.opsi.length === 0 && !current.gambar) current.gambar = img;
+    }
+  });
+  if(current) questions.push(current);
+
+  const warnings = [];
+  questions.forEach((q, i) => {
+    if(q.opsi.length < 2) warnings.push(`Soal #${i+1} terdeteksi kurang dari 2 opsi jawaban.`);
+    if(!q.kunciId) warnings.push(`Soal #${i+1} kunci jawaban tidak terdeteksi otomatis.`);
+  });
+  return { questions, warnings };
+}
+
+function renderUploadPreview(){
+  const card = document.getElementById('bs-preview-card');
+  card.style.display = 'block';
+  const { questions, warnings } = uploadParsed;
+
+  document.getElementById('bs-preview-summary').innerHTML =
+    `<strong>${questions.length} soal</strong> terdeteksi` +
+    (warnings.length ? `, <span style="color:var(--red)">${warnings.length} bagian perlu ditinjau</span>.` : ', semua terbaca lengkap.');
+
+  document.getElementById('bs-preview-list').innerHTML = questions.map((q, i) => {
+    const flagged = q.opsi.length < 2 || !q.kunciId;
+    return `<div class="qcard">
+      <div class="qcard-head">
+        <span class="qnum">Soal ${i+1}</span>
+        ${flagged ? `<span class="qcard-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Perlu ditinjau</span>` : ''}
+      </div>
+      <div style="font-size:13.5px; margin-bottom:8px;">${escapeHtml(q.teks)}</div>
+      ${q.gambar ? `<div class="img-preview"><img src="${q.gambar}" alt=""></div>` : ''}
+      ${q.opsi.map((o, oi) => `<div style="font-size:12.5px; padding:5px 0; ${o.id===q.kunciId?'color:var(--emerald-dark); font-weight:700;':'color:var(--slate);'}">
+        ${String.fromCharCode(65+oi)}. ${escapeHtml(o.teks)} ${o.id===q.kunciId ? '✓ kunci' : ''}
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function cancelUpload(){
+  uploadParsed = null;
+  document.getElementById('bs-preview-card').style.display = 'none';
+  document.getElementById('bs-file').value = '';
+  document.getElementById('bs-drop-text').textContent = 'Klik atau seret file Word ke sini';
+  document.getElementById('bs-status').textContent = '';
+  document.getElementById('bs-judul').value = '';
+}
+
+async function saveDraftFromUpload(){
+  if(!uploadParsed) return;
+  const judul = document.getElementById('bs-judul').value.trim() || 'Paket soal tanpa judul';
+  const { data, error } = await sb.from('question_sets').insert({
+    subject_id: uploadParsed.subjectId,
+    judul,
+    status: 'draft',
+    soal: uploadParsed.questions
+  }).select().single();
+  if(error){ alert(error.message); return; }
+  const newSet = mapQuestionSet(data);
+  questionSets.push(newSet);
+  cancelUpload();
+  renderQuestionBank();
+  document.querySelectorAll('.subtabs .subtab')[1].click();
+  openEditor(newSet.id);
+}
+
+/* ============================================================
+   BANK SOAL & EDIT
+============================================================ */
+function renderQuestionBank(){
+  const mySubjIds = mySubjects().map(s => s.id);
+  const mine = questionSets.filter(qs => mySubjIds.includes(qs.subjectId));
+  const q = document.getElementById('bank-search').value.trim().toLowerCase();
+  const rows = mine.filter(qs => !q || qs.judul.toLowerCase().includes(q));
+  document.getElementById('bank-count').textContent = mine.length + ' paket soal';
+  const wrap = document.getElementById('bank-table-wrap');
+
+  if(mine.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada paket soal</strong>Unggah soal dari file Word di tab "Buat Soal".</div>`;
+    return;
+  }
+  if(rows.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada paket soal yang cocok dengan pencarian.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Judul</th><th>Mata pelajaran</th><th>Jumlah soal</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      ${rows.map(qs => {
+        const subj = subjects.find(s => s.id === qs.subjectId);
+        return `<tr>
+          <td data-label="Judul" class="cell-primary">${escapeHtml(qs.judul)}</td>
+          <td data-label="Mata pelajaran" class="cell-muted">${subj ? escapeHtml(subj.nama) : '—'}</td>
+          <td data-label="Jumlah soal">${qs.soal.length}</td>
+          <td data-label="Status"><span class="badge badge-${qs.status}">${qs.status === 'siap' ? 'Siap' : 'Draft'}</span></td>
+          <td class="cell-action"><div class="row-actions">
+            <button class="icon-btn" onclick="openEditor('${qs.id}')" aria-label="Edit paket soal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+            </button>
+            <button class="icon-btn" onclick="deleteQuestionSet('${qs.id}')" aria-label="Hapus paket soal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            </button>
+          </div></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function deleteQuestionSet(id){
+  if(!confirm('Hapus paket soal ini? Jadwal ujian yang memakainya juga akan terhapus.')) return;
+  const { error } = await sb.from('question_sets').delete().eq('id', id);
+  if(error){ alert(error.message); return; }
+  questionSets = questionSets.filter(qs => qs.id !== id);
+  renderQuestionBank();
+  populateJadwalSetSelect();
+}
+
+function openEditor(id){
+  const qs = questionSets.find(x => x.id === id);
+  if(!qs) return;
+  editingSetId = id;
+  editingSet = JSON.parse(JSON.stringify(qs));
+  document.getElementById('bank-list-view').style.display = 'none';
+  document.getElementById('bank-editor-view').style.display = 'block';
+  document.getElementById('ed-judul-input').value = editingSet.judul;
+  renderEditorMeta();
+  renderEditorQuestions();
+}
+function backToBank(){
+  editingSetId = null;
+  editingSet = null;
+  document.getElementById('bank-list-view').style.display = 'block';
+  document.getElementById('bank-editor-view').style.display = 'none';
+}
+function renderEditorMeta(){
+  const subj = subjects.find(s => s.id === editingSet.subjectId);
+  document.getElementById('ed-judul').textContent = editingSet.judul || 'Paket soal';
+  document.getElementById('ed-meta').textContent = `${subj ? subj.nama : '—'} · ${editingSet.soal.length} soal`;
+  const btn = document.getElementById('ed-status-btn');
+  btn.textContent = editingSet.status === 'siap' ? 'Kembalikan ke Draft' : 'Tandai Siap';
+}
+function toggleSetStatus(){
+  editingSet.status = editingSet.status === 'siap' ? 'draft' : 'siap';
+  renderEditorMeta();
+}
+
+function renderEditorQuestions(){
+  const wrap = document.getElementById('ed-questions');
+  if(editingSet.soal.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada soal</strong>Klik "Tambah Soal Baru" di bawah.</div>`;
+    return;
+  }
+  wrap.innerHTML = editingSet.soal.map((q, i) => {
+    const flagged = q.opsi.length < 2 || !q.kunciId;
+    return `<div class="qcard">
+      <div class="qcard-head">
+        <span class="qnum">Soal ${i+1}</span>
+        ${flagged ? `<span class="qcard-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Perlu dilengkapi</span>` : ''}
+      </div>
+      <textarea onchange="updateQuestionText('${q.id}', this.value)" placeholder="Teks soal">${escapeHtml(q.teks)}</textarea>
+
+      ${q.gambar
+        ? `<div class="img-preview"><img src="${q.gambar}" alt=""><button type="button" class="img-remove" onclick="removeQuestionImage('${q.id}')">Hapus gambar</button></div>`
+        : `<label class="img-upload-btn" style="margin-top:8px;">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+             Tambah gambar soal
+             <input type="file" accept="image/*" onchange="uploadQuestionImage('${q.id}', event)">
+           </label>`}
+
+      <div style="margin-top:14px;">
+        ${q.opsi.map((o, oi) => `<div class="opt-row ${o.id === q.kunciId ? 'is-key' : ''}">
+          <input type="radio" name="key-${q.id}" ${o.id === q.kunciId ? 'checked' : ''} onchange="setKunci('${q.id}','${o.id}')" title="Tandai sebagai kunci jawaban">
+          <span class="opt-letter">${String.fromCharCode(65+oi)}</span>
+          <div class="opt-body">
+            <textarea onchange="updateOptionText('${q.id}','${o.id}', this.value)" placeholder="Teks opsi">${escapeHtml(o.teks)}</textarea>
+            ${o.gambar
+              ? `<div class="img-preview"><img src="${o.gambar}" alt=""><button type="button" class="img-remove" onclick="removeOptionImage('${q.id}','${o.id}')">Hapus gambar</button></div>`
+              : `<label class="img-upload-btn">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+                   Gambar opsi
+                   <input type="file" accept="image/*" onchange="uploadOptionImage('${q.id}','${o.id}', event)">
+                 </label>`}
+          </div>
+          <button type="button" class="opt-remove" onclick="removeOption('${q.id}','${o.id}')" aria-label="Hapus opsi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`).join('')}
+      </div>
+
+      <div class="qcard-actions">
+        <button type="button" class="btn-secondary" onclick="addOption('${q.id}')" ${q.opsi.length >= 6 ? 'disabled' : ''}>+ Tambah opsi</button>
+        <button type="button" class="btn-secondary btn-danger" onclick="removeQuestion('${q.id}')">Hapus soal</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function findQ(qid){ return editingSet.soal.find(q => q.id === qid); }
+function updateQuestionText(qid, val){ findQ(qid).teks = val; }
+function updateOptionText(qid, oid, val){ const q = findQ(qid); q.opsi.find(o => o.id === oid).teks = val; }
+function setKunci(qid, oid){ findQ(qid).kunciId = oid; renderEditorQuestions(); }
+
+function addQuestion(){
+  editingSet.soal.push({ id: genId(), teks: '', gambar: null, opsi: [
+    { id: genId(), teks: '', gambar: null }, { id: genId(), teks: '', gambar: null }
+  ], kunciId: null, poin: 1 });
+  renderEditorMeta();
+  renderEditorQuestions();
+}
+function removeQuestion(qid){
+  editingSet.soal = editingSet.soal.filter(q => q.id !== qid);
+  renderEditorMeta();
+  renderEditorQuestions();
+}
+function addOption(qid){
+  const q = findQ(qid);
+  if(q.opsi.length >= 6) return;
+  q.opsi.push({ id: genId(), teks: '', gambar: null });
+  renderEditorQuestions();
+}
+function removeOption(qid, oid){
+  const q = findQ(qid);
+  q.opsi = q.opsi.filter(o => o.id !== oid);
+  if(q.kunciId === oid) q.kunciId = null;
+  renderEditorQuestions();
+}
+
+function readImageFile(file, cb){
+  if(file.size > 1024 * 1024){
+    alert('Ukuran gambar maksimal 1MB agar penyimpanan tidak penuh.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => cb(reader.result);
+  reader.readAsDataURL(file);
+}
+function uploadQuestionImage(qid, event){
+  const file = event.target.files[0]; if(!file) return;
+  readImageFile(file, dataUrl => { findQ(qid).gambar = dataUrl; renderEditorQuestions(); });
+}
+function removeQuestionImage(qid){ findQ(qid).gambar = null; renderEditorQuestions(); }
+function uploadOptionImage(qid, oid, event){
+  const file = event.target.files[0]; if(!file) return;
+  readImageFile(file, dataUrl => { findQ(qid).opsi.find(o => o.id === oid).gambar = dataUrl; renderEditorQuestions(); });
+}
+function removeOptionImage(qid, oid){ findQ(qid).opsi.find(o => o.id === oid).gambar = null; renderEditorQuestions(); }
+
+async function saveEditor(){
+  editingSet.judul = document.getElementById('ed-judul-input').value.trim() || 'Paket soal tanpa judul';
+  editingSet.updatedAt = Date.now();
+  const { error } = await sb.from('question_sets')
+    .update({ judul: editingSet.judul, status: editingSet.status, soal: editingSet.soal })
+    .eq('id', editingSetId);
+  if(error){ alert(error.message); return; }
+  const idx = questionSets.findIndex(qs => qs.id === editingSetId);
+  if(idx > -1) questionSets[idx] = editingSet;
+  renderQuestionBank();
+  populateJadwalSetSelect();
+  renderEditorMeta();
+  alert('Perubahan tersimpan.');
+}
+
+/* ============================================================
+   JADWAL SOAL
+============================================================ */
+function populateJadwalSetSelect(){
+  const sel = document.getElementById('jd-set');
+  const mySubjIds = mySubjects().map(s => s.id);
+  const ready = questionSets.filter(qs => mySubjIds.includes(qs.subjectId) && qs.status === 'siap');
+  const hint = document.getElementById('jd-set-hint');
+  const btn = document.getElementById('jd-submit-btn');
+  if(ready.length === 0){
+    sel.innerHTML = `<option value="">Belum ada paket soal berstatus Siap</option>`;
+    sel.disabled = true; btn.disabled = true;
+    hint.textContent = 'Tandai paket soal sebagai "Siap" di Bank Soal sebelum dijadwalkan.';
+  } else {
+    sel.disabled = false; btn.disabled = false; hint.textContent = '';
+    sel.innerHTML = ready.map(qs => {
+      const subj = subjects.find(s => s.id === qs.subjectId);
+      return `<option value="${qs.id}">${escapeHtml(qs.judul)} — ${subj ? escapeHtml(subj.nama) : ''}</option>`;
+    }).join('');
+  }
+}
+
+function populateTingkatSelect(){
+  const tingkatSet = new Set(users.map(u => (u.kelas || '').split(' ')[0]).filter(Boolean));
+  const sel = document.getElementById('jd-tingkat');
+  sel.innerHTML = `<option value="">Pilih tingkat</option>` +
+    Array.from(tingkatSet).sort().map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+}
+
+function onTingkatChange(){
+  jdSelectedKelas = new Set();
+  jdSelectedPeserta = new Set();
+  const tingkat = document.getElementById('jd-tingkat').value;
+  const grid = document.getElementById('jd-kelas-grid');
+  if(!tingkat){ grid.innerHTML = ''; renderPesertaList(); return; }
+  const kelasSet = new Set(users.filter(u => (u.kelas || '').startsWith(tingkat)).map(u => u.kelas));
+  grid.innerHTML = Array.from(kelasSet).sort().map(k => {
+    const id = 'kelas-' + k.replace(/\W+/g, '');
+    return `<div class="chip-check">
+      <input type="checkbox" id="${id}" onchange="onKelasToggle('${escapeHtml(k)}', this.checked)">
+      <label for="${id}">${escapeHtml(k)}</label>
+    </div>`;
+  }).join('');
+  renderPesertaList();
+}
+
+function onKelasToggle(kelas, checked){
+  if(checked) jdSelectedKelas.add(kelas); else jdSelectedKelas.delete(kelas);
+  const siswaKelas = users.filter(u => u.kelas === kelas).map(u => u.id);
+  if(checked){ siswaKelas.forEach(id => jdSelectedPeserta.add(id)); }
+  else{ siswaKelas.forEach(id => jdSelectedPeserta.delete(id)); }
+  renderPesertaList();
+}
+
+function renderPesertaList(){
+  const wrap = document.getElementById('jd-peserta-list');
+  const siswa = users.filter(u => jdSelectedKelas.has(u.kelas));
+  if(siswa.length === 0){
+    wrap.innerHTML = `<div class="empty-state" style="padding:20px;">Pilih kelas terlebih dahulu untuk menampilkan daftar peserta.</div>`;
+  } else {
+    wrap.innerHTML = siswa.map(u => `<div class="peserta-row">
+      <input type="checkbox" ${jdSelectedPeserta.has(u.id) ? 'checked' : ''} onchange="onPesertaToggle('${u.id}', this.checked)">
+      <span class="p-name">${escapeHtml(u.nama)}</span>
+      <span class="p-meta">${escapeHtml(u.kelas)} · ${escapeHtml(u.username)}</span>
+    </div>`).join('');
+  }
+  document.getElementById('jd-peserta-count').textContent = jdSelectedPeserta.size + ' peserta dipilih';
+}
+function onPesertaToggle(id, checked){
+  if(checked) jdSelectedPeserta.add(id); else jdSelectedPeserta.delete(id);
+  document.getElementById('jd-peserta-count').textContent = jdSelectedPeserta.size + ' peserta dipilih';
+}
+function togglePesertaAll(select){
+  const siswa = users.filter(u => jdSelectedKelas.has(u.kelas));
+  siswa.forEach(u => select ? jdSelectedPeserta.add(u.id) : jdSelectedPeserta.delete(u.id));
+  renderPesertaList();
+}
+
+async function submitJadwal(event){
+  event.preventDefault();
+  if(jdSelectedPeserta.size === 0){ alert('Pilih minimal satu peserta.'); return false; }
+  const record = {
+    questionSetId: document.getElementById('jd-set').value,
+    tanggal: document.getElementById('jd-tanggal').value,
+    jamMulai: document.getElementById('jd-jam').value,
+    durasiMenit: parseInt(document.getElementById('jd-durasi').value, 10) || 60,
+    tingkat: document.getElementById('jd-tingkat').value,
+    kelas: Array.from(jdSelectedKelas),
+    peserta: Array.from(jdSelectedPeserta),
+    acakSoal: document.getElementById('jd-acak-soal').checked,
+    acakOpsi: document.getElementById('jd-acak-opsi').checked,
+    tampilkanNilai: document.getElementById('jd-tampil-nilai').checked
+  };
+  const dbRecord = {
+    question_set_id: record.questionSetId, tanggal: record.tanggal, jam_mulai: record.jamMulai,
+    durasi_menit: record.durasiMenit, tingkat: record.tingkat, kelas: record.kelas, peserta: record.peserta,
+    acak_soal: record.acakSoal, acak_opsi: record.acakOpsi, tampilkan_nilai: record.tampilkanNilai
+  };
+  if(editingJadwalId){
+    const { error } = await sb.from('schedules').update(dbRecord).eq('id', editingJadwalId);
+    if(error){ alert(error.message); return false; }
+    const idx = schedules.findIndex(s => s.id === editingJadwalId);
+    if(idx > -1) schedules[idx] = { ...schedules[idx], ...record };
+  } else {
+    const { data, error } = await sb.from('schedules').insert(dbRecord).select().single();
+    if(error){ alert(error.message); return false; }
+    schedules.push(mapSchedule(data));
+  }
+  cancelJadwalEdit();
+  renderJadwalList();
+  populateRekapJadwalSelect();
+  return false;
+}
+
+function cancelJadwalEdit(){
+  editingJadwalId = null;
+  document.getElementById('jd-form').reset();
+  jdSelectedKelas = new Set();
+  jdSelectedPeserta = new Set();
+  document.getElementById('jd-kelas-grid').innerHTML = '';
+  renderPesertaList();
+  document.getElementById('jd-card-title').textContent = 'Buat jadwal ujian';
+  document.getElementById('jd-cancel-btn').style.display = 'none';
+}
+
+function editJadwal(id){
+  const j = schedules.find(x => x.id === id);
+  if(!j) return;
+  editingJadwalId = id;
+  document.getElementById('jd-set').value = j.questionSetId;
+  document.getElementById('jd-tanggal').value = j.tanggal;
+  document.getElementById('jd-jam').value = j.jamMulai;
+  document.getElementById('jd-durasi').value = j.durasiMenit;
+  document.getElementById('jd-tingkat').value = j.tingkat;
+  onTingkatChange();
+  j.kelas.forEach(k => {
+    const id2 = 'kelas-' + k.replace(/\W+/g, '');
+    const el = document.getElementById(id2);
+    if(el){ el.checked = true; onKelasToggle(k, true); }
+  });
+  jdSelectedPeserta = new Set(j.peserta);
+  renderPesertaList();
+  document.getElementById('jd-acak-soal').checked = j.acakSoal;
+  document.getElementById('jd-acak-opsi').checked = j.acakOpsi;
+  document.getElementById('jd-tampil-nilai').checked = j.tampilkanNilai;
+  document.getElementById('jd-card-title').textContent = 'Edit jadwal ujian';
+  document.getElementById('jd-cancel-btn').style.display = 'inline';
+  document.getElementById('jd-form').scrollIntoView({ behavior:'smooth' });
+}
+
+async function deleteJadwal(id){
+  if(!confirm('Hapus jadwal ujian ini?')) return;
+  const { error } = await sb.from('schedules').delete().eq('id', id);
+  if(error){ alert(error.message); return; }
+  schedules = schedules.filter(s => s.id !== id);
+  if(editingJadwalId === id) cancelJadwalEdit();
+  renderJadwalList();
+  populateRekapJadwalSelect();
+}
+
+function getJadwalStatus(j){
+  const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
+  const end = new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+  const now = new Date();
+  if(now < start) return 'terjadwal';
+  if(now >= start && now <= end) return 'berlangsung';
+  return 'selesai';
+}
+const statusLabel = { terjadwal:'Terjadwal', berlangsung:'Berlangsung', selesai:'Selesai' };
+
+function renderJadwalList(){
+  const mySubjIds = mySubjects().map(s => s.id);
+  const mySetIds = questionSets.filter(qs => mySubjIds.includes(qs.subjectId)).map(qs => qs.id);
+  const mine = schedules.filter(s => mySetIds.includes(s.questionSetId));
+  document.getElementById('jd-count').textContent = mine.length + ' jadwal ujian';
+  const wrap = document.getElementById('jd-table-wrap');
+  if(mine.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal</strong>Buat jadwal ujian lewat formulir di atas.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Paket soal</th><th>Tanggal</th><th>Kelas</th><th>Peserta</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      ${mine.slice().sort((a,b)=>(b.tanggal+b.jamMulai).localeCompare(a.tanggal+a.jamMulai)).map(j => {
+        const qs = questionSets.find(x => x.id === j.questionSetId);
+        const st = getJadwalStatus(j);
+        return `<tr>
+          <td data-label="Paket soal" class="cell-primary">${qs ? escapeHtml(qs.judul) : 'Paket dihapus'}</td>
+          <td data-label="Tanggal">${escapeHtml(j.tanggal)} · ${escapeHtml(j.jamMulai)}</td>
+          <td data-label="Kelas" class="cell-muted">${j.kelas.map(escapeHtml).join(', ')}</td>
+          <td data-label="Peserta">${j.peserta.length}</td>
+          <td data-label="Status"><span class="badge badge-${st}">${statusLabel[st]}</span></td>
+          <td class="cell-action"><div class="row-actions">
+            <button class="icon-btn" onclick="editJadwal('${j.id}')" aria-label="Edit jadwal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+            </button>
+            <button class="icon-btn" onclick="deleteJadwal('${j.id}')" aria-label="Hapus jadwal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            </button>
+          </div></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+/* ============================================================
+   MONITORING
+============================================================ */
+function renderMonitoringGate(){
+  const rooms = mySupervisorRooms();
+  document.getElementById('mon-not-supervisor').style.display = rooms.length === 0 ? 'block' : 'none';
+  document.getElementById('mon-content').style.display = rooms.length === 0 ? 'none' : 'block';
+  if(rooms.length === 0) return;
+  const sel = document.getElementById('mon-ruang');
+  sel.innerHTML = rooms.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+  renderMonitoring();
+}
+
+function findAttempt(scheduleId, userId){
+  return attempts.find(a => a.scheduleId === scheduleId && a.userId === userId);
+}
+
+function renderMonitoring(){
+  const ruang = document.getElementById('mon-ruang').value;
+  if(!ruang) return;
+  const active = schedules.filter(j => {
+    const st = getJadwalStatus(j);
+    return (st === 'berlangsung' || st === 'terjadwal') && j.tanggal === new Date().toISOString().slice(0,10);
+  });
+
+  const rows = [];
+  active.forEach(j => {
+    j.peserta.forEach(uid => {
+      const u = users.find(x => x.id === uid);
+      if(!u || u.ruang !== ruang) return;
+      const at = findAttempt(j.id, uid);
+      rows.push({ jadwal: j, siswa: u, status: at ? at.status : 'belum_mulai' });
+    });
+  });
+
+  const counts = { belum_mulai:0, mengerjakan:0, selesai:0 };
+  rows.forEach(r => counts[r.status]++);
+  document.getElementById('mon-stats').innerHTML = `
+    <div class="stat-pill slate"><div class="num">${counts.belum_mulai}</div><div class="lbl">Belum mulai</div></div>
+    <div class="stat-pill amber"><div class="num">${counts.mengerjakan}</div><div class="lbl">Sedang mengerjakan</div></div>
+    <div class="stat-pill emerald"><div class="num">${counts.selesai}</div><div class="lbl">Selesai</div></div>
+  `;
+
+  const wrap = document.getElementById('mon-list');
+  if(rows.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada ujian hari ini di ruang ini</strong>Jadwal ujian untuk ruang ${escapeHtml(ruang)} akan muncul di sini saat tanggalnya tiba.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="list-card"><table>
+    <thead><tr><th>Nama</th><th>NIS (username)</th><th>Kelas</th><th>Paket ujian</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      ${rows.map(r => {
+        const badgeClass = r.status === 'selesai' ? 'badge-selesai' : r.status === 'mengerjakan' ? 'badge-mengerjakan' : 'badge-belum';
+        const label = r.status === 'selesai' ? 'Selesai' : r.status === 'mengerjakan' ? 'Mengerjakan' : 'Belum mulai';
+        return `<tr>
+          <td data-label="Nama" class="cell-primary">${escapeHtml(r.siswa.nama)}</td>
+          <td data-label="NIS (username)" class="cell-muted">${escapeHtml(r.siswa.username)}</td>
+          <td data-label="Kelas">${escapeHtml(r.siswa.kelas)}</td>
+          <td data-label="Paket ujian" class="cell-muted">${escapeHtml(questionSets.find(q=>q.id===r.jadwal.questionSetId)?.judul || '—')}</td>
+          <td data-label="Status"><span class="badge ${badgeClass}">${r.status==='mengerjakan' ? '<span class="badge-dot"></span>' : ''}${label}</span></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+async function refreshMonitoring(){
+  const { data, error } = await sb.from('exam_attempts').select('*');
+  if(error){ alert(error.message); return; }
+  attempts = (data || []).map(mapAttempt);
+  renderMonitoring();
+  renderRekap();
+}
+
+/* ============================================================
+   REKAP
+============================================================ */
+function populateRekapJadwalSelect(){
+  const mySubjIds = mySubjects().map(s => s.id);
+  const mySetIds = questionSets.filter(qs => mySubjIds.includes(qs.subjectId)).map(qs => qs.id);
+  const mine = schedules.filter(s => mySetIds.includes(s.questionSetId));
+  const sel = document.getElementById('rk-jadwal');
+  if(mine.length === 0){
+    sel.innerHTML = `<option value="">Belum ada jadwal ujian</option>`;
+    return;
+  }
+  sel.innerHTML = mine.slice().sort((a,b)=>(b.tanggal+b.jamMulai).localeCompare(a.tanggal+a.jamMulai)).map(j => {
+    const qs = questionSets.find(x => x.id === j.questionSetId);
+    return `<option value="${j.id}">${qs ? escapeHtml(qs.judul) : 'Paket dihapus'} — ${escapeHtml(j.tanggal)}</option>`;
+  }).join('');
+}
+
+function renderRekap(){
+  const jid = document.getElementById('rk-jadwal').value;
+  const wrap = document.getElementById('rk-table-wrap');
+  if(!jid){
+    document.getElementById('rk-count').textContent = '—';
+    document.getElementById('rk-stats').innerHTML = '';
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
+    return;
+  }
+  const j = schedules.find(x => x.id === jid);
+  if(!j) return;
+  const rows = j.peserta.map(uid => {
+    const u = users.find(x => x.id === uid);
+    const at = findAttempt(j.id, uid);
+    return { u, status: at ? at.status : 'belum_mulai', nilai: at ? at.nilai : null, selesai: at ? at.selesai : null };
+  }).filter(r => r.u);
+
+  const done = rows.filter(r => r.status === 'selesai');
+  document.getElementById('rk-count').textContent = `${done.length} dari ${rows.length} peserta telah menyelesaikan`;
+  document.getElementById('rk-stats').innerHTML = `
+    <div class="stat-pill emerald"><div class="num">${done.length}</div><div class="lbl">Selesai</div></div>
+    <div class="stat-pill slate"><div class="num">${rows.length - done.length}</div><div class="lbl">Belum selesai</div></div>
+    <div class="stat-pill amber"><div class="num">${done.length ? Math.round(done.reduce((s,r)=>s+(r.nilai||0),0)/done.length) : '—'}</div><div class="lbl">Rata-rata nilai</div></div>
+  `;
+
+  if(rows.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada peserta</strong></div>`;
+    return;
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Nama</th><th>NIS (username)</th><th>Kelas</th><th>Status</th><th>Selesai pukul</th><th>Nilai</th></tr></thead>
+    <tbody>
+      ${rows.slice().sort((a,b)=> a.u.nama.localeCompare(b.u.nama)).map(r => {
+        const badgeClass = r.status === 'selesai' ? 'badge-selesai' : r.status === 'mengerjakan' ? 'badge-mengerjakan' : 'badge-belum';
+        const label = r.status === 'selesai' ? 'Selesai' : r.status === 'mengerjakan' ? 'Mengerjakan' : 'Belum mulai';
+        return `<tr>
+          <td data-label="Nama" class="cell-primary">${escapeHtml(r.u.nama)}</td>
+          <td data-label="NIS (username)" class="cell-muted">${escapeHtml(r.u.username)}</td>
+          <td data-label="Kelas">${escapeHtml(r.u.kelas)}</td>
+          <td data-label="Status"><span class="badge ${badgeClass}">${label}</span></td>
+          <td data-label="Selesai pukul" class="cell-muted">${r.selesai ? new Date(r.selesai).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+          <td data-label="Nilai">${r.nilai ?? '—'}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Asesmen SMK Widya Mandala</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#161A23;
+    --navy:#1C2333;
+    --paper:#FFFFFF;
+    --cream:#F8F8FA;
+    --slate:#68707E;
+    --line:#E7E9EE;
+    --mist:#F3F4F7;
+
+    --wine:#7C3AED;
+    --wine-soft:#EEE6FD;
+    --wine-dark:#6428C7;
+    --amber:#B8862E;
+    --amber-soft:#F3E9D2;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-weight:700; letter-spacing:-0.02em; margin:0; }
+  button{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--wine); outline-offset:2px; }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:16px 20px;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .emblem{ width:32px; height:32px; flex-shrink:0; }
+  .brand .school{ font-weight:700; font-size:14.5px; line-height:1.2; letter-spacing:-0.01em; }
+  .brand .product{ font-size:11.5px; color:var(--slate); }
+  .role-badge{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    background:var(--wine-soft);
+    color:var(--wine-dark);
+    font-size:12.5px;
+    font-weight:600;
+    padding:7px 12px 7px 8px;
+    border-radius:99px;
+  }
+  .role-badge .dot{
+    width:22px; height:22px;
+    border-radius:50%;
+    background:var(--wine);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .role-badge svg{ width:12px; height:12px; }
+
+  /* ---------- Storage notice ---------- */
+  .notice{
+    max-width:960px;
+    margin:14px auto 0;
+    padding:0 16px;
+  }
+  .notice-inner{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    background:var(--amber-soft);
+    border:1px solid #E4CE96;
+    color:#5E4B1C;
+    border-radius:10px;
+    padding:11px 13px;
+    font-size:12.5px;
+    line-height:1.5;
+  }
+  .notice-inner svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; }
+
+  /* ---------- Section tabs ---------- */
+  .tabs-wrap{
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:65px;
+    z-index:19;
+  }
+  .tabs{
+    max-width:960px;
+    margin:0 auto;
+    display:flex;
+    gap:4px;
+    padding:0 16px;
+    overflow-x:auto;
+  }
+  .tab{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    background:none;
+    border:none;
+    padding:14px 6px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--slate);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .tab svg{ width:16px; height:16px; }
+  .tab.active{ color:var(--wine); }
+  .tab::after{
+    content:'';
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:2.5px;
+    background:var(--wine);
+    border-radius:2px 2px 0 0;
+    transform:scaleX(0);
+    transition:transform 0.2s ease;
+  }
+  .tab.active::after{ transform:scaleX(1); }
+
+  /* ---------- Shell ---------- */
+  .shell{ max-width:960px; margin:0 auto; padding:26px 16px 60px; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .section-head{ margin-bottom:18px; }
+  .section-head h1{ font-size:22px; letter-spacing:-0.01em; }
+  .section-head p{ margin:5px 0 0; font-size:13.5px; color:var(--slate); }
+
+  /* ---------- Form card ---------- */
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:22px;
+    box-shadow:0 1px 2px rgba(20,20,30,0.03);
+  }
+  .card-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .card-title{ font-size:13px; font-weight:700; color:var(--wine-dark); }
+  .cancel-edit{
+    display:none;
+    background:none;
+    border:none;
+    color:var(--slate);
+    font-size:12.5px;
+    font-weight:600;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .card.editing .cancel-edit{ display:inline; }
+
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .form-grid .field.full{ grid-column:1 / -1; }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field span{ font-size:12.5px; font-weight:600; }
+  .field input, .field select{
+    font-family:inherit;
+    font-size:14.5px;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:var(--cream);
+    color:var(--ink);
+    width:100%;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--wine); background:var(--paper); }
+  .field-hint{ font-size:12px; color:var(--slate); }
+  .field select:disabled{ color:var(--slate); cursor:not-allowed; }
+
+  .card-actions{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:16px;
+  }
+  .btn-primary{
+    background:var(--wine);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:11px 20px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+  }
+  .btn-primary:hover{ background:var(--wine-dark); }
+  .btn-primary:disabled{ background:var(--line); color:var(--slate); cursor:not-allowed; }
+  .btn-primary svg{ width:16px; height:16px; }
+
+  /* ---------- Bulk import ---------- */
+  .bulk-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    background:var(--mist);
+    border:1.5px dashed var(--line);
+    border-radius:14px;
+    padding:15px 18px;
+    margin-bottom:16px;
+  }
+  .bulk-card-text{ display:flex; flex-direction:column; gap:2px; }
+  .bulk-card-text strong{ font-size:13.5px; font-weight:700; }
+  .bulk-card-text span{ font-size:12.5px; color:var(--slate); }
+  .bulk-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-secondary{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:var(--paper);
+    color:var(--ink);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 14px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+  .btn-secondary:hover{ border-color:var(--wine); color:var(--wine); }
+  .btn-secondary svg{ width:15px; height:15px; flex-shrink:0; }
+  .btn-upload{ position:relative; }
+  .btn-upload input[type=file]{
+    position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+  }
+
+  .import-result{ display:none; margin:-4px 0 16px; font-size:12.5px; }
+  .import-line{ padding:10px 13px; border-radius:9px; margin-bottom:6px; line-height:1.55; }
+  .import-ok{ background:#DCF5EA; color:#0B6B49; font-weight:600; }
+  .import-warn{ background:var(--amber-soft); color:#5E4B1C; }
+  .import-warn ul{ margin:6px 0 0; padding-left:18px; }
+  .import-warn li{ margin-bottom:2px; }
+  .import-warn .more{ display:block; margin-top:4px; font-style:italic; }
+
+  @media (max-width:680px){
+    .bulk-card{ flex-direction:column; align-items:stretch; }
+    .bulk-actions{ justify-content:stretch; }
+    .bulk-actions .btn-secondary{ flex:1; justify-content:center; }
+  }
+
+  /* ---------- List card ---------- */
+  .list-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,0.03);
+  }
+  .list-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .list-count{ font-size:12.5px; color:var(--slate); font-weight:600; }
+  .search-wrap{ position:relative; }
+  .search-wrap svg{
+    position:absolute; left:10px; top:50%; transform:translateY(-50%);
+    width:15px; height:15px; color:var(--slate);
+  }
+  .search-wrap input{
+    font-family:inherit;
+    font-size:13.5px;
+    padding:8px 10px 8px 32px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:var(--cream);
+    width:190px;
+    max-width:45vw;
+  }
+  .search-wrap input:focus{ border-color:var(--wine); background:var(--paper); }
+
+  table{ width:100%; border-collapse:collapse; }
+  thead th{
+    text-align:left;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--slate);
+    padding:10px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--mist);
+  }
+  tbody td{
+    padding:12px 16px;
+    font-size:13.5px;
+    border-bottom:1px solid var(--line);
+    vertical-align:middle;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  .cell-primary{ font-weight:600; }
+  .cell-muted{ color:var(--slate); }
+  .cell-warn{ color:var(--wine); font-style:italic; }
+
+  .row-actions{ display:flex; gap:4px; justify-content:flex-end; }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--slate);
+    cursor:pointer;
+    padding:6px;
+    border-radius:6px;
+    display:flex;
+  }
+  .icon-btn:hover{ color:var(--wine); background:var(--wine-soft); }
+  .icon-btn svg{ width:16px; height:16px; }
+
+  .empty-state{
+    padding:36px 20px;
+    text-align:center;
+    color:var(--slate);
+    font-size:13.5px;
+  }
+  .empty-state strong{ display:block; color:var(--ink); font-size:14.5px; margin-bottom:4px; }
+  .empty-state button{
+    margin-top:10px;
+    background:none;
+    border:1.5px solid var(--wine);
+    color:var(--wine);
+    font-size:12.5px;
+    font-weight:700;
+    padding:7px 14px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:680px){
+    .form-grid{ grid-template-columns:1fr; }
+    .list-head{ flex-direction:column; align-items:stretch; }
+    .search-wrap input{ width:100%; max-width:none; }
+
+    table thead{ display:none; }
+    table, tbody, tr, td{ display:block; width:100%; }
+    tbody tr{ padding:12px 16px; border-bottom:1px solid var(--line); }
+    tbody td{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:6px 0;
+      border-bottom:none;
+      font-size:13.5px;
+    }
+    tbody td::before{
+      content:attr(data-label);
+      font-size:11.5px;
+      font-weight:700;
+      color:var(--slate);
+      flex-shrink:0;
+    }
+    tbody td.cell-action{ justify-content:flex-end; }
+    tbody td.cell-action::before{ content:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <svg class="emblem" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" fill="#1C2333"/>
+      <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" stroke="#7C3AED" stroke-width="1.5"/>
+      <text x="24" y="29" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#F5F5F7">WM</text>
+    </svg>
+    <div>
+      <div class="school">SMK Widya Mandala</div>
+      <div class="product">Asesmen</div>
+    </div>
+  </div>
+  <div class="role-badge">
+    <span class="dot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87 2 2 0 1 1-2.83 2.83 1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.35a1.7 1.7 0 0 0-1.87.34 2 2 0 1 1-2.83-2.83A1.7 1.7 0 0 0 4.65 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.65 9a1.7 1.7 0 0 0-.34-1.87 2 2 0 1 1 2.83-2.83A1.7 1.7 0 0 0 9 4.65a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.65a1.7 1.7 0 0 0 1.87-.34 2 2 0 1 1 2.83 2.83A1.7 1.7 0 0 0 19.35 9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+    </span>
+    Admin
+  </div>
+  <button type="button" onclick="logout()" style="margin-left:10px; background:none; border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:600; color:var(--slate); cursor:pointer;">Keluar</button>
+</header>
+
+<div class="notice" id="storageNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span id="storageNoticeText"></span>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <nav class="tabs">
+    <button class="tab active" onclick="showPanel('panel-users', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Pengguna
+    </button>
+    <button class="tab" onclick="showPanel('panel-guru', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+      Guru
+    </button>
+    <button class="tab" onclick="showPanel('panel-subjects', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2Z"/><path d="M4 19.5A2 2 0 0 0 6 21h13"/></svg>
+      Mata Pelajaran
+    </button>
+    <button class="tab" onclick="showPanel('panel-supervisors', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      Guru Pengawas
+    </button>
+  </nav>
+</div>
+
+<div class="shell">
+
+  <!-- ============ PANEL: USERS ============ -->
+  <section id="panel-users" class="panel active">
+    <div class="section-head">
+      <h1>Pengguna</h1>
+      <p>Daftarkan akun siswa: nama lengkap, username, email, kelas, dan ruang ujian.</p>
+    </div>
+
+    <div class="bulk-card">
+      <div class="bulk-card-text">
+        <strong>Tambah massal</strong>
+        <span>Unduh template, isi data pengguna, lalu unggah kembali filenya.</span>
+      </div>
+      <div class="bulk-actions">
+        <button type="button" class="btn-secondary" onclick="downloadTemplate('users')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Unduh Template
+        </button>
+        <label class="btn-secondary btn-upload">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
+          Import Excel
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="handleImportFile('users', event)">
+        </label>
+      </div>
+    </div>
+    <div class="import-result" id="u-import-result"></div>
+
+    <form class="card" id="u-form" onsubmit="return submitUser(event)">
+      <div class="card-title-row">
+        <span class="card-title" id="u-card-title">Tambah pengguna baru</span>
+        <button type="button" class="cancel-edit" onclick="cancelEdit('user')">Batal edit</button>
+      </div>
+      <div class="form-grid">
+        <label class="field full">
+          <span>Nama lengkap</span>
+          <input type="text" id="u-nama" placeholder="Contoh: Ahmad Fauzan" required>
+        </label>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" id="u-username" placeholder="Contoh: ahmad.fauzan" required>
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="u-email" placeholder="nama@contoh.sch.id" required>
+        </label>
+        <label class="field">
+          <span>Kelas</span>
+          <input type="text" id="u-kelas" placeholder="Contoh: XI RPL 2" required>
+        </label>
+        <label class="field">
+          <span>Ruang ujian</span>
+          <input type="text" id="u-ruang" placeholder="Contoh: Ruang 12" required>
+        </label>
+      </div>
+      <div class="card-actions">
+        <button type="submit" class="btn-primary" id="u-submit-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Tambah pengguna
+        </button>
+      </div>
+    </form>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span class="list-count" id="u-count">Memuat…</span>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="u-search" placeholder="Cari nama atau kelas" oninput="renderUsers()">
+        </div>
+      </div>
+      <div id="u-table-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL: GURU ============ -->
+  <section id="panel-guru" class="panel">
+    <div class="section-head">
+      <h1>Guru</h1>
+      <p>Daftar guru dasar. Nama di sini akan muncul sebagai pilihan saat menugaskan penyusun soal dan pengawas ujian.</p>
+    </div>
+
+    <div class="bulk-card">
+      <div class="bulk-card-text">
+        <strong>Tambah massal</strong>
+        <span>Unduh template, isi data guru, lalu unggah kembali filenya.</span>
+      </div>
+      <div class="bulk-actions">
+        <button type="button" class="btn-secondary" onclick="downloadTemplate('guru')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Unduh Template
+        </button>
+        <label class="btn-secondary btn-upload">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
+          Import Excel
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="handleImportFile('guru', event)">
+        </label>
+      </div>
+    </div>
+    <div class="import-result" id="g-import-result"></div>
+
+    <form class="card" id="g-form" onsubmit="return submitGuru(event)">
+      <div class="card-title-row">
+        <span class="card-title" id="g-card-title">Tambah guru baru</span>
+        <button type="button" class="cancel-edit" onclick="cancelEdit('guru')">Batal edit</button>
+      </div>
+      <div class="form-grid">
+        <label class="field full">
+          <span>Nama lengkap</span>
+          <input type="text" id="g-nama" placeholder="Contoh: Siti Rahayu, S.Kom." required>
+        </label>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" id="g-username" placeholder="Contoh: siti.rahayu" required>
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="g-email" placeholder="nama@contoh.sch.id" required>
+        </label>
+      </div>
+      <div class="card-actions">
+        <button type="submit" class="btn-primary" id="g-submit-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Tambah guru
+        </button>
+      </div>
+    </form>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span class="list-count" id="g-count">Memuat…</span>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="g-search" placeholder="Cari nama guru" oninput="renderGuru()">
+        </div>
+      </div>
+      <div id="g-table-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL: SUBJECTS ============ -->
+  <section id="panel-subjects" class="panel">
+    <div class="section-head">
+      <h1>Mata pelajaran</h1>
+      <p>Tambahkan mata pelajaran dan pilih guru penyusun soalnya dari daftar Guru.</p>
+    </div>
+
+    <div class="bulk-card">
+      <div class="bulk-card-text">
+        <strong>Tambah massal</strong>
+        <span>Unduh template, isi mata pelajaran & username guru, lalu unggah kembali filenya.</span>
+      </div>
+      <div class="bulk-actions">
+        <button type="button" class="btn-secondary" onclick="downloadTemplate('subjects')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Unduh Template
+        </button>
+        <label class="btn-secondary btn-upload">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
+          Import Excel
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="handleImportFile('subjects', event)">
+        </label>
+      </div>
+    </div>
+    <div class="import-result" id="s-import-result"></div>
+
+    <form class="card" id="s-form" onsubmit="return submitSubject(event)">
+      <div class="card-title-row">
+        <span class="card-title" id="s-card-title">Tambah mata pelajaran</span>
+        <button type="button" class="cancel-edit" onclick="cancelEdit('subject')">Batal edit</button>
+      </div>
+      <div class="form-grid">
+        <label class="field">
+          <span>Nama mata pelajaran</span>
+          <input type="text" id="s-nama" placeholder="Contoh: Pemrograman Web" required>
+        </label>
+        <label class="field">
+          <span>Guru penyusun soal</span>
+          <select id="s-guru" required></select>
+          <span class="field-hint" id="s-guru-hint"></span>
+        </label>
+      </div>
+      <div class="card-actions">
+        <button type="submit" class="btn-primary" id="s-submit-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Tambah mata pelajaran
+        </button>
+      </div>
+    </form>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span class="list-count" id="s-count">Memuat…</span>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="s-search" placeholder="Cari mata pelajaran" oninput="renderSubjects()">
+        </div>
+      </div>
+      <div id="s-table-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL: SUPERVISORS ============ -->
+  <section id="panel-supervisors" class="panel">
+    <div class="section-head">
+      <h1>Guru pengawas ujian</h1>
+      <p>Tugaskan guru dari daftar Guru untuk mengawas ruang ujian tertentu.</p>
+    </div>
+
+    <div class="bulk-card">
+      <div class="bulk-card-text">
+        <strong>Tambah massal</strong>
+        <span>Unduh template, isi username guru & ruang ujian, lalu unggah kembali filenya.</span>
+      </div>
+      <div class="bulk-actions">
+        <button type="button" class="btn-secondary" onclick="downloadTemplate('supervisors')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Unduh Template
+        </button>
+        <label class="btn-secondary btn-upload">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
+          Import Excel
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="handleImportFile('supervisors', event)">
+        </label>
+      </div>
+    </div>
+    <div class="import-result" id="p-import-result"></div>
+
+    <form class="card" id="p-form" onsubmit="return submitSupervisor(event)">
+      <div class="card-title-row">
+        <span class="card-title" id="p-card-title">Tambah guru pengawas</span>
+        <button type="button" class="cancel-edit" onclick="cancelEdit('supervisor')">Batal edit</button>
+      </div>
+      <div class="form-grid">
+        <label class="field">
+          <span>Guru</span>
+          <select id="p-guru" required></select>
+          <span class="field-hint" id="p-guru-hint"></span>
+        </label>
+        <label class="field">
+          <span>Ruang ujian yang diawasi</span>
+          <input type="text" id="p-ruang" placeholder="Contoh: Ruang 12" required>
+        </label>
+      </div>
+      <div class="card-actions">
+        <button type="submit" class="btn-primary" id="p-submit-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Tambah pengawas
+        </button>
+      </div>
+    </form>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span class="list-count" id="p-count">Memuat…</span>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="p-search" placeholder="Cari nama atau ruang" oninput="renderSupervisors()">
+        </div>
+      </div>
+      <div id="p-table-wrap"></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  /* ============================================================
+     SUPABASE
+  ============================================================ */
+  const SUPABASE_URL = 'https://cnciipsdowdcljjnacxy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function callAdminFn(payload){
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ window.location.href = 'index.html'; return { error: 'Sesi berakhir' }; }
+
+    const { data, error } = await sb.functions.invoke('admin-user', {
+      body: payload,
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+
+    if(error){
+      let msg = error.message || 'Gagal menghubungi server';
+      try{
+        if(error.context && typeof error.context.json === 'function'){
+          const errBody = await error.context.json();
+          if(errBody && errBody.error) msg = errBody.error;
+        }
+      }catch(_){ /* ignore parse failure, fall back to generic message */ }
+      return { error: msg };
+    }
+    return data;
+  }
+
+  async function requireAdmin(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ window.location.href = 'index.html'; return false; }
+    const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
+    if(!profile || profile.role !== 'admin'){ window.location.href = 'index.html'; return false; }
+    return true;
+  }
+  async function logout(){ await sb.auth.signOut(); window.location.href = 'index.html'; }
+
+  function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  /* ---------- state ---------- */
+  let users = [];
+  let guru = [];
+  let subjects = [];
+  let supervisors = [];
+
+  let editingUserId = null;
+  let editingGuruId = null;
+  let editingSubjectId = null;
+  let editingSupervisorId = null;
+
+  /* ---------- tab switching ---------- */
+  function showPanel(id, el){
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  /* ============================================================
+     BULK IMPORT (template download + Excel upload)
+  ============================================================ */
+  const importConfig = {
+    users: {
+      filename: 'template-pengguna.xlsx',
+      sheetName: 'Pengguna',
+      headers: ['Nama Lengkap','Username','Email','Kelas','Ruang Ujian'],
+      example: ['Ahmad Fauzan','ahmad.fauzan','ahmad.fauzan@contoh.sch.id','XI RPL 2','Ruang 12'],
+      resultId: 'u-import-result'
+    },
+    guru: {
+      filename: 'template-guru.xlsx',
+      sheetName: 'Guru',
+      headers: ['Nama Lengkap','Username','Email'],
+      example: ['Siti Rahayu, S.Kom.','siti.rahayu','siti.rahayu@contoh.sch.id'],
+      resultId: 'g-import-result'
+    },
+    subjects: {
+      filename: 'template-mata-pelajaran.xlsx',
+      sheetName: 'Mata Pelajaran',
+      headers: ['Nama Mata Pelajaran','Username Guru'],
+      example: ['Pemrograman Web','siti.rahayu'],
+      resultId: 's-import-result'
+    },
+    supervisors: {
+      filename: 'template-guru-pengawas.xlsx',
+      sheetName: 'Guru Pengawas',
+      headers: ['Username Guru','Ruang Ujian'],
+      example: ['siti.rahayu','Ruang 12'],
+      resultId: 'p-import-result'
+    }
+  };
+
+  function downloadTemplate(type){
+    if(typeof XLSX === 'undefined'){
+      alert('Pustaka Excel belum termuat. Periksa koneksi internet lalu coba lagi.');
+      return;
+    }
+    const cfg = importConfig[type];
+    const ws = XLSX.utils.aoa_to_sheet([cfg.headers, cfg.example]);
+    ws['!cols'] = cfg.headers.map(h => ({ wch: Math.max(h.length + 6, 18) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, cfg.sheetName);
+    XLSX.writeFile(wb, cfg.filename);
+  }
+
+  function getField(row, aliases){
+    const keys = Object.keys(row);
+    for(const key of keys){
+      if(aliases.includes(key.trim().toLowerCase())){
+        const val = row[key];
+        return val === undefined || val === null ? '' : String(val).trim();
+      }
+    }
+    return '';
+  }
+
+  function handleImportFile(type, event){
+    const file = event.target.files[0];
+    if(!file) return;
+    if(typeof XLSX === 'undefined'){
+      renderImportResult(type, 0, ['Pustaka Excel belum termuat. Periksa koneksi internet lalu coba lagi.']);
+      event.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      let rows = [];
+      try{
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type:'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+      }catch(err){
+        renderImportResult(type, 0, ['File tidak dapat dibaca. Pastikan formatnya .xlsx, .xls, atau .csv.']);
+        event.target.value = '';
+        return;
+      }
+      if(rows.length === 0){
+        renderImportResult(type, 0, ['File kosong atau tidak ada baris data. Gunakan template yang disediakan.']);
+        event.target.value = '';
+        return;
+      }
+      await processImport(type, rows);
+      event.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function processImport(type, rows){
+    const errors = [];
+    const newItems = [];
+
+    if((type === 'subjects' || type === 'supervisors') && guru.length === 0){
+      renderImportResult(type, 0, ['Belum ada guru terdaftar. Tambahkan guru dulu di tab Guru sebelum import ini.']);
+      return;
+    }
+
+    rows.forEach((row, idx) => {
+      const rowNum = idx + 2; // +1 header, +1 for 1-based index
+
+      if(type === 'users'){
+        const nama = getField(row, ['nama lengkap','nama']);
+        const username = getField(row, ['username']);
+        const email = getField(row, ['email']);
+        const kelas = getField(row, ['kelas']);
+        const ruang = getField(row, ['ruang ujian','ruang']);
+        if(!nama || !username || !email || !kelas || !ruang){
+          errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
+          return;
+        }
+        const dup = users.some(u => u.username.toLowerCase() === username.toLowerCase())
+          || newItems.some(u => u.username.toLowerCase() === username.toLowerCase());
+        if(dup){
+          errors.push(`Baris ${rowNum}: username "${username}" sudah terdaftar`);
+          return;
+        }
+        newItems.push({ id: genId(), nama, username, email, kelas, ruang });
+      }
+
+      if(type === 'guru'){
+        const nama = getField(row, ['nama lengkap','nama']);
+        const username = getField(row, ['username']);
+        const email = getField(row, ['email']);
+        if(!nama || !username || !email){
+          errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
+          return;
+        }
+        const dup = guru.some(g => g.username.toLowerCase() === username.toLowerCase())
+          || newItems.some(g => g.username.toLowerCase() === username.toLowerCase());
+        if(dup){
+          errors.push(`Baris ${rowNum}: username "${username}" sudah terdaftar`);
+          return;
+        }
+        newItems.push({ id: genId(), nama, username, email });
+      }
+
+      if(type === 'subjects'){
+        const nama = getField(row, ['nama mata pelajaran','mata pelajaran','nama']);
+        const guruUsername = getField(row, ['username guru','username','guru']);
+        if(!nama || !guruUsername){
+          errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
+          return;
+        }
+        const g = guru.find(x => x.username.toLowerCase() === guruUsername.toLowerCase());
+        if(!g){
+          errors.push(`Baris ${rowNum}: guru dengan username "${guruUsername}" tidak ditemukan`);
+          return;
+        }
+        newItems.push({ id: genId(), nama, guruId: g.id });
+      }
+
+      if(type === 'supervisors'){
+        const guruUsername = getField(row, ['username guru','username','guru']);
+        const ruang = getField(row, ['ruang ujian','ruang']);
+        if(!guruUsername || !ruang){
+          errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
+          return;
+        }
+        const g = guru.find(x => x.username.toLowerCase() === guruUsername.toLowerCase());
+        if(!g){
+          errors.push(`Baris ${rowNum}: guru dengan username "${guruUsername}" tidak ditemukan`);
+          return;
+        }
+        const dup = supervisors.some(p => p.guruId === g.id && p.ruang.toLowerCase() === ruang.toLowerCase())
+          || newItems.some(p => p.guruId === g.id && p.ruang.toLowerCase() === ruang.toLowerCase());
+        if(dup){
+          errors.push(`Baris ${rowNum}: "${g.nama}" sudah mengawas "${ruang}"`);
+          return;
+        }
+        newItems.push({ id: genId(), guruId: g.id, ruang });
+      }
+    });
+
+    let successCount = 0;
+    if(newItems.length > 0){
+      if(type === 'users' || type === 'guru'){
+        const role = type === 'users' ? 'siswa' : 'guru';
+        for(const item of newItems){
+          const res = await callAdminFn({
+            action: 'create_user', role,
+            nama: item.nama, username: item.username, email: item.email,
+            kelas: item.kelas || null, ruang: item.ruang || null
+          });
+          if(res.error){
+            errors.push(`"${item.username}": ${res.error}`);
+          } else {
+            item.id = res.id;
+            successCount++;
+            if(type === 'users') users.push(item); else guru.push(item);
+          }
+        }
+        if(type === 'users') renderUsers();
+        else { renderGuru(); populateGuruSelects(); }
+      }
+      if(type === 'subjects'){
+        const { data, error } = await sb.from('subjects')
+          .insert(newItems.map(i => ({ nama: i.nama, guru_id: i.guruId })))
+          .select();
+        if(error){ errors.push(error.message); }
+        else { successCount = data.length; subjects.push(...data.map(mapSubject)); renderSubjects(); }
+      }
+      if(type === 'supervisors'){
+        const { data, error } = await sb.from('supervisors')
+          .insert(newItems.map(i => ({ guru_id: i.guruId, ruang: i.ruang })))
+          .select();
+        if(error){ errors.push(error.message); }
+        else { successCount = data.length; supervisors.push(...data.map(mapSupervisor)); renderSupervisors(); }
+      }
+    }
+
+    renderImportResult(type, successCount, errors);
+  }
+
+  function renderImportResult(type, addedCount, errors){
+    const el = document.getElementById(importConfig[type].resultId);
+    if(addedCount === 0 && errors.length === 0){
+      el.style.display = 'none';
+      el.innerHTML = '';
+      return;
+    }
+    let html = '';
+    if(addedCount > 0){
+      html += `<div class="import-line import-ok">${addedCount} data berhasil ditambahkan.</div>`;
+    }
+    if(errors.length > 0){
+      const shown = errors.slice(0, 5);
+      const rest = errors.length - shown.length;
+      html += `<div class="import-line import-warn"><strong>${errors.length} baris dilewati:</strong>
+        <ul>${shown.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
+        ${rest > 0 ? `<span class="more">+${rest} lainnya</span>` : ''}
+      </div>`;
+    }
+    el.innerHTML = html;
+    el.style.display = 'block';
+  }
+
+  /* ============================================================
+     USERS
+  ============================================================ */
+  async function submitUser(event){
+    event.preventDefault();
+    const btn = document.getElementById('u-submit-btn');
+    const record = {
+      nama: document.getElementById('u-nama').value.trim(),
+      username: document.getElementById('u-username').value.trim(),
+      email: document.getElementById('u-email').value.trim(),
+      kelas: document.getElementById('u-kelas').value.trim(),
+      ruang: document.getElementById('u-ruang').value.trim()
+    };
+    btn.disabled = true;
+    try{
+      if(editingUserId){
+        const res = await callAdminFn({ action: 'update_user', id: editingUserId, ...record });
+        if(res.error){ alert(res.error); return false; }
+        const idx = users.findIndex(u => u.id === editingUserId);
+        if(idx > -1) users[idx] = { ...users[idx], ...record };
+      } else {
+        const res = await callAdminFn({ action: 'create_user', role: 'siswa', ...record });
+        if(res.error){ alert(res.error); return false; }
+        users.push({ id: res.id, ...record });
+        if(res.password) alert(`Akun dibuat. Kata sandi awal: ${res.password}\n(Catat sekarang, tidak ditampilkan lagi)`);
+      }
+      cancelEdit('user');
+      renderUsers();
+    } finally {
+      btn.disabled = false;
+    }
+    return false;
+  }
+  function editUser(id){
+    const u = users.find(x => x.id === id);
+    if(!u) return;
+    editingUserId = id;
+    document.getElementById('u-nama').value = u.nama;
+    document.getElementById('u-username').value = u.username;
+    document.getElementById('u-email').value = u.email;
+    document.getElementById('u-kelas').value = u.kelas;
+    document.getElementById('u-ruang').value = u.ruang;
+    document.getElementById('u-card-title').textContent = 'Edit pengguna';
+    document.getElementById('u-submit-btn').lastChild.textContent = ' Simpan perubahan';
+    document.getElementById('u-form').classList.add('editing');
+    document.getElementById('u-form').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  async function deleteUser(id){
+    if(!confirm('Hapus pengguna ini? Akun login-nya juga akan dihapus.')) return;
+    const res = await callAdminFn({ action: 'delete_user', id });
+    if(res.error){ alert(res.error); return; }
+    users = users.filter(u => u.id !== id);
+    if(editingUserId === id) cancelEdit('user');
+    renderUsers();
+  }
+  function renderUsers(){
+    const q = document.getElementById('u-search').value.trim().toLowerCase();
+    const rows = users.filter(u => !q || u.nama.toLowerCase().includes(q) || u.kelas.toLowerCase().includes(q));
+    document.getElementById('u-count').textContent = users.length + ' pengguna terdaftar';
+    const wrap = document.getElementById('u-table-wrap');
+
+    if(users.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada pengguna</strong>Tambahkan pengguna pertama lewat formulir di atas.</div>`;
+      return;
+    }
+    if(rows.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada pengguna yang cocok dengan pencarian.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Nama lengkap</th><th>Username</th><th>Email</th><th>Kelas</th><th>Ruang ujian</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(u => `
+          <tr>
+            <td data-label="Nama" class="cell-primary">${escapeHtml(u.nama)}</td>
+            <td data-label="Username">${escapeHtml(u.username)}</td>
+            <td data-label="Email" class="cell-muted">${escapeHtml(u.email)}</td>
+            <td data-label="Kelas">${escapeHtml(u.kelas)}</td>
+            <td data-label="Ruang ujian">${escapeHtml(u.ruang)}</td>
+            <td class="cell-action"><div class="row-actions">
+              <button class="icon-btn" onclick="editUser('${u.id}')" aria-label="Edit pengguna">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+              </button>
+              <button class="icon-btn" onclick="deleteUser('${u.id}')" aria-label="Hapus pengguna">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  /* ============================================================
+     GURU
+  ============================================================ */
+  async function submitGuru(event){
+    event.preventDefault();
+    const btn = document.getElementById('g-submit-btn');
+    const record = {
+      nama: document.getElementById('g-nama').value.trim(),
+      username: document.getElementById('g-username').value.trim(),
+      email: document.getElementById('g-email').value.trim()
+    };
+    btn.disabled = true;
+    try{
+      if(editingGuruId){
+        const res = await callAdminFn({ action: 'update_user', id: editingGuruId, ...record });
+        if(res.error){ alert(res.error); return false; }
+        const idx = guru.findIndex(g => g.id === editingGuruId);
+        if(idx > -1) guru[idx] = { ...guru[idx], ...record };
+      } else {
+        const res = await callAdminFn({ action: 'create_user', role: 'guru', ...record });
+        if(res.error){ alert(res.error); return false; }
+        guru.push({ id: res.id, ...record });
+        if(res.password) alert(`Akun dibuat. Kata sandi awal: ${res.password}\n(Catat sekarang, tidak ditampilkan lagi)`);
+      }
+      cancelEdit('guru');
+      renderGuru();
+      populateGuruSelects();
+    } finally {
+      btn.disabled = false;
+    }
+    return false;
+  }
+  function editGuru(id){
+    const g = guru.find(x => x.id === id);
+    if(!g) return;
+    editingGuruId = id;
+    document.getElementById('g-nama').value = g.nama;
+    document.getElementById('g-username').value = g.username;
+    document.getElementById('g-email').value = g.email;
+    document.getElementById('g-card-title').textContent = 'Edit guru';
+    document.getElementById('g-submit-btn').lastChild.textContent = ' Simpan perubahan';
+    document.getElementById('g-form').classList.add('editing');
+    document.getElementById('g-form').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  async function deleteGuru(id){
+    if(!confirm('Hapus guru ini? Akun login, mata pelajaran, dan tugas pengawasannya juga akan terhapus.')) return;
+    const res = await callAdminFn({ action: 'delete_user', id });
+    if(res.error){ alert(res.error); return; }
+    guru = guru.filter(g => g.id !== id);
+    subjects = subjects.filter(s => s.guruId !== id);
+    supervisors = supervisors.filter(p => p.guruId !== id);
+    if(editingGuruId === id) cancelEdit('guru');
+    renderGuru();
+    renderSubjects();
+    renderSupervisors();
+    populateGuruSelects();
+  }
+  function renderGuru(){
+    const q = document.getElementById('g-search').value.trim().toLowerCase();
+    const rows = guru.filter(g => !q || g.nama.toLowerCase().includes(q));
+    document.getElementById('g-count').textContent = guru.length + ' guru terdaftar';
+    const wrap = document.getElementById('g-table-wrap');
+
+    if(guru.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada guru</strong>Tambahkan guru pertama lewat formulir di atas.</div>`;
+      return;
+    }
+    if(rows.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada guru yang cocok dengan pencarian.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Nama lengkap</th><th>Username</th><th>Email</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(g => `
+          <tr>
+            <td data-label="Nama" class="cell-primary">${escapeHtml(g.nama)}</td>
+            <td data-label="Username">${escapeHtml(g.username)}</td>
+            <td data-label="Email" class="cell-muted">${escapeHtml(g.email)}</td>
+            <td class="cell-action"><div class="row-actions">
+              <button class="icon-btn" onclick="editGuru('${g.id}')" aria-label="Edit guru">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+              </button>
+              <button class="icon-btn" onclick="deleteGuru('${g.id}')" aria-label="Hapus guru">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  /* keep the subject & supervisor "guru" dropdowns in sync with the Guru list */
+  function populateGuruSelects(){
+    const selects = [
+      { el: document.getElementById('s-guru'), hint: document.getElementById('s-guru-hint'), btn: document.getElementById('s-submit-btn') },
+      { el: document.getElementById('p-guru'), hint: document.getElementById('p-guru-hint'), btn: document.getElementById('p-submit-btn') }
+    ];
+    selects.forEach(({el, hint, btn}) => {
+      const current = el.value;
+      if(guru.length === 0){
+        el.innerHTML = `<option value="">Belum ada guru</option>`;
+        el.disabled = true;
+        btn.disabled = true;
+        hint.textContent = 'Tambahkan guru dulu di tab Guru sebelum mengisi ini.';
+      } else {
+        el.disabled = false;
+        btn.disabled = false;
+        hint.textContent = '';
+        el.innerHTML = guru.map(g => `<option value="${g.id}">${escapeHtml(g.nama)}</option>`).join('');
+        if(guru.some(g => g.id === current)) el.value = current;
+      }
+    });
+  }
+
+  /* ============================================================
+     SUBJECTS
+  ============================================================ */
+  function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
+
+  async function submitSubject(event){
+    event.preventDefault();
+    const record = {
+      nama: document.getElementById('s-nama').value.trim(),
+      guruId: document.getElementById('s-guru').value
+    };
+    if(editingSubjectId){
+      const { error } = await sb.from('subjects').update({ nama: record.nama, guru_id: record.guruId }).eq('id', editingSubjectId);
+      if(error){ alert(error.message); return false; }
+      const idx = subjects.findIndex(s => s.id === editingSubjectId);
+      if(idx > -1) subjects[idx] = { ...subjects[idx], ...record };
+    } else {
+      const { data, error } = await sb.from('subjects').insert({ nama: record.nama, guru_id: record.guruId }).select().single();
+      if(error){ alert(error.message); return false; }
+      subjects.push(mapSubject(data));
+    }
+    cancelEdit('subject');
+    renderSubjects();
+    return false;
+  }
+  function editSubject(id){
+    const s = subjects.find(x => x.id === id);
+    if(!s) return;
+    editingSubjectId = id;
+    document.getElementById('s-nama').value = s.nama;
+    document.getElementById('s-guru').value = s.guruId;
+    document.getElementById('s-card-title').textContent = 'Edit mata pelajaran';
+    document.getElementById('s-submit-btn').lastChild.textContent = ' Simpan perubahan';
+    document.getElementById('s-form').classList.add('editing');
+    document.getElementById('s-form').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  async function deleteSubject(id){
+    if(!confirm('Hapus mata pelajaran ini? Paket soal terkait juga akan terhapus.')) return;
+    const { error } = await sb.from('subjects').delete().eq('id', id);
+    if(error){ alert(error.message); return; }
+    subjects = subjects.filter(s => s.id !== id);
+    if(editingSubjectId === id) cancelEdit('subject');
+    renderSubjects();
+  }
+  function renderSubjects(){
+    const q = document.getElementById('s-search').value.trim().toLowerCase();
+    const rows = subjects.filter(s => !q || s.nama.toLowerCase().includes(q));
+    document.getElementById('s-count').textContent = subjects.length + ' mata pelajaran';
+    const wrap = document.getElementById('s-table-wrap');
+
+    if(subjects.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada mata pelajaran</strong>Tambahkan mata pelajaran pertama lewat formulir di atas.</div>`;
+      return;
+    }
+    if(rows.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada mata pelajaran yang cocok dengan pencarian.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Mata pelajaran</th><th>Guru penyusun soal</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(s => {
+          const g = guru.find(x => x.id === s.guruId);
+          return `
+          <tr>
+            <td data-label="Mata pelajaran" class="cell-primary">${escapeHtml(s.nama)}</td>
+            <td data-label="Guru penyusun soal" class="${g ? '' : 'cell-warn'}">${g ? escapeHtml(g.nama) : 'Guru telah dihapus'}</td>
+            <td class="cell-action"><div class="row-actions">
+              <button class="icon-btn" onclick="editSubject('${s.id}')" aria-label="Edit mata pelajaran">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+              </button>
+              <button class="icon-btn" onclick="deleteSubject('${s.id}')" aria-label="Hapus mata pelajaran">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  /* ============================================================
+     SUPERVISORS
+  ============================================================ */
+  function mapSupervisor(row){ return { id: row.id, guruId: row.guru_id, ruang: row.ruang }; }
+
+  async function submitSupervisor(event){
+    event.preventDefault();
+    const record = {
+      guruId: document.getElementById('p-guru').value,
+      ruang: document.getElementById('p-ruang').value.trim()
+    };
+    if(editingSupervisorId){
+      const { error } = await sb.from('supervisors').update({ guru_id: record.guruId, ruang: record.ruang }).eq('id', editingSupervisorId);
+      if(error){ alert(error.message); return false; }
+      const idx = supervisors.findIndex(p => p.id === editingSupervisorId);
+      if(idx > -1) supervisors[idx] = { ...supervisors[idx], ...record };
+    } else {
+      const { data, error } = await sb.from('supervisors').insert({ guru_id: record.guruId, ruang: record.ruang }).select().single();
+      if(error){ alert(error.message); return false; }
+      supervisors.push(mapSupervisor(data));
+    }
+    cancelEdit('supervisor');
+    renderSupervisors();
+    return false;
+  }
+  function editSupervisor(id){
+    const p = supervisors.find(x => x.id === id);
+    if(!p) return;
+    editingSupervisorId = id;
+    document.getElementById('p-guru').value = p.guruId;
+    document.getElementById('p-ruang').value = p.ruang;
+    document.getElementById('p-card-title').textContent = 'Edit guru pengawas';
+    document.getElementById('p-submit-btn').lastChild.textContent = ' Simpan perubahan';
+    document.getElementById('p-form').classList.add('editing');
+    document.getElementById('p-form').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  async function deleteSupervisor(id){
+    if(!confirm('Hapus tugas pengawasan ini?')) return;
+    const { error } = await sb.from('supervisors').delete().eq('id', id);
+    if(error){ alert(error.message); return; }
+    supervisors = supervisors.filter(p => p.id !== id);
+    if(editingSupervisorId === id) cancelEdit('supervisor');
+    renderSupervisors();
+  }
+  function renderSupervisors(){
+    const q = document.getElementById('p-search').value.trim().toLowerCase();
+    const enriched = supervisors.map(p => ({ ...p, g: guru.find(x => x.id === p.guruId) }));
+    const rows = enriched.filter(p => !q || (p.g && p.g.nama.toLowerCase().includes(q)) || p.ruang.toLowerCase().includes(q));
+    document.getElementById('p-count').textContent = supervisors.length + ' guru pengawas';
+    const wrap = document.getElementById('p-table-wrap');
+
+    if(supervisors.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada guru pengawas</strong>Tambahkan guru pengawas pertama lewat formulir di atas.</div>`;
+      return;
+    }
+    if(rows.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada guru pengawas yang cocok dengan pencarian.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Nama guru</th><th>Username</th><th>Ruang ujian</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(p => `
+          <tr>
+            <td data-label="Nama" class="cell-primary ${p.g ? '' : 'cell-warn'}">${p.g ? escapeHtml(p.g.nama) : 'Guru telah dihapus'}</td>
+            <td data-label="Username" class="cell-muted">${p.g ? escapeHtml(p.g.username) : '—'}</td>
+            <td data-label="Ruang ujian">${escapeHtml(p.ruang)}</td>
+            <td class="cell-action"><div class="row-actions">
+              <button class="icon-btn" onclick="editSupervisor('${p.id}')" aria-label="Edit guru pengawas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+              </button>
+              <button class="icon-btn" onclick="deleteSupervisor('${p.id}')" aria-label="Hapus guru pengawas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  /* ---------- shared cancel/edit reset ---------- */
+  function cancelEdit(kind){
+    if(kind === 'user'){
+      editingUserId = null;
+      document.getElementById('u-form').reset();
+      document.getElementById('u-form').classList.remove('editing');
+      document.getElementById('u-card-title').textContent = 'Tambah pengguna baru';
+      document.getElementById('u-submit-btn').lastChild.textContent = ' Tambah pengguna';
+    }
+    if(kind === 'guru'){
+      editingGuruId = null;
+      document.getElementById('g-form').reset();
+      document.getElementById('g-form').classList.remove('editing');
+      document.getElementById('g-card-title').textContent = 'Tambah guru baru';
+      document.getElementById('g-submit-btn').lastChild.textContent = ' Tambah guru';
+    }
+    if(kind === 'subject'){
+      editingSubjectId = null;
+      document.getElementById('s-form').reset();
+      document.getElementById('s-form').classList.remove('editing');
+      document.getElementById('s-card-title').textContent = 'Tambah mata pelajaran';
+      document.getElementById('s-submit-btn').lastChild.textContent = ' Tambah mata pelajaran';
+    }
+    if(kind === 'supervisor'){
+      editingSupervisorId = null;
+      document.getElementById('p-form').reset();
+      document.getElementById('p-form').classList.remove('editing');
+      document.getElementById('p-card-title').textContent = 'Tambah guru pengawas';
+      document.getElementById('p-submit-btn').lastChild.textContent = ' Tambah pengawas';
+    }
+  }
+
+  /* ---------- initial load ---------- */
+  async function init(){
+    if(!(await requireAdmin())) return;
+
+    const [usersRes, guruRes, subjectsRes, supervisorsRes] = await Promise.all([
+      sb.from('profiles').select('id,nama,username,email,kelas,ruang').eq('role', 'siswa').order('nama'),
+      sb.from('profiles').select('id,nama,username,email').eq('role', 'guru').order('nama'),
+      sb.from('subjects').select('*').order('nama'),
+      sb.from('supervisors').select('*')
+    ]);
+    users = usersRes.data || [];
+    guru = guruRes.data || [];
+    subjects = (subjectsRes.data || []).map(mapSubject);
+    supervisors = (supervisorsRes.data || []).map(mapSupervisor);
+
+    renderUsers();
+    renderGuru();
+    populateGuruSelects();
+    renderSubjects();
+    renderSupervisors();
+  }
+  init();
+</script>
+
+</body>
+</html>

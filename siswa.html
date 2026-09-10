@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siswa — Asesmen SMK Widya Mandala</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#161A23;
+    --navy:#1C2333;
+    --paper:#FFFFFF;
+    --cream:#F8F8FA;
+    --slate:#68707E;
+    --line:#E7E9EE;
+    --mist:#F3F4F7;
+
+    --indigo:#4F46E5;
+    --indigo-soft:#E9E7FC;
+    --indigo-dark:#3F37C9;
+    --emerald:#0E9F6E;
+    --emerald-soft:#DCF5EA;
+    --emerald-dark:#0B7D57;
+    --amber:#B8862E;
+    --amber-soft:#F3E9D2;
+    --red:#C0392B;
+    --red-soft:#FBE4E1;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-weight:700; letter-spacing:-0.02em; margin:0; }
+  button,select{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--indigo); outline-offset:2px; }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:16px 20px; background:var(--paper); border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:20; flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .emblem{ width:32px; height:32px; flex-shrink:0; }
+  .brand .school{ font-weight:700; font-size:14.5px; line-height:1.2; letter-spacing:-0.01em; }
+  .brand .product{ font-size:11.5px; color:var(--slate); }
+
+  .siswa-switch{
+    display:flex; align-items:center; gap:7px; background:var(--indigo-soft); color:var(--indigo-dark);
+    font-size:12.5px; font-weight:600; padding:6px 10px 6px 8px; border-radius:99px;
+  }
+  .siswa-switch .dot{ width:22px; height:22px; border-radius:50%; background:var(--indigo); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .siswa-switch svg{ width:12px; height:12px; }
+  .siswa-switch select{ border:none; background:transparent; color:var(--indigo-dark); font-weight:700; font-size:12.5px; cursor:pointer; max-width:160px; }
+
+  .notice{ max-width:760px; margin:14px auto 0; padding:0 16px; }
+  .notice-inner{
+    display:flex; gap:10px; align-items:flex-start; background:var(--amber-soft); border:1px solid #E4CE96;
+    color:#5E4B1C; border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5;
+  }
+  .notice-inner svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; }
+
+  .tabs-wrap{ background:var(--paper); border-bottom:1px solid var(--line); position:sticky; top:65px; z-index:19; }
+  .tabs{ max-width:760px; margin:0 auto; display:flex; gap:4px; padding:0 16px; }
+  .tab{
+    position:relative; display:flex; align-items:center; gap:7px; background:none; border:none;
+    padding:14px 8px; font-size:13.5px; font-weight:600; color:var(--indigo-dark); cursor:default; white-space:nowrap;
+  }
+  .tab svg{ width:16px; height:16px; }
+  .tab::after{ content:''; position:absolute; left:0; right:0; bottom:-1px; height:2.5px; background:var(--indigo); border-radius:2px 2px 0 0; }
+
+  .shell{ max-width:760px; margin:0 auto; padding:26px 16px 60px; }
+  .section-head{ margin-bottom:18px; }
+  .section-head h1{ font-size:22px; letter-spacing:-0.01em; }
+  .section-head p{ margin:5px 0 0; font-size:13.5px; color:var(--slate); }
+
+  /* ---------- Exam list cards ---------- */
+  .exam-group-title{ font-size:12px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; margin:22px 0 10px; }
+  .exam-group-title:first-child{ margin-top:0; }
+  .exam-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:18px;
+    margin-bottom:12px; box-shadow:0 1px 2px rgba(20,20,30,0.03);
+  }
+  .exam-card.is-live{ border-color:var(--emerald); box-shadow:0 0 0 3px var(--emerald-soft); }
+  .exam-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .exam-title{ font-size:15.5px; font-weight:700; letter-spacing:-0.01em; }
+  .exam-subject{ font-size:12.5px; color:var(--slate); margin-top:2px; }
+  .exam-meta{ display:flex; flex-wrap:wrap; gap:14px; font-size:12.5px; color:var(--slate); margin-bottom:14px; }
+  .exam-meta span{ display:flex; align-items:center; gap:5px; }
+  .exam-meta svg{ width:14px; height:14px; }
+  .exam-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+
+  .badge{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; }
+  .badge-terjadwal{ background:var(--indigo-soft); color:var(--indigo); }
+  .badge-berlangsung{ background:var(--amber-soft); color:#8A6414; }
+  .badge-selesai{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .badge-terlewat{ background:var(--red-soft); color:var(--red); }
+  .badge-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .btn-primary{
+    background:var(--indigo); color:#fff; border:none; border-radius:8px; padding:10px 18px;
+    font-size:13.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn-primary:hover{ background:var(--indigo-dark); }
+  .btn-primary:disabled{ background:var(--line); color:var(--slate); cursor:not-allowed; }
+  .btn-primary svg{ width:15px; height:15px; }
+  .btn-secondary{
+    display:inline-flex; align-items:center; gap:7px; background:var(--paper); color:var(--ink);
+    border:1.5px solid var(--line); border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .btn-secondary:hover{ border-color:var(--indigo); color:var(--indigo-dark); }
+
+  .nilai-pill{ font-size:13px; font-weight:700; color:var(--emerald-dark); }
+  .muted-note{ font-size:12px; color:var(--slate); }
+
+  .empty-state{ padding:44px 20px; text-align:center; color:var(--slate); font-size:13.5px; background:var(--paper); border:1px solid var(--line); border-radius:14px; }
+  .empty-state strong{ display:block; color:var(--ink); font-size:14.5px; margin-bottom:4px; }
+
+  /* ---------- Exam-taking view ---------- */
+  #examView{ display:none; }
+  .exam-header-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:14px 18px; margin-bottom:16px;
+  }
+  .exam-header-bar .eh-title{ font-size:14.5px; font-weight:700; }
+  .exam-header-bar .eh-sub{ font-size:12px; color:var(--slate); margin-top:2px; }
+  .timer{
+    font-size:19px; font-weight:800; letter-spacing:-0.01em; padding:7px 14px; border-radius:9px;
+    background:var(--indigo-soft); color:var(--indigo-dark); font-variant-numeric:tabular-nums;
+  }
+  .timer.warn{ background:var(--red-soft); color:var(--red); }
+
+  .qnav{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .qnav button{
+    width:34px; height:34px; border-radius:8px; border:1.5px solid var(--line); background:var(--paper);
+    color:var(--slate); font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  .qnav button.answered{ background:var(--indigo-soft); border-color:var(--indigo); color:var(--indigo-dark); }
+  .qnav button.current{ background:var(--indigo); border-color:var(--indigo); color:#fff; }
+
+  .question-card{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:16px; }
+  .question-num{ font-size:12.5px; font-weight:700; color:var(--indigo-dark); margin-bottom:8px; }
+  .question-text{ font-size:15.5px; line-height:1.6; margin-bottom:14px; }
+  .question-img{ max-width:100%; border-radius:10px; border:1px solid var(--line); margin-bottom:14px; display:block; }
+
+  .opt-choice{
+    display:flex; align-items:flex-start; gap:12px; padding:13px 14px; border:1.5px solid var(--line);
+    border-radius:10px; margin-bottom:9px; cursor:pointer; transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .opt-choice:hover{ border-color:var(--indigo); }
+  .opt-choice.selected{ border-color:var(--indigo); background:var(--indigo-soft); }
+  .opt-choice input{ margin-top:2px; width:17px; height:17px; accent-color:var(--indigo); flex-shrink:0; }
+  .opt-choice .opt-letter{ font-weight:700; color:var(--slate); flex-shrink:0; }
+  .opt-choice.selected .opt-letter{ color:var(--indigo-dark); }
+  .opt-choice .opt-text{ flex:1; font-size:14px; line-height:1.5; }
+  .opt-choice img{ max-width:160px; border-radius:8px; margin-top:6px; display:block; }
+
+  .exam-nav-bottom{ display:flex; justify-content:space-between; gap:10px; margin-bottom:26px; }
+
+  /* ---------- Result view ---------- */
+  #resultView{ display:none; text-align:center; padding:40px 20px; }
+  .result-circle{
+    width:120px; height:120px; border-radius:50%; background:var(--emerald-soft); color:var(--emerald-dark);
+    display:flex; align-items:center; justify-content:center; flex-direction:column; margin:0 auto 20px;
+  }
+  .result-circle .num{ font-size:34px; font-weight:800; letter-spacing:-0.02em; }
+  .result-circle .lbl{ font-size:11px; font-weight:700; text-transform:uppercase; }
+
+  @media (max-width:480px){
+    .exam-actions{ flex-direction:column; align-items:stretch; }
+    .exam-actions .btn-primary{ justify-content:center; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <svg class="emblem" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" fill="#1C2333"/>
+      <path d="M24 3 L43 10 V22 C43 34 35 42 24 45 C13 42 5 34 5 22 V10 Z" stroke="#4F46E5" stroke-width="1.5"/>
+      <text x="24" y="29" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#F5F5F7">WM</text>
+    </svg>
+    <div>
+      <div class="school">SMK Widya Mandala</div>
+      <div class="product">Asesmen</div>
+    </div>
+  </div>
+  <div class="siswa-switch">
+    <span class="dot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+    </span>
+    <span id="siswaNameLabel" style="font-size:13px; font-weight:600;"></span>
+  </div>
+  <button type="button" onclick="logout()" style="margin-left:10px; background:none; border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:600; color:var(--slate); cursor:pointer;">Keluar</button>
+</header>
+
+<div class="notice" id="storageNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span id="storageNoticeText"></span>
+  </div>
+</div>
+<div class="notice" id="noSiswaNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>Belum ada data siswa. Tambahkan pengguna terlebih dahulu lewat halaman Admin.</span>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <nav class="tabs">
+    <button class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+      Ujianku
+    </button>
+  </nav>
+</div>
+
+<div class="shell">
+
+  <!-- ============ LIST VIEW ============ -->
+  <div id="listView">
+    <div class="section-head">
+      <h1>Ujianku</h1>
+      <p>Daftar ujian yang dijadwalkan untukmu.</p>
+    </div>
+    <div id="exam-list"></div>
+  </div>
+
+  <!-- ============ EXAM-TAKING VIEW ============ -->
+  <div id="examView">
+    <div class="exam-header-bar">
+      <div>
+        <div class="eh-title" id="ev-title">—</div>
+        <div class="eh-sub" id="ev-sub">—</div>
+      </div>
+      <div class="timer" id="ev-timer">--:--</div>
+    </div>
+
+    <div class="qnav" id="ev-qnav"></div>
+
+    <div class="question-card" id="ev-question"></div>
+
+    <div class="exam-nav-bottom">
+      <button class="btn-secondary" id="ev-prev" onclick="navQuestion(-1)">← Sebelumnya</button>
+      <button class="btn-primary" id="ev-next" onclick="navQuestion(1)">Selanjutnya →</button>
+    </div>
+
+    <div style="text-align:center; margin-bottom:30px;">
+      <button class="btn-secondary" style="border-color:var(--emerald); color:var(--emerald-dark);" onclick="confirmSubmit()">
+        Selesai &amp; Kumpulkan Ujian
+      </button>
+      <div class="muted-note" style="margin-top:8px;" id="ev-progress"></div>
+    </div>
+  </div>
+
+  <!-- ============ RESULT VIEW ============ -->
+  <div id="resultView">
+    <div class="result-circle" id="rv-circle">
+      <div class="num" id="rv-num">—</div>
+      <div class="lbl">Nilai</div>
+    </div>
+    <h1 id="rv-title" style="font-size:19px;">Ujian selesai</h1>
+    <p class="muted-note" id="rv-sub" style="margin:8px 0 24px;"></p>
+    <button class="btn-primary" onclick="backToList()">Kembali ke Ujianku</button>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   SUPABASE
+============================================================ */
+const SUPABASE_URL = 'https://cnciipsdowdcljjnacxy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function requireSiswa(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ window.location.href = 'index.html'; return null; }
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if(!profile || profile.role !== 'siswa'){ window.location.href = 'index.html'; return null; }
+  return profile;
+}
+async function logout(){ await sb.auth.signOut(); window.location.href = 'index.html'; }
+
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
+function mapQuestionSet(row){
+  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, soal: row.soal || [] };
+}
+function mapSchedule(row){
+  return {
+    id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
+    durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
+    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai
+  };
+}
+function mapAttempt(row){
+  return {
+    id: row.id, scheduleId: row.schedule_id, userId: row.user_id, status: row.status,
+    mulai: row.mulai ? new Date(row.mulai).getTime() : null,
+    selesai: row.selesai ? new Date(row.selesai).getTime() : null,
+    nilai: row.nilai, urutanSoal: row.urutan_soal || [], urutanOpsi: row.urutan_opsi || {}, jawaban: row.jawaban || {}
+  };
+}
+
+/* ============================================================
+   STATE
+============================================================ */
+let users = [];
+let subjects = [];
+let questionSets = [];
+let schedules = [];
+let attempts = [];
+
+let selectedSiswaId = null;   // = siswa yang sedang login
+let liveExam = null;       // { schedule, questionSet, attempt, questionOrder, currentIndex }
+let timerInterval = null;
+
+async function init(){
+  const me = await requireSiswa();
+  if(!me) return;
+  selectedSiswaId = me.id;
+  document.getElementById('siswaNameLabel').textContent = me.nama + ' — ' + (me.kelas || '');
+  users = [me];
+
+  const [subjRes, qsRes, schRes, atRes] = await Promise.all([
+    sb.from('subjects').select('*'),
+    sb.from('question_sets').select('*'),
+    sb.from('schedules').select('*'),
+    sb.from('exam_attempts').select('*').eq('user_id', me.id)
+  ]);
+  subjects = (subjRes.data || []).map(mapSubject);
+  questionSets = (qsRes.data || []).map(mapQuestionSet);
+  schedules = (schRes.data || []).map(mapSchedule);
+  attempts = (atRes.data || []).map(mapAttempt);
+
+  renderExamList();
+}
+
+/* ============================================================
+
+   STATUS HELPERS
+============================================================ */
+function getJadwalStatus(j){
+  const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
+  const end = new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+  const now = new Date();
+  if(now < start) return 'terjadwal';
+  if(now >= start && now <= end) return 'berlangsung';
+  return 'selesai';
+}
+function getScheduleEnd(j){
+  const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
+  return new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+}
+function findAttempt(scheduleId, userId){
+  return attempts.find(a => a.scheduleId === scheduleId && a.userId === userId);
+}
+
+/* ============================================================
+   EXAM LIST
+============================================================ */
+function renderExamList(){
+  if(!selectedSiswaId){ document.getElementById('exam-list').innerHTML = ''; return; }
+
+  const mine = schedules.filter(j => j.peserta.includes(selectedSiswaId));
+
+  // finalisasi otomatis: jika waktu sudah habis tapi status masih 'mengerjakan'
+  mine.forEach(j => {
+    const st = getJadwalStatus(j);
+    if(st === 'selesai'){
+      const at = findAttempt(j.id, selectedSiswaId);
+      if(at && at.status === 'mengerjakan') finalizeAttempt(at, j, true);
+    }
+  });
+
+  const enriched = mine.map(j => {
+    const qs = questionSets.find(q => q.id === j.questionSetId);
+    const subj = qs ? subjects.find(s => s.id === qs.subjectId) : null;
+    const st = getJadwalStatus(j);
+    const at = findAttempt(j.id, selectedSiswaId);
+    return { j, qs, subj, st, at };
+  });
+
+  const berlangsung = enriched.filter(e => e.st === 'berlangsung');
+  const terjadwal = enriched.filter(e => e.st === 'terjadwal').sort((a,b)=>(a.j.tanggal+a.j.jamMulai).localeCompare(b.j.tanggal+b.j.jamMulai));
+  const selesai = enriched.filter(e => e.st === 'selesai').sort((a,b)=>(b.j.tanggal+b.j.jamMulai).localeCompare(a.j.tanggal+a.j.jamMulai));
+
+  const wrap = document.getElementById('exam-list');
+  if(enriched.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada ujian dijadwalkan</strong>Ujian yang dijadwalkan gurumu akan muncul di sini.</div>`;
+    return;
+  }
+
+  let html = '';
+  if(berlangsung.length){ html += `<div class="exam-group-title">Sedang berlangsung</div>` + berlangsung.map(renderExamCard).join(''); }
+  if(terjadwal.length){ html += `<div class="exam-group-title">Akan datang</div>` + terjadwal.map(renderExamCard).join(''); }
+  if(selesai.length){ html += `<div class="exam-group-title">Riwayat</div>` + selesai.map(renderExamCard).join(''); }
+  wrap.innerHTML = html;
+}
+
+function renderExamCard(e){
+  const { j, qs, subj, st, at } = e;
+  const judul = qs ? qs.judul : 'Paket soal dihapus';
+  const mapel = subj ? subj.nama : '—';
+  const tanggalStr = new Date(j.tanggal + 'T' + j.jamMulai).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long' });
+
+  let statusBadge = '', actionHtml = '';
+  if(st === 'terjadwal'){
+    statusBadge = `<span class="badge badge-terjadwal">Terjadwal</span>`;
+    actionHtml = `<button class="btn-primary" disabled>Menunggu waktu ujian</button>`;
+  } else if(st === 'berlangsung'){
+    statusBadge = `<span class="badge badge-berlangsung"><span class="badge-dot"></span>Berlangsung</span>`;
+    if(at && at.status === 'mengerjakan'){
+      actionHtml = `<button class="btn-primary" onclick="enterExam('${j.id}')">Lanjutkan Ujian →</button>`;
+    } else if(at && at.status === 'selesai'){
+      statusBadge = `<span class="badge badge-selesai">Selesai</span>`;
+      actionHtml = renderNilaiInfo(j, at);
+    } else {
+      actionHtml = `<button class="btn-primary" onclick="enterExam('${j.id}')">Mulai Ujian →</button>`;
+    }
+  } else {
+    if(at && at.status === 'selesai'){
+      statusBadge = `<span class="badge badge-selesai">Selesai</span>`;
+      actionHtml = renderNilaiInfo(j, at);
+    } else {
+      statusBadge = `<span class="badge badge-terlewat">Terlewat</span>`;
+      actionHtml = `<span class="muted-note">Waktu ujian telah berakhir dan tidak dikerjakan.</span>`;
+    }
+  }
+
+  return `<div class="exam-card ${st==='berlangsung' ? 'is-live' : ''}">
+    <div class="exam-top">
+      <div>
+        <div class="exam-title">${escapeHtml(judul)}</div>
+        <div class="exam-subject">${escapeHtml(mapel)}</div>
+      </div>
+      ${statusBadge}
+    </div>
+    <div class="exam-meta">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${tanggalStr}</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${escapeHtml(j.jamMulai)} · ${j.durasiMenit} menit</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>${qs ? qs.soal.length : 0} soal</span>
+    </div>
+    <div class="exam-actions">${actionHtml}</div>
+  </div>`;
+}
+
+function renderNilaiInfo(j, at){
+  if(j.tampilkanNilai && at.nilai !== null && at.nilai !== undefined){
+    return `<span class="nilai-pill">Nilai: ${at.nilai}</span>`;
+  }
+  return `<span class="muted-note">Nilai akan diumumkan oleh guru</span>`;
+}
+
+/* ============================================================
+   MASUK UJIAN
+============================================================ */
+async function enterExam(scheduleId){
+  const j = schedules.find(x => x.id === scheduleId);
+  const qs = questionSets.find(x => x.id === j.questionSetId);
+  if(!j || !qs || qs.soal.length === 0){ alert('Paket soal tidak tersedia.'); return; }
+  if(getJadwalStatus(j) !== 'berlangsung'){ alert('Waktu ujian ini sudah tidak aktif.'); renderExamList(); return; }
+
+  let at = findAttempt(j.id, selectedSiswaId);
+  if(!at){
+    const qOrder = j.acakSoal ? shuffle(qs.soal.map(q => q.id)) : qs.soal.map(q => q.id);
+    const optOrder = {};
+    qs.soal.forEach(q => { optOrder[q.id] = j.acakOpsi ? shuffle(q.opsi.map(o => o.id)) : q.opsi.map(o => o.id); });
+    const { data, error } = await sb.from('exam_attempts').insert({
+      schedule_id: j.id, user_id: selectedSiswaId, status: 'mengerjakan',
+      mulai: new Date().toISOString(), urutan_soal: qOrder, urutan_opsi: optOrder, jawaban: {}
+    }).select().single();
+    if(error){ alert('Gagal memulai ujian: ' + error.message); return; }
+    at = mapAttempt(data);
+    attempts.push(at);
+  }
+
+  liveExam = { schedule: j, questionSet: qs, attempt: at, currentIndex: 0 };
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('examView').style.display = 'block';
+  document.getElementById('ev-title').textContent = qs.judul;
+  document.getElementById('ev-sub').textContent = (subjects.find(s=>s.id===qs.subjectId)||{}).nama || '';
+  window.scrollTo({ top:0 });
+
+  renderQnav();
+  renderQuestion();
+  startTimer();
+}
+
+function currentQuestion(){
+  const { questionSet, attempt, currentIndex } = liveExam;
+  const qid = attempt.urutanSoal[currentIndex];
+  return questionSet.soal.find(q => q.id === qid);
+}
+
+function renderQnav(){
+  const { attempt } = liveExam;
+  document.getElementById('ev-qnav').innerHTML = attempt.urutanSoal.map((qid, i) => {
+    const answered = !!attempt.jawaban[qid];
+    const cls = (i === liveExam.currentIndex ? 'current' : (answered ? 'answered' : ''));
+    return `<button class="${cls}" onclick="jumpTo(${i})">${i+1}</button>`;
+  }).join('');
+}
+
+function renderQuestion(){
+  const { attempt, currentIndex } = liveExam;
+  const q = currentQuestion();
+  const optOrder = attempt.urutanOpsi[q.id];
+  const selected = attempt.jawaban[q.id];
+
+  document.getElementById('ev-question').innerHTML = `
+    <div class="question-num">Soal ${currentIndex + 1} dari ${attempt.urutanSoal.length}</div>
+    <div class="question-text">${escapeHtml(q.teks)}</div>
+    ${q.gambar ? `<img class="question-img" src="${q.gambar}" alt="">` : ''}
+    <div>
+      ${optOrder.map((oid, i) => {
+        const o = q.opsi.find(x => x.id === oid);
+        const letter = String.fromCharCode(65 + i);
+        return `<label class="opt-choice ${selected === oid ? 'selected' : ''}" onclick="chooseAnswer('${q.id}','${oid}')">
+          <input type="radio" name="opt-${q.id}" ${selected === oid ? 'checked' : ''}>
+          <span class="opt-letter">${letter}.</span>
+          <span class="opt-text">${escapeHtml(o.teks)}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
+        </label>`;
+      }).join('')}
+    </div>
+  `;
+
+  document.getElementById('ev-prev').disabled = currentIndex === 0;
+  document.getElementById('ev-prev').style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+  document.getElementById('ev-next').textContent = currentIndex === attempt.urutanSoal.length - 1 ? 'Ke soal terakhir' : 'Selanjutnya →';
+
+  const answeredCount = Object.keys(attempt.jawaban).length;
+  document.getElementById('ev-progress').textContent = `${answeredCount} dari ${attempt.urutanSoal.length} soal terjawab`;
+}
+
+async function chooseAnswer(qid, oid){
+  liveExam.attempt.jawaban[qid] = oid;
+  const { error } = await sb.from('exam_attempts')
+    .update({ jawaban: liveExam.attempt.jawaban })
+    .eq('id', liveExam.attempt.id);
+  if(error) console.error(error);
+  renderQnav();
+  renderQuestion();
+}
+
+function navQuestion(delta){
+  const max = liveExam.attempt.urutanSoal.length - 1;
+  liveExam.currentIndex = Math.min(max, Math.max(0, liveExam.currentIndex + delta));
+  renderQnav();
+  renderQuestion();
+}
+function jumpTo(i){
+  liveExam.currentIndex = i;
+  renderQnav();
+  renderQuestion();
+}
+
+/* ---------- timer ---------- */
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+function updateTimer(){
+  const end = getScheduleEnd(liveExam.schedule).getTime();
+  const remain = end - Date.now();
+  const el = document.getElementById('ev-timer');
+  if(remain <= 0){
+    el.textContent = '00:00';
+    clearInterval(timerInterval);
+    finalizeAttempt(liveExam.attempt, liveExam.schedule, true);
+    alert('Waktu ujian habis. Jawabanmu otomatis dikumpulkan.');
+    showResult();
+    return;
+  }
+  const mm = Math.floor(remain / 60000);
+  const ss = Math.floor((remain % 60000) / 1000);
+  el.textContent = String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+  el.classList.toggle('warn', remain < 5 * 60000);
+}
+
+/* ---------- submit ---------- */
+function confirmSubmit(){
+  const { attempt } = liveExam;
+  const answered = Object.keys(attempt.jawaban).length;
+  const total = attempt.urutanSoal.length;
+  const msg = answered < total
+    ? `Masih ada ${total - answered} soal yang belum dijawab. Yakin ingin mengumpulkan ujian sekarang?`
+    : 'Kumpulkan ujian sekarang?';
+  if(confirm(msg)){
+    clearInterval(timerInterval);
+    finalizeAttempt(liveExam.attempt, liveExam.schedule, false).then(showResult);
+  }
+}
+
+async function finalizeAttempt(attempt, schedule, silent){
+  const qs = questionSets.find(x => x.id === schedule.questionSetId);
+  let correct = 0;
+  qs.soal.forEach(q => { if(q.kunciId && attempt.jawaban[q.id] === q.kunciId) correct++; });
+  const total = qs.soal.length || 1;
+  attempt.status = 'selesai';
+  attempt.selesai = Date.now();
+  attempt.nilai = Math.round((correct / total) * 100);
+  const { error } = await sb.from('exam_attempts').update({
+    status: 'selesai', selesai: new Date(attempt.selesai).toISOString(), nilai: attempt.nilai
+  }).eq('id', attempt.id);
+  if(error) console.error(error);
+  if(!silent) return;
+}
+
+function showResult(){
+  document.getElementById('examView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'block';
+  const { attempt, schedule, questionSet } = liveExam;
+  if(schedule.tampilkanNilai){
+    document.getElementById('rv-num').textContent = attempt.nilai;
+    document.getElementById('rv-sub').textContent = `Ujian "${questionSet.judul}" telah dikumpulkan.`;
+  } else {
+    document.getElementById('rv-circle').style.background = 'var(--indigo-soft)';
+    document.getElementById('rv-circle').style.color = 'var(--indigo-dark)';
+    document.getElementById('rv-num').innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+    document.getElementById('rv-sub').textContent = `Ujian "${questionSet.judul}" telah dikumpulkan. Nilai akan diumumkan oleh guru.`;
+  }
+  liveExam = null;
+}
+
+function backToList(){
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('examView').style.display = 'none';
+  document.getElementById('listView').style.display = 'block';
+  renderExamList();
+}
+
+window.addEventListener('beforeunload', e => {
+  if(liveExam){ e.preventDefault(); e.returnValue = ''; }
+});
+
+init();
+</script>
+
+</body>
+</html>
