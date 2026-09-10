@@ -718,7 +718,7 @@
     const { data: { session } } = await sb.auth.getSession();
     if(!session){ window.location.href = 'index.html'; return { error: 'Sesi berakhir' }; }
 
-    const { data, error } = await sb.functions.invoke('admin-user', {
+    const { data, error } = await sb.functions.invoke('manage-users', {
       body: payload,
       headers: { Authorization: 'Bearer ' + session.access_token }
     });
