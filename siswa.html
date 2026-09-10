@@ -276,7 +276,32 @@
     .exam-actions{ flex-direction:column; align-items:stretch; }
     .exam-actions .btn-primary{ justify-content:center; }
   }
-</style>
+
+  /* ---------- Sembunyikan/tampilkan header informasi saat mengerjakan ---------- */
+  .hide-header-btn{
+    border:1.5px solid var(--line); background:#fff; color:var(--slate); border-radius:8px; padding:7px 9px;
+    font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; flex-shrink:0;
+  }
+  .hide-header-btn svg{ width:14px; height:14px; }
+  .hide-header-btn.active{ border-color:var(--indigo); color:var(--indigo-dark); background:var(--indigo-soft); }
+
+  body.compact-exam .site-header,
+  body.compact-exam .tabs-wrap,
+  body.compact-exam .notice{ display:none; }
+
+  body.compact-exam .shell{ padding-top:12px; }
+
+  body.compact-exam .exam-header-bar{
+    position:sticky; top:0; z-index:25; margin:-12px -16px 16px; border-radius:0;
+    border-left:none; border-right:none; border-top:none;
+  }
+
+  /* saat compact, sembunyikan judul/subjudul & baris navigasi soal, sisakan timer + tombol */
+  body.compact-exam .exam-header-bar .eh-text,
+  body.compact-exam .exam-header-bar .nav-toggle-row{ display:none; }
+
+  .exam-header-bar .exam-top{ transition:margin .15s ease; }
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -339,12 +364,16 @@
   <div id="examView" class="locked">
     <div class="exam-header-bar">
       <div class="exam-top" style="margin-bottom:0;">
-        <div>
+        <div class="eh-text">
           <div class="eh-title" id="ev-title">—</div>
           <div class="eh-sub" id="ev-sub">—</div>
         </div>
         <div class="eh-controls">
           <div class="timer" id="ev-timer">--:--</div>
+          <button type="button" class="hide-header-btn" id="hideHeaderBtn" onclick="toggleHeaderCompact()" title="Sembunyikan header agar teks bacaan lebih luas">
+            <svg id="hideHeaderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/></svg>
+            <span id="hideHeaderLabel">Ciutkan</span>
+          </button>
         </div>
       </div>
       <div class="nav-toggle-row">
@@ -685,6 +714,7 @@ async function enterExam(scheduleId){
   document.getElementById('examView').classList.add('locked');
   document.getElementById('ev-title').textContent = qs.judul;
   document.getElementById('ev-sub').textContent = (subjects.find(s=>s.id===qs.subjectId)||{}).nama || '';
+  resetHeaderCompact();
   window.scrollTo({ top:0 });
 
   document.getElementById('navToggleBtn').onclick = () => {
@@ -859,6 +889,26 @@ function toggleDoubt(){
   persistAnswer(); renderQnav(); renderQuestion();
 }
 
+/* ---------- sembunyikan/tampilkan header informasi ---------- */
+function toggleHeaderCompact(){
+  const on = document.body.classList.toggle('compact-exam');
+  document.getElementById('hideHeaderBtn').classList.toggle('active', on);
+  document.getElementById('hideHeaderLabel').textContent = on ? 'Tampilkan' : 'Ciutkan';
+  document.getElementById('hideHeaderIcon').innerHTML = on
+    ? '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>'
+    : '<path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/>';
+  window.scrollTo({ top:0 });
+}
+function resetHeaderCompact(){
+  document.body.classList.remove('compact-exam');
+  const btn = document.getElementById('hideHeaderBtn');
+  const lbl = document.getElementById('hideHeaderLabel');
+  const icon = document.getElementById('hideHeaderIcon');
+  if(btn) btn.classList.remove('active');
+  if(lbl) lbl.textContent = 'Ciutkan';
+  if(icon) icon.innerHTML = '<path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/>';
+}
+
 /* ---------- ukuran font ---------- */
 function toggleFontMenu(){ document.getElementById('fontSizeMenu').classList.toggle('hidden'); }
 function setFontLevel(level){
@@ -1001,6 +1051,7 @@ async function finalizeAttempt(attempt, schedule, silent){
 function showResult(){
   document.getElementById('examView').style.display = 'none';
   document.getElementById('resultView').style.display = 'block';
+  resetHeaderCompact();
   const { attempt, schedule, questionSet } = liveExam;
   const p = attempt.penilaian || {};
   const needsManual = (p.manualQids || []).length > 0;
@@ -1034,6 +1085,7 @@ function backToList(){
   document.getElementById('listView').style.display = 'block';
   closeSubmitModal();
   closeTabLeaveModal();
+  resetHeaderCompact();
   renderExamList();
 }
 
