@@ -428,6 +428,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         Jadwal Soal
       </button>
+      <button class="subtab" id="subtab-siap" onclick="showSubtab('sub-siap', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Daftar Soal Siap
+      </button>
     </div>
 
     <!-- ---------- SUB: BUAT SOAL ---------- -->
@@ -445,10 +449,16 @@
             <input type="text" id="bs-judul" placeholder="Contoh: UH Bab 3 - Struktur Data">
           </label>
         </div>
+        <div class="card-actions" style="margin-top:14px;">
+          <button type="button" class="btn-secondary" onclick="createManualDraft()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Buat Soal Manual (tanpa upload Word)
+          </button>
+        </div>
       </div>
 
       <div class="card">
-        <span class="card-title">2. Unggah file Word (.docx)</span>
+        <span class="card-title">2. Atau unggah file Word (.docx)</span>
         <div class="dropzone" id="bs-dropzone">
           <input type="file" id="bs-file" accept=".docx" onchange="handleWordUpload(event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
@@ -604,6 +614,20 @@
           <span class="list-count" id="jd-count">Memuat…</span>
         </div>
         <div id="jd-table-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ---------- SUB: DAFTAR SOAL SIAP ---------- -->
+    <div id="sub-siap" class="subpanel">
+      <div class="list-card">
+        <div class="list-head">
+          <span class="list-count" id="siap-count">Memuat…</span>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="siap-search" placeholder="Cari judul paket soal" oninput="renderReadyList()">
+          </div>
+        </div>
+        <div id="siap-table-wrap"></div>
       </div>
     </div>
   </section>
@@ -806,6 +830,7 @@ function mySupervisorRooms(){
 function refreshAll(){
   populateMapelSelect();
   renderQuestionBank();
+  renderReadyList();
   backToBank();
   populateJadwalSetSelect();
   populateTingkatSelect();
@@ -1107,8 +1132,35 @@ async function saveDraftFromUpload(){
   questionSets.push(newSet);
   cancelUpload();
   renderQuestionBank();
+  renderReadyList();
   document.querySelectorAll('.subtabs .subtab')[1].click();
   openEditor(newSet.id);
+}
+
+/* ---------- Buat soal manual (tanpa upload Word) ---------- */
+async function createManualDraft(){
+  const mapelId = document.getElementById('bs-mapel').value;
+  if(!mapelId){
+    alert('Pilih mata pelajaran terlebih dahulu.');
+    return;
+  }
+  const judul = document.getElementById('bs-judul').value.trim() || 'Paket soal tanpa judul';
+  const { data, error } = await sb.from('question_sets').insert({
+    subject_id: mapelId,
+    judul,
+    status: 'draft',
+    soal: []
+  }).select().single();
+  if(error){ alert(error.message); return; }
+  const newSet = mapQuestionSet(data);
+  questionSets.push(newSet);
+  document.getElementById('bs-judul').value = '';
+  renderQuestionBank();
+  renderReadyList();
+  populateJadwalSetSelect();
+  document.querySelectorAll('.subtabs .subtab')[1].click();
+  openEditor(newSet.id);
+  addQuestion();
 }
 
 /* ============================================================
@@ -1160,6 +1212,7 @@ async function deleteQuestionSet(id){
   if(error){ alert(error.message); return; }
   questionSets = questionSets.filter(qs => qs.id !== id);
   renderQuestionBank();
+  renderReadyList();
   populateJadwalSetSelect();
 }
 
@@ -1396,6 +1449,7 @@ async function saveEditor(){
   const idx = questionSets.findIndex(qs => qs.id === editingSetId);
   if(idx > -1) questionSets[idx] = editingSet;
   renderQuestionBank();
+  renderReadyList();
   populateJadwalSetSelect();
   renderEditorMeta();
   alert('Perubahan tersimpan.');
@@ -1421,6 +1475,56 @@ function populateJadwalSetSelect(){
       return `<option value="${qs.id}">${escapeHtml(qs.judul)} — ${subj ? escapeHtml(subj.nama) : ''}</option>`;
     }).join('');
   }
+}
+
+/* ---------- Daftar Soal Siap ---------- */
+function renderReadyList(){
+  const searchEl = document.getElementById('siap-search');
+  const wrap = document.getElementById('siap-table-wrap');
+  const countEl = document.getElementById('siap-count');
+  if(!wrap || !countEl) return;
+  const mySubjIds = mySubjects().map(s => s.id);
+  const ready = questionSets.filter(qs => mySubjIds.includes(qs.subjectId) && qs.status === 'siap');
+  const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const rows = ready.filter(qs => !q || qs.judul.toLowerCase().includes(q));
+  countEl.textContent = ready.length + ' paket soal siap';
+
+  if(ready.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada paket soal siap</strong>Tandai paket soal sebagai "Siap" di tab Bank Soal &amp; Edit.</div>`;
+    return;
+  }
+  if(rows.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada paket soal yang cocok dengan pencarian.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Judul</th><th>Mata pelajaran</th><th>Jumlah soal</th><th></th></tr></thead>
+    <tbody>
+      ${rows.map(qs => {
+        const subj = subjects.find(s => s.id === qs.subjectId);
+        return `<tr>
+          <td data-label="Judul" class="cell-primary">${escapeHtml(qs.judul)}</td>
+          <td data-label="Mata pelajaran" class="cell-muted">${subj ? escapeHtml(subj.nama) : '—'}</td>
+          <td data-label="Jumlah soal">${qs.soal.length}</td>
+          <td class="cell-action"><div class="row-actions">
+            <button type="button" class="btn-secondary" onclick="openEditorFromReady('${qs.id}')">Lihat / Edit</button>
+            <button type="button" class="btn-secondary" onclick="goToJadwalWithSet('${qs.id}')">Jadwalkan</button>
+          </div></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function openEditorFromReady(id){
+  document.querySelectorAll('.subtabs .subtab')[1].click();
+  openEditor(id);
+}
+
+function goToJadwalWithSet(id){
+  document.querySelectorAll('.subtabs .subtab')[2].click();
+  const sel = document.getElementById('jd-set');
+  if(sel) sel.value = id;
 }
 
 function populateTingkatSelect(){
