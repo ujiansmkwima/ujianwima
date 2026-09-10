@@ -445,6 +445,16 @@
             <span class="field-hint" id="bs-mapel-hint"></span>
           </label>
           <label class="field">
+            <span>Tingkat</span>
+            <select id="bs-tingkat">
+              <option value="">Pilih tingkat</option>
+              <option value="X">X</option>
+              <option value="XI">XI</option>
+              <option value="XII">XII</option>
+            </select>
+            <span class="field-hint">Kelas dengan awalan X, XI, atau XII (contoh: X-TO1 → tingkat X).</span>
+          </label>
+          <label class="field">
             <span>Judul paket soal</span>
             <input type="text" id="bs-judul" placeholder="Contoh: UH Bab 3 - Struktur Data">
           </label>
@@ -530,6 +540,16 @@
         <label class="field full" style="margin-bottom:18px;">
           <span>Judul paket soal</span>
           <input type="text" id="ed-judul-input">
+        </label>
+
+        <label class="field" style="margin-bottom:18px; max-width:200px;">
+          <span>Tingkat</span>
+          <select id="ed-tingkat-input">
+            <option value="">Pilih tingkat</option>
+            <option value="X">X</option>
+            <option value="XI">XI</option>
+            <option value="XII">XII</option>
+          </select>
         </label>
 
         <div id="ed-questions"></div>
@@ -770,7 +790,7 @@ function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_
 function mapSupervisor(row){ return { id: row.id, guruId: row.guru_id, ruang: row.ruang }; }
 
 function mapQuestionSet(row){
-  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, soal: row.soal || [] };
+  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, tingkat: row.tingkat || null, soal: row.soal || [] };
 }
 function mapSchedule(row){
   return {
@@ -886,6 +906,12 @@ async function handleWordUpload(event){
     event.target.value = '';
     return;
   }
+  const tingkatVal = document.getElementById('bs-tingkat').value;
+  if(!tingkatVal){
+    statusEl.textContent = 'Pilih tingkat (X/XI/XII) terlebih dahulu.';
+    event.target.value = '';
+    return;
+  }
   if(typeof mammoth === 'undefined'){
     statusEl.textContent = 'Gagal memuat pustaka pembaca Word. Periksa koneksi internet lalu coba lagi.';
     return;
@@ -906,6 +932,7 @@ async function handleWordUpload(event){
 
     uploadParsed = {
       subjectId: mapelId,
+      tingkat: tingkatVal,
       judul: document.getElementById('bs-judul').value.trim(),
       questions, warnings
     };
@@ -1123,6 +1150,7 @@ async function saveDraftFromUpload(){
   const judul = document.getElementById('bs-judul').value.trim() || 'Paket soal tanpa judul';
   const { data, error } = await sb.from('question_sets').insert({
     subject_id: uploadParsed.subjectId,
+    tingkat: uploadParsed.tingkat,
     judul,
     status: 'draft',
     soal: uploadParsed.questions
@@ -1144,9 +1172,15 @@ async function createManualDraft(){
     alert('Pilih mata pelajaran terlebih dahulu.');
     return;
   }
+  const tingkatVal = document.getElementById('bs-tingkat').value;
+  if(!tingkatVal){
+    alert('Pilih tingkat (X/XI/XII) terlebih dahulu.');
+    return;
+  }
   const judul = document.getElementById('bs-judul').value.trim() || 'Paket soal tanpa judul';
   const { data, error } = await sb.from('question_sets').insert({
     subject_id: mapelId,
+    tingkat: tingkatVal,
     judul,
     status: 'draft',
     soal: []
@@ -1183,13 +1217,14 @@ function renderQuestionBank(){
     return;
   }
   wrap.innerHTML = `<table>
-    <thead><tr><th>Judul</th><th>Mata pelajaran</th><th>Jumlah soal</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Judul</th><th>Mata pelajaran</th><th>Tingkat</th><th>Jumlah soal</th><th>Status</th><th></th></tr></thead>
     <tbody>
       ${rows.map(qs => {
         const subj = subjects.find(s => s.id === qs.subjectId);
         return `<tr>
           <td data-label="Judul" class="cell-primary">${escapeHtml(qs.judul)}</td>
           <td data-label="Mata pelajaran" class="cell-muted">${subj ? escapeHtml(subj.nama) : '—'}</td>
+          <td data-label="Tingkat" class="cell-muted">${qs.tingkat ? escapeHtml(qs.tingkat) : '—'}</td>
           <td data-label="Jumlah soal">${qs.soal.length}</td>
           <td data-label="Status"><span class="badge badge-${qs.status}">${qs.status === 'siap' ? 'Siap' : 'Draft'}</span></td>
           <td class="cell-action"><div class="row-actions">
@@ -1224,6 +1259,7 @@ function openEditor(id){
   document.getElementById('bank-list-view').style.display = 'none';
   document.getElementById('bank-editor-view').style.display = 'block';
   document.getElementById('ed-judul-input').value = editingSet.judul;
+  document.getElementById('ed-tingkat-input').value = editingSet.tingkat || '';
   renderEditorMeta();
   renderEditorQuestions();
 }
@@ -1236,7 +1272,7 @@ function backToBank(){
 function renderEditorMeta(){
   const subj = subjects.find(s => s.id === editingSet.subjectId);
   document.getElementById('ed-judul').textContent = editingSet.judul || 'Paket soal';
-  document.getElementById('ed-meta').textContent = `${subj ? subj.nama : '—'} · ${editingSet.soal.length} soal`;
+  document.getElementById('ed-meta').textContent = `${subj ? subj.nama : '—'}${editingSet.tingkat ? ' · Tingkat ' + editingSet.tingkat : ''} · ${editingSet.soal.length} soal`;
   const btn = document.getElementById('ed-status-btn');
   btn.textContent = editingSet.status === 'siap' ? 'Kembalikan ke Draft' : 'Tandai Siap';
 }
@@ -1441,9 +1477,10 @@ function removeOptionImage(qid, oid){ findQ(qid).opsi.find(o => o.id === oid).ga
 
 async function saveEditor(){
   editingSet.judul = document.getElementById('ed-judul-input').value.trim() || 'Paket soal tanpa judul';
+  editingSet.tingkat = document.getElementById('ed-tingkat-input').value || null;
   editingSet.updatedAt = Date.now();
   const { error } = await sb.from('question_sets')
-    .update({ judul: editingSet.judul, status: editingSet.status, soal: editingSet.soal })
+    .update({ judul: editingSet.judul, tingkat: editingSet.tingkat, status: editingSet.status, soal: editingSet.soal })
     .eq('id', editingSetId);
   if(error){ alert(error.message); return; }
   const idx = questionSets.findIndex(qs => qs.id === editingSetId);
@@ -1461,18 +1498,21 @@ async function saveEditor(){
 function populateJadwalSetSelect(){
   const sel = document.getElementById('jd-set');
   const mySubjIds = mySubjects().map(s => s.id);
-  const ready = questionSets.filter(qs => mySubjIds.includes(qs.subjectId) && qs.status === 'siap');
+  const tingkatEl = document.getElementById('jd-tingkat');
+  const tingkat = tingkatEl ? tingkatEl.value : '';
+  let ready = questionSets.filter(qs => mySubjIds.includes(qs.subjectId) && qs.status === 'siap');
+  if(tingkat) ready = ready.filter(qs => !qs.tingkat || qs.tingkat === tingkat);
   const hint = document.getElementById('jd-set-hint');
   const btn = document.getElementById('jd-submit-btn');
   if(ready.length === 0){
-    sel.innerHTML = `<option value="">Belum ada paket soal berstatus Siap</option>`;
+    sel.innerHTML = `<option value="">Belum ada paket soal berstatus Siap${tingkat ? ' untuk tingkat ' + escapeHtml(tingkat) : ''}</option>`;
     sel.disabled = true; btn.disabled = true;
     hint.textContent = 'Tandai paket soal sebagai "Siap" di Bank Soal sebelum dijadwalkan.';
   } else {
     sel.disabled = false; btn.disabled = false; hint.textContent = '';
     sel.innerHTML = ready.map(qs => {
       const subj = subjects.find(s => s.id === qs.subjectId);
-      return `<option value="${qs.id}">${escapeHtml(qs.judul)} — ${subj ? escapeHtml(subj.nama) : ''}</option>`;
+      return `<option value="${qs.id}">${escapeHtml(qs.judul)} — ${subj ? escapeHtml(subj.nama) : ''}${qs.tingkat ? ' (' + escapeHtml(qs.tingkat) + ')' : ''}</option>`;
     }).join('');
   }
 }
@@ -1498,13 +1538,14 @@ function renderReadyList(){
     return;
   }
   wrap.innerHTML = `<table>
-    <thead><tr><th>Judul</th><th>Mata pelajaran</th><th>Jumlah soal</th><th></th></tr></thead>
+    <thead><tr><th>Judul</th><th>Mata pelajaran</th><th>Tingkat</th><th>Jumlah soal</th><th></th></tr></thead>
     <tbody>
       ${rows.map(qs => {
         const subj = subjects.find(s => s.id === qs.subjectId);
         return `<tr>
           <td data-label="Judul" class="cell-primary">${escapeHtml(qs.judul)}</td>
           <td data-label="Mata pelajaran" class="cell-muted">${subj ? escapeHtml(subj.nama) : '—'}</td>
+          <td data-label="Tingkat" class="cell-muted">${qs.tingkat ? escapeHtml(qs.tingkat) : '—'}</td>
           <td data-label="Jumlah soal">${qs.soal.length}</td>
           <td class="cell-action"><div class="row-actions">
             <button type="button" class="btn-secondary" onclick="openEditorFromReady('${qs.id}')">Lihat / Edit</button>
@@ -1527,8 +1568,16 @@ function goToJadwalWithSet(id){
   if(sel) sel.value = id;
 }
 
+/* ---------- Tingkat (X/XI/XII) dari nama kelas ---------- */
+function extractTingkat(kelas){
+  if(!kelas) return '';
+  const m = String(kelas).trim().match(/^(XII|XI|X)(?=[-\s]|$)/i);
+  if(m) return m[1].toUpperCase();
+  return String(kelas).trim().split(/[-\s]/)[0]; // fallback utk format lama
+}
+
 function populateTingkatSelect(){
-  const tingkatSet = new Set(users.map(u => (u.kelas || '').split(' ')[0]).filter(Boolean));
+  const tingkatSet = new Set(users.map(u => extractTingkat(u.kelas)).filter(Boolean));
   const sel = document.getElementById('jd-tingkat');
   sel.innerHTML = `<option value="">Pilih tingkat</option>` +
     Array.from(tingkatSet).sort().map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
@@ -1539,8 +1588,9 @@ function onTingkatChange(){
   jdSelectedPeserta = new Set();
   const tingkat = document.getElementById('jd-tingkat').value;
   const grid = document.getElementById('jd-kelas-grid');
+  populateJadwalSetSelect();
   if(!tingkat){ grid.innerHTML = ''; renderPesertaList(); return; }
-  const kelasSet = new Set(users.filter(u => (u.kelas || '').startsWith(tingkat)).map(u => u.kelas));
+  const kelasSet = new Set(users.filter(u => extractTingkat(u.kelas) === tingkat).map(u => u.kelas));
   grid.innerHTML = Array.from(kelasSet).sort().map(k => {
     const id = 'kelas-' + k.replace(/\W+/g, '');
     return `<div class="chip-check">
