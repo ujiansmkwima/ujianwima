@@ -237,6 +237,22 @@
   }
   .bs-choice.selected{ border-color:var(--indigo); background:var(--indigo-soft); color:var(--indigo-dark); }
 
+  /* ---------- Pernyataan Ganda (matriks benar/salah dengan beberapa pernyataan) ---------- */
+  .bsg-table{ margin-top:6px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .bsg-head-row, .bsg-row{ display:flex; align-items:center; gap:8px; padding:10px 14px; }
+  .bsg-head-row{ background:var(--mist); font-size:10.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.02em; }
+  .bsg-row{ border-top:1px solid var(--line); }
+  .bsg-row:hover{ background:var(--cream); }
+  .bsg-pernyataan-text, .bsg-head-pernyataan{ flex:1; font-size:calc(13.5px * var(--fscale)); line-height:1.5; }
+  .bsg-head-kat{ width:64px; text-align:center; flex-shrink:0; }
+  .bsg-radios{ display:flex; gap:0; flex-shrink:0; }
+  .bsg-radio{ width:64px; display:flex; justify-content:center; align-items:center; cursor:pointer; }
+  .bsg-radio input{ width:18px; height:18px; accent-color:var(--indigo); cursor:pointer; }
+  @media (max-width:480px){
+    .bsg-head-kat, .bsg-radio{ width:44px; }
+    .bsg-pernyataan-text, .bsg-head-pernyataan{ font-size:calc(12.5px * var(--fscale)); }
+  }
+
   .essay-box{
     width:100%; min-height:160px; border:1.5px solid var(--line); border-radius:10px; padding:13px 14px;
     font-family:inherit; font-size:calc(14px * var(--fscale)); line-height:1.6; resize:vertical;
@@ -563,7 +579,7 @@ function mapAttempt(row){
   };
 }
 
-const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', essay: 'Esai' };
+const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', bsg: 'Pernyataan Ganda', essay: 'Esai' };
 const FONT_SCALES = [0.85, 0.925, 1, 1.1, 1.2];
 
 /* ============================================================
@@ -812,8 +828,9 @@ async function proceedEnterExam(scheduleId){
 function normalizeQuestionClient(q){
   if(!q.type) q.type = 'pg';
   if(q.kunciIds === undefined) q.kunciIds = [];
-  if(q.kategori === undefined) q.kategori = q.type === 'bs' ? ['Benar','Salah'] : null;
+  if(q.kategori === undefined) q.kategori = (q.type === 'bs' || q.type === 'bsg') ? ['Benar','Salah'] : null;
   if(q.kunciKategori === undefined) q.kunciKategori = null;
+  if(q.pernyataan === undefined) q.pernyataan = q.type === 'bsg' ? [] : null;
   if(q.bacaan === undefined) q.bacaan = null;
   if(q.tabel === undefined) q.tabel = null;
   if(!q.poin) q.poin = 10;
@@ -831,6 +848,12 @@ function isAnswered(q, attempt){
   if(q.type === 'essay') return typeof a === 'string' && a.trim().length > 0;
   if(q.type === 'pgk') return Array.isArray(a) && a.length > 0;
   if(q.type === 'bs') return a === 0 || a === 1;
+  if(q.type === 'bsg'){
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    if(pernyataan.length === 0) return false;
+    const ans = (a && typeof a === 'object') ? a : {};
+    return pernyataan.every(p => ans[p.id] === 0 || ans[p.id] === 1);
+  }
   return a !== undefined && a !== null && a !== '';
 }
 function statusOf(q, attempt){
@@ -917,6 +940,28 @@ function renderAnswerArea(q, attempt){
       ${kat.map((label, i) => `<div class="bs-choice ${selected === i ? 'selected' : ''}" onclick="setAnswerBS('${q.id}', ${i})">${escapeHtml(label)}</div>`).join('')}
     </div>`;
   }
+  if(q.type === 'bsg'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const ans = (attempt.jawaban[q.id] && typeof attempt.jawaban[q.id] === 'object') ? attempt.jawaban[q.id] : {};
+    return `<div class="bsg-table">
+      <div class="bsg-head-row">
+        <span class="bsg-head-pernyataan">Pernyataan</span>
+        ${kat.map(label => `<span class="bsg-head-kat">${escapeHtml(label)}</span>`).join('')}
+      </div>
+      ${pernyataan.map((p, i) => {
+        const chosen = ans[p.id];
+        return `<div class="bsg-row">
+          <span class="bsg-pernyataan-text">${i+1}. ${escapeHtml(p.teks)}</span>
+          <span class="bsg-radios">
+            ${kat.map((label, ki) => `<label class="bsg-radio" title="${escapeHtml(label)}">
+              <input type="radio" name="bsg-${q.id}-${p.id}" ${chosen === ki ? 'checked' : ''} onchange="setAnswerBSG('${q.id}','${p.id}', ${ki})">
+            </label>`).join('')}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
   // essay
   const val = typeof attempt.jawaban[q.id] === 'string' ? attempt.jawaban[q.id] : '';
   return `<textarea id="essayInput" class="essay-box" placeholder="Tulis jawabanmu di sini…">${escapeHtml(val)}</textarea>`;
@@ -958,6 +1003,13 @@ function toggleAnswerPGK(qid, oid){
 }
 function setAnswerBS(qid, idx){
   liveExam.attempt.jawaban[qid] = idx;
+  persistAnswer(); renderQnav(); renderQuestion();
+}
+function setAnswerBSG(qid, pid, idx){
+  const a = liveExam.attempt.jawaban;
+  const cur = (a[qid] && typeof a[qid] === 'object' && !Array.isArray(a[qid])) ? { ...a[qid] } : {};
+  cur[pid] = idx;
+  a[qid] = cur;
   persistAnswer(); renderQnav(); renderQuestion();
 }
 function setAnswerEssay(qid, val){
@@ -1127,6 +1179,29 @@ function gradeAttempt(qs, attempt){
     const poin = q.poin || 10;
     totalPoin += poin;
     const a = attempt.jawaban[q.id];
+
+    if(q.type === 'bsg'){
+      // Soal pernyataan ganda: setiap pernyataan adalah unit penilaian sendiri.
+      // Kalau semua pernyataan sudah punya kunci pasti -> nilai otomatis (poin
+      // dibagi rata per pernyataan). Kalau ada satu saja tanpa kunci -> seluruh
+      // soal ini dinilai manual oleh guru (sama seperti soal BS beropini).
+      const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+      const allKeyed = pernyataan.length > 0 && pernyataan.every(p => p.kunci === 0 || p.kunci === 1);
+      if(allKeyed){
+        const n = pernyataan.length;
+        const per = poin / n;
+        const ans = (a && typeof a === 'object') ? a : {};
+        pernyataan.forEach(p => {
+          if(ans[p.id] === p.kunci){ autoEarned += per; correctCount++; }
+          else { incorrectCount++; }
+        });
+        autoMax += poin;
+      } else {
+        manualQids.push(q.id);
+      }
+      return;
+    }
+
     let graded = false, correct = false;
     if(q.type === 'pg' && q.kunciId){ graded = true; correct = a === q.kunciId; }
     else if(q.type === 'pgk' && q.kunciIds && q.kunciIds.length){
@@ -1184,11 +1259,19 @@ function showResult(){
     document.getElementById('rv-sub').textContent = `Ujian "${questionSet.judul}" telah dikumpulkan. Nilai akan diumumkan oleh guru.`;
   }
 
-  document.getElementById('rv-breakdown').innerHTML = `
-    <div><span>Jawaban benar (otomatis)</span><strong>${p.correctCount ?? 0}</strong></div>
-    <div><span>Jawaban kurang tepat</span><strong>${p.incorrectCount ?? 0}</strong></div>
-    <div><span>Menunggu penilaian manual</span><strong>${(p.manualQids||[]).length}</strong></div>
-  `;
+  const rvBreakdown = document.getElementById('rv-breakdown');
+  if(schedule.tampilkanNilai){
+    rvBreakdown.style.display = '';
+    rvBreakdown.innerHTML = `
+      <div><span>Jawaban benar (otomatis)</span><strong>${p.correctCount ?? 0}</strong></div>
+      <div><span>Jawaban kurang tepat</span><strong>${p.incorrectCount ?? 0}</strong></div>
+      <div><span>Menunggu penilaian manual</span><strong>${(p.manualQids||[]).length}</strong></div>
+    `;
+  } else {
+    // Nilai disembunyikan oleh guru -> jumlah benar/salah juga tidak ditampilkan
+    rvBreakdown.style.display = 'none';
+    rvBreakdown.innerHTML = '';
+  }
   liveExam = null;
   document.getElementById('examView').classList.remove('locked');
 }

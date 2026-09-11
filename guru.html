@@ -361,9 +361,16 @@
   .stat-pill.slate .num{ color:var(--slate); }
   .stat-pill.red .num{ color:var(--red); }
 
+  .stat-pill.indigo .num{ color:var(--indigo); }
+
   .room-group{ margin-bottom:18px; }
   .room-group-title{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; margin-bottom:8px; color:var(--ink); }
   .room-group-title svg{ width:15px; height:15px; color:var(--emerald-dark); }
+
+  /* Tabel yang tetap berbentuk tabel (tidak ditumpuk jadi kartu) di layar kecil,
+     digulir horizontal, dengan header yang menempel (sticky) agar tetap efektif dibaca. */
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-scroll table{ width:100%; }
 
   /* ---------- Mobile ---------- */
   @media (max-width:680px){
@@ -377,6 +384,16 @@
     tbody td::before{ content:attr(data-label); font-size:11.5px; font-weight:700; color:var(--slate); flex-shrink:0; }
     tbody td.cell-action{ justify-content:flex-end; }
     tbody td.cell-action::before{ content:none; }
+
+    /* Tabel Monitoring: dipertahankan sebagai tabel sungguhan (bukan kartu) supaya
+       banyak baris tetap bisa dipindai cepat oleh guru saat mengawasi. */
+    .table-scroll, .table-scroll thead, .table-scroll tbody, .table-scroll tr, .table-scroll th, .table-scroll td{ display:revert; }
+    .table-scroll table{ min-width:600px; border-collapse:collapse; }
+    .table-scroll thead{ display:table-header-group; }
+    .table-scroll thead th{ position:sticky; top:0; z-index:1; white-space:nowrap; padding:8px 10px; font-size:11px; }
+    .table-scroll tbody td{ padding:8px 10px; font-size:12.5px; white-space:nowrap; }
+    .table-scroll tbody td::before{ content:none; }
+    .table-scroll .cell-action{ text-align:right; }
   }
 </style>
 </head>
@@ -732,7 +749,7 @@
       <div id="mon-list"></div>
 
       <div class="format-guide" style="margin-top:16px;">
-        Status peserta di sini terisi otomatis begitu siswa membuka dan mengerjakan ujian. Klik <strong>Refresh</strong> untuk melihat status terbaru.
+        Status peserta di sini diperbarui otomatis setiap beberapa detik selama tab Monitoring ini terbuka. Tombol <strong>Refresh</strong> bisa dipakai untuk memaksa pembaruan segera.
       </div>
     </div>
   </section>
@@ -1062,6 +1079,12 @@ function showPanel(id, el){
   document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   window.scrollTo({ top:0, behavior:'smooth' });
+  if(id === 'panel-monitoring'){
+    refreshMonitoring();
+    startMonitoringAutoRefresh();
+  } else {
+    stopMonitoringAutoRefresh();
+  }
 }
 function showSubtab(id, el){
   document.querySelectorAll('.subpanel').forEach(p => p.classList.remove('active'));
@@ -1142,6 +1165,10 @@ async function handleWordUpload(event){
    - pg     : pilihan ganda, satu jawaban benar (opsi + kunciId)
    - pgk    : pilihan ganda kompleks, jawaban benar bisa >1 (opsi + kunciIds[])
    - bs     : benar/salah (dua kategori) (kategori[2] + kunciKategori 0/1/null)
+   - bsg    : pernyataan ganda — beberapa pernyataan, tiap pernyataan dijawab
+              dengan radio button ke salah satu dari 2 kategori pilihan guru
+              (kategori[2] + pernyataan[{id,teks,kunci:0/1/null}]) — hanya bisa
+              dibuat lewat Editor Soal manual, belum didukung dari impor Word
    - essay  : uraian, selalu dinilai manual (tanpa opsi) */
 function parseQuestionsFromHtml(html){
   const container = document.createElement('div');
@@ -1370,11 +1397,12 @@ function parseQuestionsFromHtml(html){
   return { questions, warnings };
 }
 
-const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', essay: 'Esai' };
+const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', bsg: 'Pernyataan Ganda', essay: 'Esai' };
 
 function isQuestionFlagged(q){
   if(q.type === 'pg') return q.opsi.length < 2 || !q.kunciId;
   if(q.type === 'pgk') return q.opsi.length < 2 || q.kunciIds.length === 0;
+  if(q.type === 'bsg') return !Array.isArray(q.pernyataan) || q.pernyataan.length < 2 || q.pernyataan.some(p => !p.teks || !p.teks.trim());
   return false; // bs & essay tidak wajib punya kunci (boleh dinilai manual)
 }
 
@@ -1584,8 +1612,9 @@ function normalizeQuestion(q){
   // migrasi data lama (hanya PG tanpa field type) agar aman diedit
   if(!q.type) q.type = 'pg';
   if(q.kunciIds === undefined) q.kunciIds = q.type === 'pgk' ? [] : [];
-  if(q.kategori === undefined) q.kategori = q.type === 'bs' ? ['Benar','Salah'] : null;
+  if(q.kategori === undefined) q.kategori = (q.type === 'bs' || q.type === 'bsg') ? ['Benar','Salah'] : null;
   if(q.kunciKategori === undefined) q.kunciKategori = null;
+  if(q.pernyataan === undefined) q.pernyataan = q.type === 'bsg' ? [] : null;
   if(q.bacaan === undefined) q.bacaan = null;
   if(q.tabel === undefined) q.tabel = null;
   if(!q.poin) q.poin = 10;
@@ -1641,6 +1670,7 @@ function renderEditorQuestions(){
 
       <div class="qcard-actions">
         ${(q.type==='pg'||q.type==='pgk') ? `<button type="button" class="btn-secondary" onclick="addOption('${q.id}')" ${q.opsi.length >= 6 ? 'disabled' : ''}>+ Tambah opsi</button>` : ''}
+        ${q.type==='bsg' ? `<button type="button" class="btn-secondary" onclick="addPernyataan('${q.id}')" ${(q.pernyataan||[]).length >= 12 ? 'disabled' : ''}>+ Tambah pernyataan</button>` : ''}
         <button type="button" class="btn-secondary btn-danger" onclick="removeQuestion('${q.id}')">Hapus soal</button>
       </div>
     </div>`;
@@ -1681,6 +1711,39 @@ function renderEditorAnswerArea(q){
     </label>`;
     return html;
   }
+  if(q.type === 'bsg'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    let html = `<div class="ed-row" style="margin-bottom:10px;">
+      ${kat.map((label, i) => `<label style="flex:1;">Label kategori ${String.fromCharCode(65+i)}
+        <input type="text" value="${escapeHtml(label)}" placeholder="Label kategori" onchange="updateKategoriLabel('${q.id}', ${i}, this.value)">
+      </label>`).join('')}
+    </div>`;
+    html += `<div class="format-guide" style="margin-bottom:8px;">Tulis tiap pernyataan, lalu tandai kunci jawabannya per baris (radio button). Centang "tanpa kunci" pada pernyataan yang sifatnya opini — jika ada satu saja pernyataan tanpa kunci, seluruh soal ini akan dinilai manual oleh guru.</div>`;
+    html += pernyataan.map((p, pi) => `<div class="pernyataan-row" style="border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px;">
+      <div style="display:flex; align-items:flex-start; gap:8px;">
+        <span class="opt-letter" style="margin-top:9px;">${pi+1}</span>
+        <textarea style="flex:1; min-height:38px;" placeholder="Teks pernyataan" onchange="updatePernyataanTeks('${q.id}','${p.id}', this.value)">${escapeHtml(p.teks || '')}</textarea>
+        <button type="button" class="opt-remove" onclick="removePernyataan('${q.id}','${p.id}')" aria-label="Hapus pernyataan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; margin-top:8px; margin-left:26px; flex-wrap:wrap;">
+        ${kat.map((label, ki) => `<label style="display:flex; align-items:center; gap:5px; font-size:12.5px; color:${p.kunci===ki?'var(--emerald-dark)':'var(--slate)'}; font-weight:${p.kunci===ki?'700':'400'};">
+          <input type="radio" name="pkey-${q.id}-${p.id}" ${p.kunci===ki?'checked':''} onchange="setPernyataanKunci('${q.id}','${p.id}', ${ki})">
+          ${escapeHtml(label)}
+        </label>`).join('')}
+        <label style="display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--slate); margin-left:auto;">
+          <input type="checkbox" ${p.kunci===null?'checked':''} onchange="togglePernyataanNoKunci('${q.id}','${p.id}', this.checked)">
+          Tanpa kunci
+        </label>
+      </div>
+    </div>`).join('');
+    if(pernyataan.length === 0){
+      html += `<div class="format-guide">Belum ada pernyataan. Klik "+ Tambah pernyataan" di bawah.</div>`;
+    }
+    return html;
+  }
   return `<div class="manual-note">Soal esai selalu dinilai manual oleh guru di menu Rekap.</div>`;
 }
 
@@ -1717,6 +1780,36 @@ function updateKategoriLabel(qid, idx, val){
   q.kategori[idx] = val;
 }
 
+function addPernyataan(qid){
+  const q = findQ(qid);
+  if(!Array.isArray(q.pernyataan)) q.pernyataan = [];
+  if(q.pernyataan.length >= 12) return;
+  q.pernyataan.push({ id: genId(), teks: '', kunci: null });
+  renderEditorQuestions();
+}
+function removePernyataan(qid, pid){
+  const q = findQ(qid);
+  q.pernyataan = (q.pernyataan || []).filter(p => p.id !== pid);
+  renderEditorQuestions();
+}
+function updatePernyataanTeks(qid, pid, val){
+  const q = findQ(qid);
+  const p = (q.pernyataan || []).find(x => x.id === pid);
+  if(p) p.teks = val;
+}
+function setPernyataanKunci(qid, pid, idx){
+  const q = findQ(qid);
+  const p = (q.pernyataan || []).find(x => x.id === pid);
+  if(p) p.kunci = idx;
+  renderEditorQuestions();
+}
+function togglePernyataanNoKunci(qid, pid, checked){
+  const q = findQ(qid);
+  const p = (q.pernyataan || []).find(x => x.id === pid);
+  if(p) p.kunci = checked ? null : 0;
+  renderEditorQuestions();
+}
+
 function updateQuestionType(qid, type){
   const q = findQ(qid);
   q.type = type;
@@ -1725,10 +1818,14 @@ function updateQuestionType(qid, type){
       while(q.opsi.length < 2) q.opsi.push({ id: genId(), teks: '', gambar: null });
     }
   }
-  if(type === 'bs' && !q.kategori) q.kategori = ['Benar', 'Salah'];
+  if((type === 'bs' || type === 'bsg') && (!q.kategori || q.kategori.length !== 2)) q.kategori = ['Benar', 'Salah'];
+  if(type === 'bsg' && (!Array.isArray(q.pernyataan) || q.pernyataan.length === 0)){
+    q.pernyataan = [{ id: genId(), teks: '', kunci: null }, { id: genId(), teks: '', kunci: null }];
+  }
   if(type !== 'pg') q.kunciId = null;
   if(type !== 'pgk') q.kunciIds = [];
-  if(type !== 'bs'){ q.kategori = type === 'bs' ? q.kategori : q.kategori; }
+  if(type !== 'bs' && type !== 'bsg') q.kategori = null;
+  if(type !== 'bs') q.kunciKategori = null;
   renderEditorQuestions();
 }
 
@@ -1736,7 +1833,7 @@ function addQuestion(){
   editingSet.soal.push({
     id: genId(), type: 'pg', teks: '', bacaan: null, gambar: null,
     opsi: [{ id: genId(), teks: '', gambar: null }, { id: genId(), teks: '', gambar: null }],
-    kunciId: null, kunciIds: [], kategori: null, kunciKategori: null, poin: 10
+    kunciId: null, kunciIds: [], kategori: null, kunciKategori: null, pernyataan: null, poin: 10
   });
   renderEditorMeta();
   renderEditorQuestions();
@@ -2144,7 +2241,9 @@ function renderMonitoringGate(){
   document.getElementById('mon-content').style.display = rooms.length === 0 ? 'none' : 'block';
   if(rooms.length === 0) return;
   const sel = document.getElementById('mon-ruang');
-  sel.innerHTML = rooms.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+  const current = sel.value;
+  sel.innerHTML = `<option value="">Semua ruang</option>` + rooms.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+  if(rooms.includes(current)) sel.value = current;
   renderMonitoring();
 }
 
@@ -2153,8 +2252,11 @@ function findAttempt(scheduleId, userId){
 }
 
 function renderMonitoring(){
-  const ruang = document.getElementById('mon-ruang').value;
-  if(!ruang) return;
+  const selEl = document.getElementById('mon-ruang');
+  if(!selEl) return;
+  const ruang = selEl.value;
+  const rooms = mySupervisorRooms();
+  const roomFilter = ruang ? [ruang] : rooms;
   const active = schedules.filter(j => {
     const st = getJadwalStatus(j);
     return (st === 'berlangsung' || st === 'terjadwal') && j.tanggal === new Date().toISOString().slice(0,10);
@@ -2164,7 +2266,7 @@ function renderMonitoring(){
   active.forEach(j => {
     j.peserta.forEach(uid => {
       const u = users.find(x => x.id === uid);
-      if(!u || u.ruang !== ruang) return;
+      if(!u || !roomFilter.includes(u.ruang)) return;
       const at = findAttempt(j.id, uid);
       rows.push({ jadwal: j, siswa: u, status: at ? at.status : 'belum_mulai', at });
     });
@@ -2173,18 +2275,21 @@ function renderMonitoring(){
   const counts = { belum_mulai:0, mengerjakan:0, selesai:0 };
   rows.forEach(r => counts[r.status]++);
   document.getElementById('mon-stats').innerHTML = `
+    <div class="stat-pill indigo"><div class="num">${rows.length}</div><div class="lbl">Peserta yang harus ikut</div></div>
     <div class="stat-pill slate"><div class="num">${counts.belum_mulai}</div><div class="lbl">Belum mulai</div></div>
     <div class="stat-pill amber"><div class="num">${counts.mengerjakan}</div><div class="lbl">Sedang mengerjakan</div></div>
     <div class="stat-pill emerald"><div class="num">${counts.selesai}</div><div class="lbl">Selesai</div></div>
   `;
 
   const wrap = document.getElementById('mon-list');
+  const lokasiLabel = ruang ? `ruang ${escapeHtml(ruang)}` : 'ruang yang kamu awasi';
   if(rows.length === 0){
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada ujian hari ini di ruang ini</strong>Jadwal ujian untuk ruang ${escapeHtml(ruang)} akan muncul di sini saat tanggalnya tiba.</div>`;
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada ujian hari ini di ${lokasiLabel}</strong>Jadwal ujian untuk ${lokasiLabel} akan muncul di sini saat tanggalnya tiba.</div>`;
     return;
   }
-  wrap.innerHTML = `<div class="list-card"><table>
-    <thead><tr><th>Nama</th><th>NIS (username)</th><th>Kelas</th><th>Paket ujian</th><th>Status</th><th>Percobaan Keluar</th><th></th></tr></thead>
+  const showRuangCol = !ruang && rooms.length > 1;
+  wrap.innerHTML = `<div class="list-card"><div class="table-scroll"><table>
+    <thead><tr><th>Nama</th><th>NIS (username)</th><th>Kelas</th>${showRuangCol ? '<th>Ruang</th>' : ''}<th>Paket ujian</th><th>Status</th><th>Percobaan Keluar</th></tr></thead>
     <tbody>
       ${rows.map(r => {
         const badgeClass = r.status === 'selesai' ? 'badge-selesai' : r.status === 'mengerjakan' ? 'badge-mengerjakan' : 'badge-belum';
@@ -2194,22 +2299,46 @@ function renderMonitoring(){
           <td data-label="Nama" class="cell-primary">${escapeHtml(r.siswa.nama)}</td>
           <td data-label="NIS (username)" class="cell-muted">${escapeHtml(r.siswa.username)}</td>
           <td data-label="Kelas">${escapeHtml(r.siswa.kelas)}</td>
+          ${showRuangCol ? `<td data-label="Ruang" class="cell-muted">${escapeHtml(r.siswa.ruang || '—')}</td>` : ''}
           <td data-label="Paket ujian" class="cell-muted">${escapeHtml(questionSets.find(q=>q.id===r.jadwal.questionSetId)?.judul || '—')}</td>
           <td data-label="Status"><span class="badge ${badgeClass}">${r.status==='mengerjakan' ? '<span class="badge-dot"></span>' : ''}${label}</span></td>
           <td data-label="Percobaan Keluar">${pk > 0 ? `<span class="badge badge-warn">⚠ ${pk}x</span>` : '<span class="cell-muted">0</span>'}</td>
         </tr>`;
       }).join('')}
     </tbody>
-  </table></div>`;
+  </table></div></div>`;
 }
 
+let monRefreshInFlight = false;
 async function refreshMonitoring(){
-  const { data, error } = await sb.from('exam_attempts').select('*');
-  if(error){ alert(error.message); return; }
-  attempts = (data || []).map(mapAttempt);
-  renderMonitoring();
-  renderRekap();
+  if(monRefreshInFlight) return;
+  monRefreshInFlight = true;
+  try{
+    const { data, error } = await sb.from('exam_attempts').select('*');
+    if(error){ if(!monAutoRefreshTimer) alert(error.message); return; }
+    attempts = (data || []).map(mapAttempt);
+    renderMonitoring();
+    renderRekap();
+  } finally {
+    monRefreshInFlight = false;
+  }
 }
+
+/* ---- Auto-refresh cepat khusus saat guru sedang membuka tab Monitoring ---- */
+const MON_AUTO_REFRESH_MS = 4000;
+let monAutoRefreshTimer = null;
+function startMonitoringAutoRefresh(){
+  stopMonitoringAutoRefresh();
+  monAutoRefreshTimer = setInterval(refreshMonitoring, MON_AUTO_REFRESH_MS);
+}
+function stopMonitoringAutoRefresh(){
+  if(monAutoRefreshTimer){ clearInterval(monAutoRefreshTimer); monAutoRefreshTimer = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  const monActive = document.getElementById('panel-monitoring')?.classList.contains('active');
+  if(document.hidden){ stopMonitoringAutoRefresh(); }
+  else if(monActive){ startMonitoringAutoRefresh(); }
+});
 
 /* ============================================================
    REKAP
@@ -2330,11 +2459,28 @@ function renderRekap(){
           <td data-label="Selesai pukul" class="cell-muted">${r.selesai ? new Date(r.selesai).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '—'}</td>
           <td data-label="Nilai">${r.nilai ?? '—'}</td>
           <td data-label="Keterangan"><span class="badge ${ket.cls}">${ket.label}</span></td>
-          <td class="cell-action">${needsManual ? `<button class="btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="openGrading('${at.id}')">Beri Nilai</button>` : ''}</td>
+          <td class="cell-action">
+            <div class="row-actions" style="justify-content:flex-end;">
+              ${needsManual ? `<button class="btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="openGrading('${at.id}')">Beri Nilai</button>` : ''}
+              ${at ? `<button class="btn-secondary" style="padding:6px 12px; font-size:12px; color:var(--red); border-color:#E8B4AC;" onclick="deleteRekapResult('${at.id}')">Hapus</button>` : ''}
+            </div>
+          </td>
         </tr>`;
       }).join('')}
     </tbody>
   </table>`;
+}
+
+async function deleteRekapResult(attemptId){
+  const at = attempts.find(a => a.id === attemptId);
+  const u = at ? users.find(x => x.id === at.userId) : null;
+  const nama = u ? u.nama : 'siswa ini';
+  if(!confirm(`Hapus hasil ujian ${nama}?\n\nSiswa akan berstatus "Belum mulai" lagi dan bisa mengerjakan ulang ujian ini dari awal. Nilai dan jawaban yang sudah ada akan hilang dan tidak bisa dikembalikan.`)) return;
+  const { error } = await sb.from('exam_attempts').delete().eq('id', attemptId);
+  if(error){ alert(error.message); return; }
+  attempts = attempts.filter(a => a.id !== attemptId);
+  renderRekap();
+  renderMonitoring();
 }
 
 /* ============================================================
@@ -2538,6 +2684,17 @@ function formatJawabanSiswa(q, jawaban){
   if(q.type === 'bs'){
     const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
     return (a === 0 || a === 1) ? escapeHtml(kat[a]) : '<span class="cell-muted">(tidak dijawab)</span>';
+  }
+  if(q.type === 'bsg'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const ans = (a && typeof a === 'object') ? a : {};
+    if(pernyataan.length === 0) return '<span class="cell-muted">(tidak dijawab)</span>';
+    return pernyataan.map((p, i) => {
+      const chosen = ans[p.id];
+      const chosenLabel = (chosen === 0 || chosen === 1) ? escapeHtml(kat[chosen]) : '<span class="cell-muted">(tidak dijawab)</span>';
+      return `${i+1}. ${escapeHtml(p.teks)} — <strong>${chosenLabel}</strong>`;
+    }).join('<br>');
   }
   return '<span class="cell-muted">—</span>';
 }
