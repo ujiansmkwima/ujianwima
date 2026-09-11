@@ -525,9 +525,9 @@
         <div class="format-guide">
           <strong>Format Word ini kompatibel dengan mesin Ujian Online.</strong> Nomor soal ditulis <code>1.</code>, <code>2.</code>, dst. Empat jenis soal didukung — tandai jenisnya di awal soal dengan tag <code>[PG]</code>, <code>[PGK]</code>, <code>[BS]</code>, atau <code>[ESSAY]</code> (jika tag dikosongkan, sistem menebak PG/Esai otomatis).
           <ul style="margin:8px 0 0; padding-left:18px;">
-            <li><strong>[PG]</strong> — pilihan ganda, satu jawaban benar. Opsi ditulis <code>A.</code>–<code>E.</code>, kunci ditandai <strong>bold</strong> pada opsi yang benar, atau tulis <code>Kunci: B</code> setelah opsi.</li>
-            <li><strong>[PGK]</strong> — pilihan ganda kompleks (jawaban benar bisa lebih dari satu). Tandai beberapa opsi bold, atau tulis <code>Kunci: A, C, D</code>.</li>
-            <li><strong>[BS]</strong> — benar/salah atau setuju/tidak setuju. Tulis opsi <code>A. Benar</code> / <code>B. Salah</code> (boleh diganti label lain, mis. Setuju/Tidak Setuju), lalu <code>Kunci: A</code>. Jika soal berupa opini tanpa kunci pasti, baris Kunci boleh dikosongkan — soal akan dinilai manual oleh guru.</li>
+            <li><strong>[PG]</strong> — pilihan ganda, satu jawaban benar. Siswa memilih lewat <strong>radio button (bulat, ⭘)</strong> — hanya bisa pilih satu opsi. Opsi ditulis <code>A.</code>–<code>E.</code>, kunci ditandai <strong>bold</strong> pada opsi yang benar, atau tulis <code>Kunci: B</code> setelah opsi.</li>
+            <li><strong>[PGK]</strong> — pilihan ganda kompleks (jawaban benar bisa lebih dari satu). Siswa memilih lewat <strong>checkbox (kotak centang, ☑)</strong> — bisa pilih lebih dari satu opsi. Tandai beberapa opsi bold, atau tulis <code>Kunci: A, C, D</code>.</li>
+            <li><strong>[BS]</strong> — benar/salah atau setuju/tidak setuju. Sama seperti [PG], siswa memilih lewat <strong>radio button</strong> (satu jawaban). Tulis opsi <code>A. Benar</code> / <code>B. Salah</code> (boleh diganti label lain, mis. Setuju/Tidak Setuju), lalu <code>Kunci: A</code>. Jika soal berupa opini tanpa kunci pasti, baris Kunci boleh dikosongkan — soal akan dinilai manual oleh guru.</li>
             <li><strong>[ESSAY]</strong> — soal uraian, tanpa opsi. Selalu dinilai manual oleh guru di menu Rekap.</li>
           </ul>
           <div style="margin-top:8px;">
@@ -2139,6 +2139,16 @@ function getJadwalStatus(j){
   if(now >= start && now <= end) return 'berlangsung';
   return 'selesai';
 }
+/* Tanggal hari ini dalam waktu LOKAL (bukan toISOString() yang berbasis UTC).
+   Pakai ini untuk mencocokkan j.tanggal, supaya ujian dini hari (00:00-06:59 WIB)
+   tidak dianggap "kemarin" akibat pergeseran UTC. */
+function todayLocalStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 const statusLabel = { terjadwal:'Terjadwal', berlangsung:'Berlangsung', selesai:'Selesai' };
 
 function renderJadwalList(){
@@ -2259,7 +2269,7 @@ function renderMonitoring(){
   const roomFilter = ruang ? [ruang] : rooms;
   const active = schedules.filter(j => {
     const st = getJadwalStatus(j);
-    return (st === 'berlangsung' || st === 'terjadwal') && j.tanggal === new Date().toISOString().slice(0,10);
+    return (st === 'berlangsung' || st === 'terjadwal') && j.tanggal === todayLocalStr();
   });
 
   const rows = [];
