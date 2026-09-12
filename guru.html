@@ -184,6 +184,15 @@
   .dropzone span{ font-size:12.5px; color:var(--slate); }
   .dropzone.disabled{ opacity:0.55; pointer-events:none; }
 
+  .paste-editable{ position:relative; }
+  .paste-editable:empty::before{
+    content: attr(data-placeholder);
+    color: var(--slate);
+    white-space: pre-wrap;
+    pointer-events: none;
+  }
+  .paste-editable b, .paste-editable strong{ color:var(--emerald-dark); }
+
   .format-guide{
     background:var(--mist); border-radius:10px; padding:12px 14px; font-size:12.5px;
     color:var(--slate); line-height:1.6; margin-top:14px;
@@ -565,8 +574,39 @@
         <p class="field-hint" id="bs-status" style="margin-top:10px;"></p>
       </div>
 
+      <div class="card">
+        <span class="card-title">3. Atau tempel teks soal</span>
+        <p class="field-hint" style="margin-top:0;">Salin soal dari Word, Google Docs, atau chat AI lalu tempel (Ctrl+V) di kotak ini — <strong>format bold ikut tertempel</strong> seperti sumbernya, dan sistem otomatis membaca opsi yang di-bold sebagai kunci jawaban, sama seperti saat mengunggah file Word. Mendukung semua jenis soal ([PG], [PGK], [BS], [RB], [ESSAY]).</p>
+        <div id="bs-paste-text" class="paste-editable" contenteditable="true" data-placeholder="1. Ibu kota Indonesia adalah ...
+A. Surabaya
+B. Jakarta
+C. Bandung
+D. Medan
+
+(tandai bold pada opsi kunci, atau tulis baris &quot;Kunci: B&quot;)" style="width:100%; box-sizing:border-box; min-height:220px; max-height:520px; overflow-y:auto; font-family:'JetBrains Mono', monospace; font-size:12.5px; line-height:1.6; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--cream); white-space:pre-wrap;"></div>
+        <div class="format-guide" style="margin-top:10px;">
+          <strong>Format yang dibaca:</strong> nomor soal ditulis <code>1.</code>, <code>2.</code>, dst (berurutan tanpa loncat), opsi ditulis <code>A.</code>–<code>E.</code>, dan kunci jawaban ditandai dengan salah satu cara berikut:
+          <ul style="margin:8px 0 0; padding-left:18px;">
+            <li><strong>Bold</strong> pada opsi yang benar — otomatis ikut tertempel bila disalin dari Word/Google Docs, <em>atau</em></li>
+            <li>Baris <code>Kunci: B</code> (atau <code>Jawaban: B</code>) setelah daftar opsi, <em>atau</em></li>
+            <li>Tanda bintang tepat sebelum huruf opsi yang benar, mis. <code>*B. Bandung</code>, <em>atau</em></li>
+            <li>Tanda bintang di akhir teks opsi yang benar, mis. <code>B. Bandung *</code></li>
+          </ul>
+          <div style="margin-top:8px;">Bisa juga ditulis/diedit langsung di kotak ini — sorot teks opsi lalu tekan <code>Ctrl+B</code> untuk menandainya sebagai kunci jawaban.</div>
+          <div style="margin-top:8px;">Opsional: baris <code>Poin: 15</code> di dalam blok soal untuk mengatur bobot nilai (default 10).</div>
+          <div style="margin-top:8px;">Soal yang kuncinya tidak terdeteksi tetap akan disimpan, tapi ditandai "Perlu ditinjau" di pratinjau dan Bank Soal supaya bisa dilengkapi manual.</div>
+        </div>
+        <p class="field-hint" id="bs-paste-status" style="margin-top:10px;"></p>
+        <div class="card-actions" style="margin-top:10px;">
+          <button type="button" class="btn-secondary" onclick="handlePasteDetect()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Deteksi Soal dari Teks
+          </button>
+        </div>
+      </div>
+
       <div class="card" id="bs-preview-card" style="display:none;">
-        <span class="card-title">3. Pratinjau hasil unggahan</span>
+        <span class="card-title">4. Pratinjau hasil unggahan</span>
         <div id="bs-preview-summary" style="margin-bottom:12px; font-size:13.5px;"></div>
         <div id="bs-preview-list"></div>
         <div class="card-actions">
@@ -1011,6 +1051,7 @@ async function init(){
 
   document.getElementById('noGuruNotice').style.display = 'none';
 
+  initPasteEditable();
   refreshAll();
 }
 
@@ -1161,6 +1202,20 @@ function parseQuestionsFromHtml(html){
         Array.from(child.querySelectorAll('li')).forEach(li => blocks.push({ kind: 'p', el: li }));
       } else if(tag === 'p'){
         blocks.push({ kind: 'p', el: child });
+      } else if(tag === 'div'){
+        // <div> per baris muncul saat teks ditempel/diketik langsung di kotak
+        // contenteditable (bukan dari konversi file Word). Hanya perlakukan
+        // sebagai satu blok baris kalau tidak berisi elemen blok bersarang;
+        // kalau berisi (mis. div pembungkus berisi beberapa div/p/table lain),
+        // masuk lebih dalam dulu.
+        const hasNestedBlock = Array.from(child.children).some(c =>
+          ['DIV','P','TABLE','UL','OL'].includes(c.tagName)
+        );
+        if(hasNestedBlock){
+          collect(child);
+        } else if(child.textContent && child.textContent.trim()){
+          blocks.push({ kind: 'p', el: child });
+        }
       } else if(child.children && child.children.length){
         collect(child);
       } else if(child.textContent && child.textContent.trim()){
@@ -1178,7 +1233,7 @@ function parseQuestionsFromHtml(html){
   let bacaanRemaining = 0;       // berapa soal lagi yang masih akan menerima bacaan ini
 
   const qRe = /^(\d{1,3})[\.\)]\s+(.+)$/;
-  const optRe = /^([A-Ea-e])[\.\)]\s+(.+)$/;
+  const optRe = /^(\*)?\s*([A-Ea-e])[\.\)]\s+(.+)$/;
   const keyRe = /^(kunci|jawaban)\s*[:\-]?\s*(.+)$/i;
   const poinRe = /^(poin|bobot|skor)\s*[:\-]?\s*(\d+)/i;
   const kategoriRe = /^kategori\s*[:\-]?\s*(.+)$/i;
@@ -1211,13 +1266,37 @@ function parseQuestionsFromHtml(html){
     // tabel muncul sebelum soal manapun terdeteksi: simpan, tempel ke soal berikutnya
     if(!current) pendingBacaanTabel = tbl;
   }
+  // Deteksi bold yang toleran terhadap dua sumber: HTML hasil konversi Word oleh
+  // mammoth (memakai tag <strong>) MAUPUN HTML mentah dari clipboard saat
+  // tempel langsung (Word/Google Docs sering memakai <b> atau span dengan
+  // style="font-weight:700/bold" alih-alih tag semantik <strong>).
+  function nodeMarksBold(node){
+    if(node.nodeType !== 1) return false;
+    const tag = node.tagName.toLowerCase();
+    if(tag === 'strong' || tag === 'b') return true;
+    const fw = node.style && node.style.fontWeight;
+    if(fw){
+      const num = parseInt(fw, 10);
+      if(/^bold(er)?$/i.test(fw) || (!isNaN(num) && num >= 600)) return true;
+    }
+    return false;
+  }
+  function boldTextLength(el, inherited){
+    let len = 0;
+    el.childNodes.forEach(node => {
+      if(node.nodeType === 3){
+        if(inherited) len += node.textContent.length;
+      } else if(node.nodeType === 1){
+        len += boldTextLength(node, inherited || nodeMarksBold(node));
+      }
+    });
+    return len;
+  }
   function isFullyBold(p){
-    const strongs = p.querySelectorAll('strong, b');
-    if(strongs.length === 0) return false;
     const total = p.textContent.trim().length;
-    let boldLen = 0;
-    strongs.forEach(s => boldLen += s.textContent.trim().length);
-    return total > 0 && boldLen >= total * 0.85;
+    if(total === 0) return false;
+    const boldLen = boldTextLength(p, false);
+    return boldLen >= total * 0.85;
   }
   function parseLetters(str){
     return (str.toUpperCase().match(/[A-E]/g) || []);
@@ -1348,8 +1427,12 @@ function parseQuestionsFromHtml(html){
     }
     if(current && (m = rawText.match(optRe))){
       const optId = genId();
-      current.opsi.push({ id: optId, teks: m[2].trim(), gambar: img });
-      if(isFullyBold(p)) current.boldSet.add(optId);
+      let optText = m[3].trim();
+      let markedKey = !!m[1];
+      const trailingStar = optText.match(/^(.*?)\s*\*\s*$/);
+      if(trailingStar){ optText = trailingStar[1].trim(); markedKey = true; }
+      current.opsi.push({ id: optId, teks: optText, gambar: img });
+      if(isFullyBold(p) || markedKey) current.boldSet.add(optId);
       return;
     }
     if(current && (m = rawText.match(poinRe))){
@@ -1457,6 +1540,195 @@ function parseQuestionsFromHtml(html){
   return { questions, warnings };
 }
 
+/* ---------- Deteksi soal PG dari teks yang ditempel langsung (tanpa file Word) ----------
+   Format per soal:
+     1. Teks soal ...
+     A. Opsi pertama
+     B. Opsi kedua
+     C. Opsi ketiga
+     Kunci: B
+   - Nomor soal harus berurutan (1, 2, 3, ...); baris bernomor yang tidak lanjut
+     berurutan dianggap bagian dari isi soal (daftar di dalam soal), bukan soal baru.
+   - Kunci jawaban: baris "Kunci: X" / "Jawaban: X", ATAU tanda bintang (*) di depan
+     atau di akhir opsi yang benar (mis. "*B. ..." atau "B. ... *").
+   - Baris "Poin: 15" opsional untuk mengatur bobot soal (default 10). */
+function parsePgFromPlainText(text){
+  const qRe = /^(\d{1,3})[\.\)]\s+(.+)$/;
+  const optRe = /^(\*)?\s*([A-Ea-e])[\.\)]\s+(.+)$/;
+  const keyRe = /^(?:kunci|jawaban)(?:\s*jawaban)?\s*[:\-]?\s*([A-Ea-e])\b/i;
+  const poinRe = /^(?:poin|bobot|skor)\s*[:\-]?\s*(\d+)/i;
+
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const questions = [];
+  let current = null;
+  let lastQNum = null;
+
+  function finalizeCurrent(){
+    if(!current) return;
+    current.teks = current.teks.trim();
+    questions.push(current);
+    current = null;
+  }
+
+  lines.forEach(raw => {
+    const line = raw.trim();
+    if(!line) return;
+    let m;
+
+    if((m = line.match(qRe))){
+      const qNum = parseInt(m[1], 10);
+      const isSequential = (lastQNum === null) || (qNum === lastQNum + 1);
+      if(isSequential){
+        finalizeCurrent();
+        current = {
+          id: genId(), type: 'pg', teks: m[2].trim(), bacaan: null, gambar: null,
+          opsi: [], kunciId: null, kunciIds: [], kategori: null, kunciKategori: null,
+          pernyataan: null, poin: 10
+        };
+        lastQNum = qNum;
+        return;
+      }
+      // nomor tidak lanjut berurutan → dianggap daftar di dalam badan soal, bukan soal baru
+    }
+
+    if(!current) return; // baris sebelum soal pertama terdeteksi, abaikan
+
+    if((m = line.match(poinRe))){
+      current.poin = parseInt(m[1], 10) || current.poin;
+      return;
+    }
+    if((m = line.match(keyRe))){
+      const idx = m[1].toUpperCase().charCodeAt(0) - 65;
+      if(current.opsi[idx]) current.kunciId = current.opsi[idx].id;
+      return;
+    }
+    if((m = line.match(optRe))){
+      const optId = genId();
+      let optText = m[3].trim();
+      let isKey = !!m[1];
+      const trailingStar = optText.match(/^(.*?)\s*\*\s*$/);
+      if(trailingStar){ optText = trailingStar[1].trim(); isKey = true; }
+      current.opsi.push({ id: optId, teks: optText, gambar: null });
+      if(isKey) current.kunciId = optId;
+      return;
+    }
+    // baris biasa: sambungan teks soal, hanya selama belum masuk daftar opsi
+    if(current.opsi.length === 0){
+      current.teks += '\n' + line;
+    }
+  });
+  finalizeCurrent();
+
+  const warnings = [];
+  questions.forEach((q, i) => {
+    if(q.opsi.length < 2){
+      warnings.push(`Soal #${i+1} terdeteksi kurang dari 2 opsi jawaban.`);
+    }
+    if(!q.kunciId){
+      warnings.push(`Soal #${i+1} kunci jawaban tidak terdeteksi otomatis.`);
+    }
+  });
+  return { questions, warnings };
+}
+
+// Bersihkan HTML mentah dari clipboard (Word/Google Docs/dsb) sebelum
+// dimasukkan ke kotak contenteditable: buang tag berbahaya/tidak perlu
+// (script, style, meta, class Mso*, dst) tapi PERTAHANKAN struktur yang
+// dipakai parser (paragraf, list, tabel, gambar) dan sinyal bold (tag
+// <b>/<strong> atau style font-weight) supaya kunci jawaban tetap terbaca.
+function sanitizePastedHtml(html){
+  const allowed = new Set(['P','BR','DIV','B','STRONG','I','EM','U','UL','OL','LI','TABLE','TBODY','THEAD','TR','TD','TH','SPAN','IMG']);
+  const removeEntirely = new Set(['SCRIPT','STYLE','META','LINK','HEAD','TITLE']);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+
+  (function clean(node){
+    Array.from(node.childNodes).forEach(child => {
+      if(child.nodeType === 8){ node.removeChild(child); return; } // komentar (mis. cruft Word <!--[if ...]-->)
+      if(child.nodeType !== 1){ return; } // teks: biarkan
+      const tag = child.tagName;
+      if(removeEntirely.has(tag)){ node.removeChild(child); return; }
+      if(!allowed.has(tag)){
+        // bukan tag yang didukung parser: buang wrapper-nya saja, isinya tetap dipertahankan
+        while(child.firstChild) node.insertBefore(child.firstChild, child);
+        node.removeChild(child);
+        return;
+      }
+      const styleAttr = child.getAttribute('style') || '';
+      const isBold = /font-weight\s*:\s*(bold|bolder|[6-9]\d\d)/i.test(styleAttr);
+      const srcAttr = tag === 'IMG' ? child.getAttribute('src') : null;
+      const altAttr = tag === 'IMG' ? child.getAttribute('alt') : null;
+      Array.from(child.attributes).forEach(a => child.removeAttribute(a.name));
+      if(isBold) child.setAttribute('style', 'font-weight:700');
+      if(srcAttr) child.setAttribute('src', srcAttr);
+      if(altAttr) child.setAttribute('alt', altAttr);
+      clean(child);
+    });
+  })(tmp);
+
+  return tmp.innerHTML;
+}
+
+function initPasteEditable(){
+  const box = document.getElementById('bs-paste-text');
+  if(!box || box.dataset.pasteBound) return;
+  box.dataset.pasteBound = '1';
+  box.addEventListener('paste', function(e){
+    e.preventDefault();
+    const cd = e.clipboardData || window.clipboardData;
+    if(!cd) return;
+    const html = cd.getData('text/html');
+    if(html){
+      const clean = sanitizePastedHtml(html);
+      document.execCommand('insertHTML', false, clean);
+    } else {
+      const text = cd.getData('text/plain') || '';
+      // pastikan tiap baris jadi blok tersendiri, supaya parser (yang membaca
+      // per-paragraf) tetap bisa mendeteksi nomor soal & opsi per baris.
+      const linesHtml = text.replace(/\r\n/g, '\n').split('\n')
+        .map(line => `<div>${escapeHtml(line) || '<br>'}</div>`).join('');
+      document.execCommand('insertHTML', false, linesHtml);
+    }
+  });
+}
+
+function handlePasteDetect(){
+  const statusEl = document.getElementById('bs-paste-status');
+  const mapelId = document.getElementById('bs-mapel').value;
+  if(!mapelId){
+    statusEl.textContent = 'Pilih mata pelajaran terlebih dahulu.';
+    return;
+  }
+  const tingkatVal = document.getElementById('bs-tingkat').value;
+  if(!tingkatVal){
+    statusEl.textContent = 'Pilih tingkat (X/XI/XII) terlebih dahulu.';
+    return;
+  }
+  const box = document.getElementById('bs-paste-text');
+  const html = box.innerHTML;
+  if(!box.textContent || !box.textContent.trim()){
+    statusEl.textContent = 'Tempel teks soal terlebih dahulu di kotak di atas.';
+    return;
+  }
+
+  const { questions, warnings } = parseQuestionsFromHtml(html);
+  if(questions.length === 0){
+    statusEl.textContent = 'Tidak ada soal yang berhasil terdeteksi. Pastikan penomoran & opsi sesuai format di atas.';
+    document.getElementById('bs-preview-card').style.display = 'none';
+    return;
+  }
+
+  uploadParsed = {
+    subjectId: mapelId,
+    tingkat: tingkatVal,
+    judul: document.getElementById('bs-judul').value.trim(),
+    questions, warnings
+  };
+  const boldKeyCount = questions.filter(q => (q.type === 'pg' && q.kunciId) || (q.type === 'pgk' && q.kunciIds && q.kunciIds.length)).length;
+  statusEl.textContent = `Berhasil mendeteksi ${questions.length} soal dari teks yang ditempel${boldKeyCount ? ` (kunci jawaban terbaca dari bold/penanda pada ${boldKeyCount} soal)` : ''}.`;
+  renderUploadPreview();
+}
+
 const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', bsg: 'Pernyataan Ganda', rb: 'Radio Button', essay: 'Esai' };
 
 function isQuestionFlagged(q){
@@ -1550,6 +1822,8 @@ function cancelUpload(){
   document.getElementById('bs-file').value = '';
   document.getElementById('bs-drop-text').textContent = 'Klik atau seret file Word ke sini';
   document.getElementById('bs-status').textContent = '';
+  document.getElementById('bs-paste-text').innerHTML = '';
+  document.getElementById('bs-paste-status').textContent = '';
   document.getElementById('bs-judul').value = '';
 }
 
