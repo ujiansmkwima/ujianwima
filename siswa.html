@@ -219,11 +219,19 @@
   #examSuite .nav-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; flex-wrap:wrap; }
 
   /* ---------- Bacaan / kutipan ---------- */
+  #examSuite .bacaan-group-label{
+    display:flex; align-items:center; gap:7px; font-family:'JetBrains Mono',monospace; font-size:11px;
+    font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--sn-muted); margin-bottom:8px;
+  }
+  #examSuite .bacaan-group-label::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--sn-t1); flex-shrink:0; }
   #examSuite .bacaan-box{
     background:var(--sn-card); border:1px solid var(--sn-line); border-left:5px solid var(--sn-t1); border-radius:10px;
     padding:18px 20px; margin-bottom:18px; font-size:calc(14.5px * var(--fscale)); line-height:1.75; color:#33313c;
-    max-height:280px; overflow-y:auto; white-space:pre-line; text-align:justify;
+    max-height:280px; overflow-y:auto; white-space:pre-line; text-align:justify; transition:max-height .2s ease;
   }
+  /* Saat soal disematkan (pin), area bacaan tidak lagi dibatasi scroll internal —
+     seluruh halaman yang digulir, sementara kartu soal melayang tetap di bagian bawah layar. */
+  #examSuite.passage-pinned .bacaan-box{ max-height:none; overflow-y:visible; }
 
   /* ---------- Header baris jenis soal / indeks ---------- */
   #examSuite .sn-stage-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
@@ -248,10 +256,17 @@
     border:1px solid var(--sn-line); background:#fff; color:var(--sn-muted); border-radius:99px; padding:6px 13px;
     font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
   }
-  #examSuite .pin-btn.active{ border-color:var(--sn-t1); background:var(--sn-t1-bg); color:var(--sn-t1); }
+  #examSuite .pin-btn.active{ border-color:var(--sn-t1); background:var(--sn-t1); color:#fff; }
   #examSuite .question-card.pinned{
-    border-color:var(--sn-t1); box-shadow:0 -10px 28px rgba(20,20,30,.2);
-    border-radius:14px 14px 0 0; background:var(--sn-card);
+    border-color:var(--sn-t1); box-shadow:0 -4px 24px rgba(20,20,30,.14);
+    border-radius:16px 16px 0 0; background:var(--sn-card);
+  }
+  /* Efek "fade" di atas kartu yang disematkan — mengesankan teks bacaan memudar
+     di balik kartu soal yang melayang, seperti sorotan kaca buram. */
+  #examSuite .question-card.pinned::before{
+    content:''; position:absolute; left:0; right:0; top:-26px; height:26px; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(248,248,250,0), var(--sn-card));
+    border-radius:16px 16px 0 0;
   }
   #examSuite .question-card.pinned #ev-answer-area{ padding-bottom:4px; }
   #examSuite .pin-placeholder{ margin-bottom:16px; }
@@ -365,6 +380,12 @@
   #examSuite .modal-summary .pill.done{ background:var(--sn-t1-bg); }
   #examSuite .modal-summary .pill.doubt{ background:var(--sn-t3-bg); }
   #examSuite .modal-summary .pill.empty{ background:#f1f1ee; }
+  #examSuite .submit-warn{
+    display:flex; gap:9px; align-items:flex-start; background:#FBF2DC; border:1px solid #E4CE96; color:#6b4f12;
+    border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5; margin-bottom:16px; font-weight:600;
+  }
+  #examSuite .submit-warn.hidden{ display:none; }
+  #examSuite .submit-warn.all-good{ background:var(--sn-t1-bg); border-color:var(--sn-t1); color:#0B7D57; }
   #examSuite .modal-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
   #examSuite .modal-actions.stack{ flex-direction:column; }
   #examSuite .modal-actions.stack button{ width:100%; justify-content:center; }
@@ -540,7 +561,7 @@
       <div class="sn-nav-inner">
         <button class="sn-navbtn" id="ev-prev" onclick="navQuestion(-1)">← Sebelumnya</button>
         <button class="sn-navbtn" id="ev-next" onclick="navQuestion(1)">Selanjutnya →</button>
-        <button class="sn-navbtn sn-finish" onclick="openSubmitModal()">Kumpulkan</button>
+        <button class="sn-navbtn sn-finish" id="ev-finish-btn" onclick="openSubmitModal()">Kumpulkan</button>
       </div>
     </div>
   </div>
@@ -555,6 +576,7 @@
         <div class="pill doubt"><div class="n" id="sumDoubt">0</div><div class="l">Ragu</div></div>
         <div class="pill empty"><div class="n" id="sumEmpty">0</div><div class="l">Kosong</div></div>
       </div>
+      <div class="submit-warn hidden" id="submitWarnBox"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeSubmitModal()">Kembali</button>
         <button class="btn-primary" style="background:var(--sn-good);" onclick="confirmSubmit()">Ya, Kumpulkan</button>
@@ -964,6 +986,21 @@ function statusOf(q, attempt){
   return isAnswered(q, attempt) ? 'done' : 'empty';
 }
 
+/* Jika beberapa soal berurutan berbagi teks bacaan yang sama (soal kelompok bacaan),
+   tampilkan label kecil "Soal No. X-Y" di atas kotak bacaan — mengikuti urutan tampil
+   siswa saat ini (bisa berbeda per siswa jika soal diacak). */
+function bacaanGroupLabelHtml(currentIndex){
+  const { attempt, questionSet } = liveExam;
+  const order = attempt.urutanSoal;
+  const qAt = i => questionSet.soal.find(x => x.id === order[i]);
+  const teks = qAt(currentIndex).bacaan;
+  let start = currentIndex, end = currentIndex;
+  while(start > 0 && qAt(start - 1) && qAt(start - 1).bacaan === teks) start--;
+  while(end < order.length - 1 && qAt(end + 1) && qAt(end + 1).bacaan === teks) end++;
+  if(start === end) return '';
+  return `<div class="bacaan-group-label">Soal No. ${start + 1}–${end + 1}</div>`;
+}
+
 function renderQnav(){
   const { attempt } = liveExam;
   document.getElementById('ev-qnav').innerHTML = attempt.urutanSoal.map((qid, i) => {
@@ -983,7 +1020,7 @@ function renderQuestion(){
   document.getElementById('ev-qnum-badge').textContent = currentIndex + 1;
   document.getElementById('ev-qtype').textContent = TYPE_LABEL[q.type] || q.type;
   document.getElementById('ev-qpoin').textContent = `${q.poin} poin`;
-  document.getElementById('ev-bacaan').innerHTML = q.bacaan ? `<div class="bacaan-box">${escapeHtml(q.bacaan)}</div>` : '';
+  document.getElementById('ev-bacaan').innerHTML = q.bacaan ? `${bacaanGroupLabelHtml(currentIndex)}<div class="bacaan-box">${escapeHtml(q.bacaan)}</div>` : '';
   document.getElementById('ev-question-text').innerHTML = escapeHtml(q.teks);
   document.getElementById('ev-question-img').innerHTML = q.gambar ? `<img class="question-img" src="${q.gambar}" alt="">` : '';
   document.getElementById('ev-question-table').innerHTML = renderTabelHtml(q.tabel);
@@ -1001,7 +1038,10 @@ function renderQuestion(){
 
   document.getElementById('ev-prev').disabled = currentIndex === 0;
   document.getElementById('ev-prev').style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
-  document.getElementById('ev-next').textContent = currentIndex === total - 1 ? 'Ke soal terakhir' : 'Selanjutnya →';
+  const isLastQuestion = currentIndex === total - 1;
+  document.getElementById('ev-next').textContent = 'Selanjutnya →';
+  document.getElementById('ev-next').style.display = isLastQuestion ? 'none' : '';
+  document.getElementById('ev-finish-btn').style.display = isLastQuestion ? '' : 'none';
 
   const c = counts();
   document.getElementById('ev-progress').textContent = `${c.done} terjawab · ${c.doubt} ragu · ${c.empty} kosong dari ${total} soal`;
@@ -1014,7 +1054,8 @@ function renderAnswerArea(q, attempt){
   const optOrder = attempt.urutanOpsi[q.id] || q.opsi.map(o=>o.id);
   if(q.type === 'pg'){
     const selected = attempt.jawaban[q.id];
-    return optOrder.map((oid, i) => {
+    return `<div class="muted-note" style="margin-bottom:8px;">Pilih salah satu jawaban yang benar.</div>` +
+      optOrder.map((oid, i) => {
       const o = q.opsi.find(x => x.id === oid);
       if(!o) return '';
       const letter = String.fromCharCode(65 + i);
@@ -1167,7 +1208,8 @@ function pinQuestionCard(){
   card.style.overflowY = 'auto';
   card.style.zIndex = '32';
 
-  if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Dilepas'; }
+  if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Disematkan'; }
+  document.getElementById('examSuite').classList.add('passage-pinned');
   repositionPinnedCard();
 }function unpinQuestionCard(){
   const card = document.getElementById('ev-question-card');
@@ -1185,6 +1227,7 @@ function pinQuestionCard(){
   const placeholder = document.getElementById('ev-pin-placeholder');
   if(placeholder) placeholder.remove();
   if(pinBtn){ pinBtn.classList.remove('active'); pinBtn.innerHTML = '📌 Sematkan'; }
+  document.getElementById('examSuite').classList.remove('passage-pinned');
 }
 function repositionPinnedCard(){
   const card = document.getElementById('ev-question-card');
@@ -1266,6 +1309,20 @@ function openSubmitModal(){
   document.getElementById('sumDone').textContent = c.done;
   document.getElementById('sumDoubt').textContent = c.doubt;
   document.getElementById('sumEmpty').textContent = c.empty;
+
+  const warnBox = document.getElementById('submitWarnBox');
+  if(c.empty > 0 || c.doubt > 0){
+    const parts = [];
+    if(c.empty > 0) parts.push(`<strong>${c.empty} soal masih kosong</strong>`);
+    if(c.doubt > 0) parts.push(`<strong>${c.doubt} soal ditandai ragu-ragu</strong>`);
+    warnBox.classList.remove('all-good', 'hidden');
+    warnBox.innerHTML = `<span>⚠️</span><span>Masih ada ${parts.join(' dan ')}. Periksa kembali sebelum mengumpulkan — jawaban tidak bisa diubah lagi setelah dikumpulkan.</span>`;
+  } else {
+    warnBox.classList.add('all-good');
+    warnBox.classList.remove('hidden');
+    warnBox.innerHTML = `<span>✅</span><span>Semua soal sudah terjawab. Kamu yakin ingin mengumpulkan sekarang?</span>`;
+  }
+
   document.getElementById('submitModalBg').classList.remove('hidden');
 }
 function closeSubmitModal(){ document.getElementById('submitModalBg').classList.add('hidden'); }

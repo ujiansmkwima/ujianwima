@@ -256,7 +256,7 @@
   .badge-mengerjakan{ background:var(--amber-soft); color:#8A6414; }
   .badge-warn{ background:var(--red-soft); color:var(--red); }
   .badge-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
-  .badge-mengerjakan .badge-dot{ animation:pulse 1.4s infinite; }
+  .badge-mengerjakan .badge-dot, .badge-berlangsung .badge-dot{ animation:pulse 1.4s infinite; }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
 
   /* ---------- Toggle switch ---------- */
@@ -394,6 +394,12 @@
     .table-scroll tbody td{ padding:8px 10px; font-size:12.5px; white-space:nowrap; }
     .table-scroll tbody td::before{ content:none; }
     .table-scroll .cell-action{ text-align:right; }
+
+    /* Token ujian: perbesar token & status di tampilan HP supaya mudah dibacakan/ditunjukkan ke siswa. */
+    .tkn-row{ flex-direction:column; align-items:flex-start; }
+    .tkn-row-token{ width:100%; justify-content:space-between; }
+    .tkn-token-pill{ font-size:19px; padding:9px 16px; border-radius:10px; letter-spacing:1.5px; }
+    .tkn-row-token .badge{ font-size:12.5px; padding:5px 11px; }
   }
 </style>
 </head>
@@ -758,7 +764,7 @@
   <section id="panel-token" class="panel">
     <div class="section-head">
       <h1>Token Ujian</h1>
-      <p>Daftar token dari seluruh ujian yang sudah terjadwal (semua mata pelajaran), terurut per tanggal dari jadwal paling awal ke paling akhir.</p>
+      <p>Daftar token dari seluruh ujian yang sudah terjadwal (semua mata pelajaran), terurut per tanggal dari jadwal paling awal ke paling akhir. Status ujian (Terjadwal/Berlangsung/Selesai) ditampilkan di samping tiap token dan diperbarui otomatis.</p>
     </div>
 
     <div class="list-card">
@@ -1034,6 +1040,12 @@ function showPanel(id, el){
     startMonitoringAutoRefresh();
   } else {
     stopMonitoringAutoRefresh();
+  }
+  if(id === 'panel-token'){
+    renderTokenView();
+    startTokenAutoRefresh();
+  } else {
+    stopTokenAutoRefresh();
   }
 }
 function showSubtab(id, el){
@@ -2194,6 +2206,18 @@ function formatTanggalPanjang(tanggal){
   return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+/* Status ujian (terjadwal/berlangsung/selesai) berubah seiring waktu berjalan,
+   jadi selagi panel token terbuka, status disegarkan berkala tanpa perlu reload. */
+const TOKEN_AUTO_REFRESH_MS = 15000;
+let tokenAutoRefreshTimer = null;
+function startTokenAutoRefresh(){
+  stopTokenAutoRefresh();
+  tokenAutoRefreshTimer = setInterval(renderTokenView, TOKEN_AUTO_REFRESH_MS);
+}
+function stopTokenAutoRefresh(){
+  if(tokenAutoRefreshTimer){ clearInterval(tokenAutoRefreshTimer); tokenAutoRefreshTimer = null; }
+}
+
 function renderTokenView(){
   const all = schedules.slice();
   document.getElementById('tkn-count').textContent = all.length + ' jadwal ujian';
@@ -2223,6 +2247,7 @@ function renderTokenView(){
         const mapelNama = subj ? subj.nama : (qs ? qs.judul : 'Paket dihapus');
         const g2 = subj ? guruList.find(x => x.id === subj.guruId) : null;
         const kelasStr = j.kelas && j.kelas.length ? j.kelas.map(escapeHtml).join(', ') : '—';
+        const st = getJadwalStatus(j);
         return `
         <div class="tkn-row">
           <div class="tkn-row-main">
@@ -2230,6 +2255,7 @@ function renderTokenView(){
             <div class="tkn-row-meta">${escapeHtml(j.jamMulai || '')} · Kelas ${kelasStr}${g2 ? ' · ' + escapeHtml(g2.nama) : ''}</div>
           </div>
           <div class="tkn-row-token">
+            <span class="badge badge-${st}">${st === 'berlangsung' ? '<span class="badge-dot"></span>' : ''}${statusLabel[st]}</span>
             ${j.token ? `<span class="tkn-token-pill">${escapeHtml(j.token)}</span>` : '<span class="tkn-token-empty">Belum ada token</span>'}
           </div>
         </div>`;
