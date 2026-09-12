@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Siswa — Asesmen SMK Widya Mandala Tambak</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -250,7 +250,8 @@
   }
   #examSuite .pin-btn.active{ border-color:var(--sn-t1); background:var(--sn-t1-bg); color:var(--sn-t1); }
   #examSuite .question-card.pinned{
-    border-color:var(--sn-t1); box-shadow:0 14px 32px rgba(20,20,30,.2); background:var(--sn-card);
+    border-color:var(--sn-t1); box-shadow:0 -10px 28px rgba(20,20,30,.2);
+    border-radius:14px 14px 0 0; background:var(--sn-card);
   }
   #examSuite .question-card.pinned #ev-answer-area{ padding-bottom:4px; }
   #examSuite .pin-placeholder{ margin-bottom:16px; }
@@ -330,7 +331,7 @@
   /* ---------- Bar navigasi bawah (tetap/fixed) ---------- */
   #examSuite .sn-nav-bar{
     position:fixed; bottom:0; left:0; right:0; z-index:40; background:var(--sn-navy);
-    border-top:1px solid rgba(255,255,255,.1); padding:9px 0;
+    border-top:1px solid rgba(255,255,255,.1); padding:9px 0 calc(9px + env(safe-area-inset-bottom, 0px));
   }
   #examSuite .sn-nav-inner{ max-width:760px; margin:0 auto; padding:0 16px; display:flex; align-items:center; gap:8px; }
   #examSuite .sn-navbtn{
@@ -342,7 +343,7 @@
   #examSuite .sn-navbtn:disabled{ opacity:.35; cursor:not-allowed; }
   #examSuite .sn-navbtn.sn-finish{ background:var(--sn-t3); color:#241a05; border:none; font-weight:700; }
   #examSuite .sn-navbtn.sn-finish:hover{ background:#dc9b28; }
-  #examSuite .sn-bottom-spacer{ height:74px; }
+  #examSuite .sn-bottom-spacer{ height:calc(74px + env(safe-area-inset-bottom, 0px)); }
   #examSuite .muted-note{ font-size:11.5px; color:var(--sn-muted); text-align:center; margin-top:8px; font-family:'JetBrains Mono',monospace; }
 
   /* ---------- Modal (konfirmasi, token, pindah tab, keluar) ---------- */
@@ -1168,14 +1169,14 @@ function pinQuestionCard(){
 
   if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Dilepas'; }
   repositionPinnedCard();
-}
-function unpinQuestionCard(){
+}function unpinQuestionCard(){
   const card = document.getElementById('ev-question-card');
   const pinBtn = document.getElementById('ev-pin-btn');
   if(!card) return;
   card.classList.remove('pinned');
   card.style.position = '';
   card.style.top = '';
+  card.style.bottom = '';
   card.style.left = '';
   card.style.width = '';
   card.style.maxHeight = '';
@@ -1194,12 +1195,13 @@ function repositionPinnedCard(){
     card.style.left = prect.left + 'px';
     card.style.width = prect.width + 'px';
   }
-  const shell = document.querySelector('#examSuite .sn-progress-shell');
-  const shellVisible = shell && getComputedStyle(shell).display !== 'none';
-  const topOffset = shellVisible ? shell.getBoundingClientRect().bottom : 0;
-  card.style.top = Math.max(topOffset, 0) + 'px';
-  // separuh layar hp untuk tampilan soal yang disematkan
-  card.style.maxHeight = `calc(50vh - ${Math.max(topOffset, 0)}px)`;
+  // Soal + opsi disematkan mulai dari TENGAH layar sampai ke BAWAH (di atas bar navigasi),
+  // bukan berpindah ke tengah horizontal — posisi kiri/lebar tetap mengikuti kolom soal.
+  const navBar = document.querySelector('#examSuite .sn-nav-bar');
+  const navBarHeight = navBar ? navBar.offsetHeight : 74;
+  card.style.top = '50vh';
+  card.style.bottom = navBarHeight + 'px';
+  card.style.maxHeight = '';
 }
 window.addEventListener('resize', repositionPinnedCard);
 
