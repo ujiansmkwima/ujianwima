@@ -244,6 +244,16 @@
     font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
   }
   #examSuite .doubt-btn.active{ border-color:var(--sn-t3); background:var(--sn-t3-bg); color:#7a4e0a; }
+  #examSuite .pin-btn{
+    border:1px solid var(--sn-line); background:#fff; color:var(--sn-muted); border-radius:99px; padding:6px 13px;
+    font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+  #examSuite .pin-btn.active{ border-color:var(--sn-t1); background:var(--sn-t1-bg); color:var(--sn-t1); }
+  #examSuite .question-card.pinned{
+    border-color:var(--sn-t1); box-shadow:0 14px 32px rgba(20,20,30,.2); background:var(--sn-card);
+  }
+  #examSuite .question-card.pinned #ev-answer-area{ padding-bottom:4px; }
+  #examSuite .pin-placeholder{ margin-bottom:16px; }
 
   #examSuite .sn-q-top{ display:flex; gap:12px; align-items:flex-start; margin-bottom:6px; }
   #examSuite .sn-q-num{
@@ -381,14 +391,22 @@
   #examSuite .nilai-breakdown{ text-align:left; max-width:340px; margin:0 auto 20px; font-size:12.5px; color:var(--sn-muted); }
   #examSuite .nilai-breakdown div{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--sn-line); }
 
-  /* ---------- Mode "Ciutkan" (sembunyikan header saat mengerjakan) ---------- */
+  /* ---------- Mode "Ciutkan" (sembunyikan semua atribut header saat mengerjakan) ---------- */
   body.compact-exam .site-header, body.compact-exam .tabs-wrap, body.compact-exam .notice{ display:none; }
   body.compact-exam .shell{ padding-top:12px; }
-  body.compact-exam #examSuite .sn-progress-shell{
-    position:sticky; top:0; z-index:25; margin:-12px -16px 16px; border-radius:0;
-    border-left:none; border-right:none; border-top:none;
+  /* Saat diciutkan, seluruh bar info (judul, timer, progres, tombol) disembunyikan total
+     supaya area bacaan seluas mungkin — yang tersisa hanya tombol "Tampilkan". */
+  body.compact-exam #examSuite .sn-progress-shell{ display:none; }
+
+  #examSuite .show-header-fab{
+    display:none; position:fixed; top:12px; right:14px; z-index:35;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700; background:var(--sn-navy); border:1px solid var(--sn-navy);
+    color:#fff; padding:8px 14px; border-radius:99px; cursor:pointer; align-items:center; gap:6px;
+    box-shadow:0 6px 18px rgba(20,20,30,.28);
   }
-  body.compact-exam #examSuite .sn-exam-title-wrap{ display:none; }
+  #examSuite .show-header-fab svg{ width:14px; height:14px; }
+  #examSuite .show-header-fab:hover{ background:#232849; }
+  body.compact-exam #examSuite .show-header-fab{ display:flex; }
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -485,6 +503,11 @@
       </div>
     </div>
 
+    <button type="button" class="show-header-fab" id="showHeaderFab" onclick="toggleHeaderCompact()" title="Tampilkan kembali header ujian">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Tampilkan</span>
+    </button>
+
     <div class="sn-stage-head">
       <span class="qtype-pill" id="ev-qtype">—</span>
       <span class="sn-stage-index" id="ev-qnum">Soal 1 dari 0</span>
@@ -492,7 +515,7 @@
 
     <div id="ev-bacaan"></div>
 
-    <div class="question-card">
+    <div class="question-card" id="ev-question-card">
       <div class="sn-q-top">
         <div class="sn-q-num" id="ev-qnum-badge">1</div>
         <div class="question-text" id="ev-question-text"></div>
@@ -502,6 +525,7 @@
       <div class="qmeta-row">
         <span class="qpoin-pill" id="ev-qpoin"></span>
         <button type="button" class="doubt-btn" id="ev-doubt-btn" onclick="toggleDoubt()">☆ Ragu-ragu</button>
+        <button type="button" class="pin-btn" id="ev-pin-btn" onclick="togglePinQuestion()" title="Sematkan soal agar tetap terlihat di layar saat menggulir">📌 Sematkan</button>
       </div>
       <div id="ev-answer-area"></div>
     </div>
@@ -889,6 +913,7 @@ async function proceedEnterExam(scheduleId){
   document.getElementById('ev-title').textContent = qs.judul;
   document.getElementById('ev-sub').textContent = (subjects.find(s=>s.id===qs.subjectId)||{}).nama || '';
   resetHeaderCompact();
+  unpinQuestionCard();
   window.scrollTo({ top:0 });
 
   document.getElementById('navToggleBtn').onclick = () => {
@@ -1107,23 +1132,76 @@ function toggleDoubt(){
 
 /* ---------- sembunyikan/tampilkan header informasi ---------- */
 function toggleHeaderCompact(){
-  const on = document.body.classList.toggle('compact-exam');
-  document.getElementById('hideHeaderBtn').classList.toggle('active', on);
-  document.getElementById('hideHeaderLabel').textContent = on ? 'Tampilkan' : 'Ciutkan';
-  document.getElementById('hideHeaderIcon').innerHTML = on
-    ? '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>'
-    : '<path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/>';
+  document.body.classList.toggle('compact-exam');
   window.scrollTo({ top:0 });
+  repositionPinnedCard();
 }
 function resetHeaderCompact(){
   document.body.classList.remove('compact-exam');
-  const btn = document.getElementById('hideHeaderBtn');
-  const lbl = document.getElementById('hideHeaderLabel');
-  const icon = document.getElementById('hideHeaderIcon');
-  if(btn) btn.classList.remove('active');
-  if(lbl) lbl.textContent = 'Ciutkan';
-  if(icon) icon.innerHTML = '<path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/>';
 }
+
+/* ---------- sematkan (pin) soal agar tetap terlihat saat menggulir ---------- */
+function togglePinQuestion(){
+  const card = document.getElementById('ev-question-card');
+  if(!card) return;
+  if(card.classList.contains('pinned')) unpinQuestionCard();
+  else pinQuestionCard();
+}
+function pinQuestionCard(){
+  const card = document.getElementById('ev-question-card');
+  const pinBtn = document.getElementById('ev-pin-btn');
+  if(!card || card.classList.contains('pinned')) return;
+
+  const rect = card.getBoundingClientRect();
+  const placeholder = document.createElement('div');
+  placeholder.id = 'ev-pin-placeholder';
+  placeholder.className = 'pin-placeholder';
+  placeholder.style.height = rect.height + 'px';
+  card.parentNode.insertBefore(placeholder, card);
+
+  card.classList.add('pinned');
+  card.style.position = 'fixed';
+  card.style.left = rect.left + 'px';
+  card.style.width = rect.width + 'px';
+  card.style.overflowY = 'auto';
+  card.style.zIndex = '32';
+
+  if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Dilepas'; }
+  repositionPinnedCard();
+}
+function unpinQuestionCard(){
+  const card = document.getElementById('ev-question-card');
+  const pinBtn = document.getElementById('ev-pin-btn');
+  if(!card) return;
+  card.classList.remove('pinned');
+  card.style.position = '';
+  card.style.top = '';
+  card.style.left = '';
+  card.style.width = '';
+  card.style.maxHeight = '';
+  card.style.overflowY = '';
+  card.style.zIndex = '';
+  const placeholder = document.getElementById('ev-pin-placeholder');
+  if(placeholder) placeholder.remove();
+  if(pinBtn){ pinBtn.classList.remove('active'); pinBtn.innerHTML = '📌 Sematkan'; }
+}
+function repositionPinnedCard(){
+  const card = document.getElementById('ev-question-card');
+  if(!card || !card.classList.contains('pinned')) return;
+  const placeholder = document.getElementById('ev-pin-placeholder');
+  if(placeholder){
+    const prect = placeholder.getBoundingClientRect();
+    card.style.left = prect.left + 'px';
+    card.style.width = prect.width + 'px';
+  }
+  const shell = document.querySelector('#examSuite .sn-progress-shell');
+  const shellVisible = shell && getComputedStyle(shell).display !== 'none';
+  const topOffset = shellVisible ? shell.getBoundingClientRect().bottom : 0;
+  card.style.top = Math.max(topOffset, 0) + 'px';
+  // separuh layar hp untuk tampilan soal yang disematkan
+  card.style.maxHeight = `calc(50vh - ${Math.max(topOffset, 0)}px)`;
+}
+window.addEventListener('resize', repositionPinnedCard);
 
 /* ---------- ukuran font ---------- */
 function toggleFontMenu(){ document.getElementById('fontSizeMenu').classList.toggle('hidden'); }
@@ -1139,12 +1217,14 @@ document.addEventListener('click', () => {
 });
 
 function navQuestion(delta){
+  unpinQuestionCard();
   const max = liveExam.attempt.urutanSoal.length - 1;
   liveExam.currentIndex = Math.min(max, Math.max(0, liveExam.currentIndex + delta));
   renderQnav();
   renderQuestion();
 }
 function jumpTo(i){
+  unpinQuestionCard();
   liveExam.currentIndex = i;
   renderQnav();
   renderQuestion();
@@ -1164,6 +1244,7 @@ function updateTimer(){
   if(remain <= 0){
     el.textContent = '00:00';
     clearInterval(timerInterval);
+    unpinQuestionCard();
     finalizeAttempt(liveExam.attempt, liveExam.schedule, true).then(() => {
       alert('Waktu ujian habis. Jawabanmu otomatis dikumpulkan.');
       showResult();
@@ -1189,6 +1270,7 @@ function closeSubmitModal(){ document.getElementById('submitModalBg').classList.
 
 function confirmSubmit(){
   closeSubmitModal();
+  unpinQuestionCard();
   clearInterval(timerInterval);
   finalizeAttempt(liveExam.attempt, liveExam.schedule, false).then(showResult);
 }
