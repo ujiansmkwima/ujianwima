@@ -247,6 +247,13 @@
   .tkn-row-main{ min-width:0; }
   .tkn-row-mapel{ font-weight:700; font-size:13.5px; color:var(--ink); }
   .tkn-row-meta{ font-size:12px; color:var(--slate); margin-top:2px; }
+  .tkn-date-nav{ display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .tkn-date-nav .btn-secondary{ padding:9px 12px; }
+  .tkn-date-nav input[type="date"]{
+    font-family:inherit; font-size:13.5px; padding:9px 12px; border:1.5px solid var(--line);
+    border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  #tkn-today-btn{ margin-left:auto; }
   .tkn-row-token{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
   .tkn-token-pill{
     font-family:'SFMono-Regular',Consolas,monospace; font-weight:700; font-size:13px; letter-spacing:0.5px;
@@ -409,6 +416,8 @@
     .tkn-row-token{ width:100%; justify-content:space-between; }
     .tkn-token-pill{ font-size:19px; padding:9px 16px; border-radius:10px; letter-spacing:1.5px; }
     .tkn-row-token .badge{ font-size:12.5px; padding:5px 11px; }
+    .tkn-date-nav input[type="date"]{ flex:1 1 auto; min-width:0; }
+    #tkn-today-btn{ margin-left:0; flex:1 1 100%; order:1; }
   }
 </style>
 </head>
@@ -811,7 +820,18 @@ D. Medan
   <section id="panel-token" class="panel">
     <div class="section-head">
       <h1>Token Ujian</h1>
-      <p>Daftar token dari seluruh ujian yang sudah terjadwal (semua mata pelajaran), terurut per tanggal dari jadwal paling awal ke paling akhir. Status ujian (Terjadwal/Berlangsung/Selesai) ditampilkan di samping tiap token dan diperbarui otomatis.</p>
+      <p>Token yang tampil di bawah hanya untuk ujian pada tanggal yang dipilih (default: <strong>hari ini</strong>). Untuk melihat token ujian di hari lain, gunakan kalender di atas daftar. Status ujian (Terjadwal/Berlangsung/Selesai) ditampilkan di samping tiap token dan diperbarui otomatis.</p>
+    </div>
+
+    <div class="tkn-date-nav">
+      <button type="button" class="btn-secondary" onclick="tknShiftDay(-1)" aria-label="Tanggal sebelumnya">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <input type="date" id="tkn-date-picker" onchange="tknDateChanged()">
+      <button type="button" class="btn-secondary" onclick="tknShiftDay(1)" aria-label="Tanggal berikutnya">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <button type="button" class="btn-secondary" id="tkn-today-btn" onclick="tknGoToday()">Hari ini</button>
     </div>
 
     <div class="list-card">
@@ -1292,11 +1312,18 @@ function parseQuestionsFromHtml(html){
     });
     return len;
   }
-  function isFullyBold(p){
+  // isFullyBold hanya dipakai untuk menilai TEKS OPSI JAWABAN (bukan badan
+  // soal, bukan huruf "A." di depannya) — persis seperti sumber aslinya:
+  // kalau di Word/Google Docs yang di-bold cuma teks jawabannya (huruf "A."
+  // di depan dibiarkan normal), itu tetap harus terbaca sebagai kunci.
+  // prefixLen = panjang penanda "A. "/"*A. " di depan opsi, dikeluarkan dari
+  // perhitungan supaya tidak menurunkan rasio bold secara tidak semestinya.
+  function isFullyBold(p, prefixLen){
     const total = p.textContent.trim().length;
     if(total === 0) return false;
+    const effectiveTotal = Math.max(total - (prefixLen || 0), 1);
     const boldLen = boldTextLength(p, false);
-    return boldLen >= total * 0.85;
+    return boldLen >= effectiveTotal * 0.85;
   }
   function parseLetters(str){
     return (str.toUpperCase().match(/[A-E]/g) || []);
@@ -1432,7 +1459,10 @@ function parseQuestionsFromHtml(html){
       const trailingStar = optText.match(/^(.*?)\s*\*\s*$/);
       if(trailingStar){ optText = trailingStar[1].trim(); markedKey = true; }
       current.opsi.push({ id: optId, teks: optText, gambar: img });
-      if(isFullyBold(p) || markedKey) current.boldSet.add(optId);
+      // hanya nilai bold pada bagian TEKS opsinya (m[3]) — huruf "A."/"*" di
+      // depan dikeluarkan dari perhitungan rasio, sesuai isi bold di sumber asli.
+      const prefixLen = rawText.length - m[3].length;
+      if(isFullyBold(p, prefixLen) || markedKey) current.boldSet.add(optId);
       return;
     }
     if(current && (m = rawText.match(poinRe))){
@@ -2599,13 +2629,39 @@ function renderJadwalList(){
 }
 
 /* ============================================================
-   TOKEN UJIAN (per tanggal, terurut awal → akhir)
+   TOKEN UJIAN (hanya tanggal terpilih — default hari ini; tanggal
+   lain dibuka lewat kalender/navigasi di atas daftar)
 ============================================================ */
 function formatTanggalPanjang(tanggal){
   if(!tanggal) return '—';
   const d = new Date(tanggal + 'T00:00:00');
   if(isNaN(d.getTime())) return tanggal;
   return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+function tknTodayStr(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+let tknSelectedDate = tknTodayStr();
+
+function tknGoToday(){
+  tknSelectedDate = tknTodayStr();
+  renderTokenView();
+}
+function tknDateChanged(){
+  const val = document.getElementById('tkn-date-picker').value;
+  if(!val) return;
+  tknSelectedDate = val;
+  renderTokenView();
+}
+function tknShiftDay(delta){
+  const d = new Date(tknSelectedDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  const pad = n => String(n).padStart(2, '0');
+  tknSelectedDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  renderTokenView();
 }
 
 /* Status ujian (terjadwal/berlangsung/selesai) berubah seiring waktu berjalan,
@@ -2621,29 +2677,30 @@ function stopTokenAutoRefresh(){
 }
 
 function renderTokenView(){
-  const all = schedules.slice();
-  document.getElementById('tkn-count').textContent = all.length + ' jadwal ujian';
+  const picker = document.getElementById('tkn-date-picker');
+  if(picker && picker.value !== tknSelectedDate) picker.value = tknSelectedDate;
+
+  const isToday = tknSelectedDate === tknTodayStr();
+
+  const dayItems = schedules.filter(j => j.tanggal === tknSelectedDate)
+    .sort((a, b) => (a.jamMulai||'').localeCompare(b.jamMulai||''));
+
+  const countLabel = dayItems.length + ' ujian' + (isToday ? ' hari ini' : ' pada tanggal ini');
+  document.getElementById('tkn-count').textContent = countLabel;
+
   const wrap = document.getElementById('tkn-wrap');
-  if(all.length === 0){
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal ujian</strong>Token akan muncul di sini begitu ada jadwal ujian yang dibuat.</div>`;
+  if(dayItems.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>${isToday ? 'Tidak ada ujian hari ini' : 'Tidak ada ujian pada tanggal ini'}</strong>Pilih tanggal lain lewat kalender di atas untuk melihat token ujian di hari tersebut.</div>`;
     return;
   }
 
-  const sorted = all.sort((a, b) => (a.tanggal + (a.jamMulai||'')).localeCompare(b.tanggal + (b.jamMulai||'')));
-  const groups = [];
-  sorted.forEach(j => {
-    let g = groups.find(x => x.tanggal === j.tanggal);
-    if(!g){ g = { tanggal: j.tanggal, items: [] }; groups.push(g); }
-    g.items.push(j);
-  });
-
-  wrap.innerHTML = groups.map(g => `
+  wrap.innerHTML = `
     <div class="tkn-date-group">
       <div class="tkn-date-heading">
-        <span>${escapeHtml(formatTanggalPanjang(g.tanggal))}</span>
-        <span class="tkn-date-count">${g.items.length} ujian</span>
+        <span>${escapeHtml(formatTanggalPanjang(tknSelectedDate))}</span>
+        <span class="tkn-date-count">${dayItems.length} ujian</span>
       </div>
-      ${g.items.map(j => {
+      ${dayItems.map(j => {
         const qs = questionSets.find(x => x.id === j.questionSetId);
         const subj = qs ? subjects.find(s => s.id === qs.subjectId) : null;
         const mapelNama = subj ? subj.nama : (qs ? qs.judul : 'Paket dihapus');
@@ -2663,7 +2720,7 @@ function renderTokenView(){
         </div>`;
       }).join('')}
     </div>
-  `).join('');
+  `;
 }
 
 /* ============================================================
