@@ -669,6 +669,32 @@ function shuffle(arr){
   }
   return a;
 }
+/* Mengacak urutan soal TANPA memisahkan kelompok bacaan/referensi.
+   Soal-soal berurutan (pada urutan asli paket soal) yang berbagi teks
+   `bacaan` yang sama dianggap satu blok utuh — blok ini boleh berpindah
+   posisi bersama-sama saat diacak, dan urutan DI DALAM blok juga ikut
+   diacak, tapi anggotanya tidak akan pernah tercampur dengan soal dari
+   kelompok/nomor lain. Soal tanpa bacaan (blok berisi 1 soal) diacak bebas
+   seperti biasa. */
+function buildQuestionOrder(soal, acak){
+  const ids = soal.map(q => q.id);
+  if(!acak) return ids;
+  const blocks = [];
+  let i = 0;
+  while(i < soal.length){
+    const q = soal[i];
+    if(q.bacaan){
+      let j = i + 1;
+      while(j < soal.length && soal[j].bacaan === q.bacaan) j++;
+      blocks.push(soal.slice(i, j).map(x => x.id));
+      i = j;
+    } else {
+      blocks.push([q.id]);
+      i++;
+    }
+  }
+  return shuffle(blocks).map(b => (b.length > 1 ? shuffle(b) : b)).flat();
+}
 
 function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
 function mapQuestionSet(row){
@@ -898,7 +924,7 @@ async function proceedEnterExam(scheduleId){
 
   let at = findAttempt(j.id, selectedSiswaId);
   if(!at){
-    const qOrder = j.acakSoal ? shuffle(qs.soal.map(q => q.id)) : qs.soal.map(q => q.id);
+    const qOrder = buildQuestionOrder(qs.soal, j.acakSoal);
     const optOrder = {};
     qs.soal.forEach(q => {
       if(q.type === 'pg' || q.type === 'pgk'){
@@ -1262,7 +1288,7 @@ window.addEventListener('resize', repositionPinnedCard);
 function toggleFontMenu(){ document.getElementById('fontSizeMenu').classList.toggle('hidden'); }
 function setFontLevel(level){
   fontLevel = level;
-  document.documentElement.style.setProperty('--fscale', FONT_SCALES[level-1]);
+  document.getElementById('examSuite').style.setProperty('--fscale', FONT_SCALES[level-1]);
   document.querySelectorAll('.fontsize-opt').forEach(b => b.classList.toggle('active', parseInt(b.dataset.level,10) === level));
   document.getElementById('fontSizeMenu').classList.add('hidden');
 }
@@ -1272,14 +1298,12 @@ document.addEventListener('click', () => {
 });
 
 function navQuestion(delta){
-  unpinQuestionCard();
   const max = liveExam.attempt.urutanSoal.length - 1;
   liveExam.currentIndex = Math.min(max, Math.max(0, liveExam.currentIndex + delta));
   renderQnav();
   renderQuestion();
 }
 function jumpTo(i){
-  unpinQuestionCard();
   liveExam.currentIndex = i;
   renderQnav();
   renderQuestion();
