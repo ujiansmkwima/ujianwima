@@ -18,13 +18,15 @@ alter table exam_attempts add column if not exists percobaan_keluar integer defa
 Soal lama (format PG lama tanpa field `type`) tetap terbaca — kode di kedua
 halaman otomatis menganggapnya `type: "pg"`.
 
-## 2. Empat jenis soal yang kini didukung
+## 2. Enam jenis soal yang kini didukung
 
 | Kode | Nama | Penilaian |
 |---|---|---|
 | `pg` | Pilihan ganda (1 jawaban benar) | Otomatis |
 | `pgk` | Pilihan ganda kompleks (jawaban bisa >1) | Otomatis |
 | `bs` | Benar/Salah atau Setuju/Tidak Setuju | Otomatis jika ada kunci, manual jika opini |
+| `bsg` | Pernyataan ganda — beberapa pernyataan, tiap pernyataan dijawab dengan radio button ke salah satu dari **2 kategori** (mis. Benar/Salah per pernyataan) | Otomatis jika semua pernyataan berkunci, manual jika ada yang tanpa kunci |
+| `rb` | Radio Button (klasifikasi) — sama seperti `bsg`, tapi kategorinya bisa **2-4 kolom** (mis. Before/After, Material/Tool), ditulis lewat baris `KOLOM: A | B | C` lalu tiap pernyataan `teks = NamaKolom` | Otomatis jika semua pernyataan berkunci, manual jika ada yang tanpa kunci |
 | `essay` | Uraian | Selalu manual |
 
 Setiap soal juga punya `poin` (bobot nilai, default 10), `bacaan` (teks
@@ -35,9 +37,35 @@ opsional).
 ## 3. Format Word untuk diunggah guru
 
 Guru → Asesmen → Buat Soal → unggah `.docx`. Tag jenis soal ditulis di awal
-teks soal: `[PG]`, `[PGK]`, `[BS]`, `[ESSAY]` (opsional — jika kosong, sistem
-menebak PG/Esai). Kunci jawaban ditandai **bold** pada opsi yang benar, atau
-baris `Kunci: B` / `Kunci: A, C, D`. Baris `Poin: 15` mengatur bobot.
+teks soal: `[PG]`, `[PGK]`, `[BS]`, `[BSG]`, `[RB]`, `[ESSAY]` (opsional —
+jika kosong, sistem menebak PG/Esai). Kunci jawaban ditandai **bold** pada
+opsi yang benar, atau baris `Kunci: B` / `Kunci: A, C, D`. Baris `Poin: 15`
+mengatur bobot.
+
+Untuk `[BSG]`: tulis baris `Kategori: NamaA | NamaB` (persis 2 kategori)
+setelah teks soal, lalu tiap pernyataan satu baris (boleh bernomor atau
+tidak) dengan format `teks pernyataan | Kunci: A` (A = kategori pertama,
+B = kategori kedua). Kosongkan bagian `| Kunci: ...` pada pernyataan yang
+sifatnya opini agar seluruh soal dinilai manual.
+
+Untuk `[RB]`: tulis baris `KOLOM: NamaKolom1 | NamaKolom2` (boleh sampai 4
+kolom, dipisah `|`) setelah teks soal, lalu tiap pernyataan satu baris
+(boleh bernomor atau tidak) dengan format `teks pernyataan = NamaKolom`
+(nama kolom harus PERSIS sama ejaannya dengan yang ditulis di baris KOLOM).
+Contoh:
+
+```
+14. [RB] Classify each action below based on when it happens in the process.
+KOLOM: Before Gluing the Fabric | After Gluing the Fabric
+Measuring and cutting the fabric = Before Gluing the Fabric
+Smoothing out bubbles and wrinkles on the fabric = After Gluing the Fabric
+Adding handles to the box = After Gluing the Fabric
+Poin: 10
+```
+
+Jika nama kolom pada suatu pernyataan tidak cocok dengan baris KOLOM,
+pernyataan tersebut dianggap tanpa kunci dan seluruh soal dinilai manual.
+
 
 **Bacaan / teks referensi (bisa untuk beberapa soal sekaligus)**: paragraf
 `Bacaan: ...` sebelum nomor soal menyisipkan teks bacaan/kutipan yang tampil
