@@ -679,8 +679,8 @@
 
       <div class="card">
         <span class="card-title">3. Atau tempel teks soal</span>
-        <p class="field-hint" style="margin-top:0;">Salin soal dari Word, Google Docs, atau chat AI lalu tempel (Ctrl+V) di kotak ini — hasil tempelan otomatis disederhanakan jadi <strong>teks polos</strong>, tapi <strong>format bold tetap terbaca</strong> dan otomatis dibaca sebagai kunci jawaban, sama seperti saat mengunggah file Word. Mendukung semua jenis soal ([PG], [PGK], [BS], [RB], [ESSAY]).</p>
-        <p class="field-hint" style="margin-top:6px; color:var(--amber);">⚠️ <strong>Gambar dan tabel yang ikut tersalin TIDAK ikut tertempel</strong> di kotak ini (beda dengan unggah file Word) — termasuk gambar/tabel pendamping paragraf <code>Bacaan: ...</code>. Teks bacaan itu sendiri tetap terbaca normal selama ditulis sebagai baris <code>Bacaan: ...</code> / <code>Bacaan (untuk 3 soal): ...</code> seperti dijelaskan di atas; hanya gambar/tabelnya saja yang perlu ditambahkan manual per soal di menu <strong>Edit Soal</strong> setelah soal tersimpan. Kalau soalmu butuh gambar atau tabel, lebih mudah pakai cara <strong>Unggah file Word</strong> di atas.</p>
+        <p class="field-hint" style="margin-top:0;">Salin soal dari Word, Google Docs, atau chat AI lalu tempel (Ctrl+V) di kotak ini — hasil tempelan otomatis disederhanakan jadi <strong>teks polos</strong>, tapi <strong>format bold</strong> (dibaca sebagai kunci jawaban) dan <strong>tabel</strong> tetap ikut terbaca, sama seperti saat mengunggah file Word. Mendukung semua jenis soal ([PG], [PGK], [BS], [RB], [ESSAY]).</p>
+        <p class="field-hint" style="margin-top:6px; color:var(--amber);">⚠️ <strong>Gambar yang ikut tersalin TIDAK ikut tertempel</strong> di kotak ini (beda dengan unggah file Word) — termasuk gambar pendamping paragraf <code>Bacaan: ...</code>. <strong>Tabel yang ikut tersalin (mis. dari Word/Google Docs) justru ikut tertempel</strong> dan otomatis terbaca sebagai tabel soal, termasuk tabel pendamping paragraf <code>Bacaan: ...</code>. Teks bacaan itu sendiri tetap terbaca normal selama ditulis sebagai baris <code>Bacaan: ...</code> / <code>Bacaan (untuk 3 soal): ...</code> seperti dijelaskan di atas; hanya gambarnya saja yang perlu ditambahkan manual per soal di menu <strong>Edit Soal</strong> setelah soal tersimpan. Kalau soalmu butuh gambar, lebih mudah pakai cara <strong>Unggah file Word</strong> di atas.</p>
         <div id="bs-paste-text" class="paste-editable" contenteditable="true" data-placeholder="1. Ibu kota Indonesia adalah ...
 A. Surabaya
 B. Jakarta
@@ -1844,18 +1844,20 @@ function parsePgFromPlainText(text){
 
 // Bersihkan HTML mentah dari clipboard (Word/Google Docs/dsb) sebelum
 // dimasukkan ke kotak contenteditable. Sengaja disederhanakan jadi TEKS
-// POLOS: hanya struktur paragraf/baris (P/BR/DIV) dan sinyal bold (tag
-// <b>/<strong> atau style font-weight tebal) yang dipertahankan, supaya
-// kunci jawaban tetap terbaca dari bold. Tabel, gambar, list, italic,
-// underline, dan format lain dari sumber DIBUANG TOTAL di sini (bukan
-// cuma dilepas gayanya) — soalnya src gambar dari clipboard sering berupa
-// path lokal yang tidak ikut tersalin/rusak, dan tabel yang diurai jadi
-// teks lepas malah berantakan. Guru perlu menambahkan gambar/tabel secara
+// POLOS + TABEL: struktur paragraf/baris (P/BR/DIV), sinyal bold (tag
+// <b>/<strong> atau style font-weight tebal — supaya kunci jawaban tetap
+// terbaca dari bold), dan struktur tabel (TABLE/THEAD/TBODY/TR/TD/TH)
+// dipertahankan (isi selnya saja, atribut & gaya aslinya tetap dilepas)
+// supaya parseQuestionsFromHtml bisa membacanya sebagai tabel soal, sama
+// seperti tabel dari file Word. Gambar, list, italic, underline, dan
+// format lain dari sumber DIBUANG TOTAL di sini (bukan cuma dilepas
+// gayanya) — soalnya src gambar dari clipboard sering berupa path lokal
+// yang tidak ikut tersalin/rusak. Guru perlu menambahkan gambar secara
 // manual di menu Edit Soal setelah soal tersimpan (lihat catatan di bawah
 // kotak tempel).
 function sanitizePastedHtml(html){
-  const allowed = new Set(['P','BR','DIV','B','STRONG','SPAN']);
-  const removeEntirely = new Set(['SCRIPT','STYLE','META','LINK','HEAD','TITLE','IMG','TABLE','THEAD','TBODY','TR','TD','TH','UL','OL','LI']);
+  const allowed = new Set(['P','BR','DIV','B','STRONG','SPAN','TABLE','THEAD','TBODY','TR','TD','TH']);
+  const removeEntirely = new Set(['SCRIPT','STYLE','META','LINK','HEAD','TITLE','IMG','UL','OL','LI']);
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
 
