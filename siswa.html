@@ -2,10 +2,11 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Siswa — Asesmen SMK Widya Mandala Tambak</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
   :root{
     --ink:#161A23;
@@ -120,207 +121,307 @@
   .empty-state{ padding:44px 20px; text-align:center; color:var(--slate); font-size:13.5px; background:var(--paper); border:1px solid var(--line); border-radius:14px; }
   .empty-state strong{ display:block; color:var(--ink); font-size:14.5px; margin-bottom:4px; }
 
-  /* ---------- Exam-taking view ---------- */
+  /* ================================================================
+     TAMPILAN SOAL — mengikuti gaya visual soal.html (kertas/navy,
+     Fraunces + JetBrains Mono). Semua aturan di bawah ini di-scope di
+     bawah #examSuite supaya TIDAK memengaruhi tampilan daftar ujian
+     (#listView) maupun halaman lain — hanya layar mengerjakan soal,
+     modal terkait, dan layar hasil yang berubah.
+  ================================================================ */
+  #examSuite{
+    --sn-ink:#1c1b22; --sn-paper:#f6f4ee; --sn-card:#ffffff; --sn-line:#e4e1d6; --sn-muted:#7b7768;
+    --sn-navy:#161a2e; --sn-cream:#f3ead9;
+    --sn-good:#1f9d68; --sn-good-bg:#e7f6ee; --sn-bad:#d5473a; --sn-bad-bg:#fceceb;
+    --sn-t1:#2F6FED; --sn-t1-bg:#EAF1FE; --sn-t3:#c98a1f; --sn-t3-bg:#fbf1de;
+    --fscale:1; --doubt:#c98a1f; --doubt-soft:#fbf1de; --empty:#d8d4c6;
+    color:var(--sn-ink);
+  }
+  #examSuite h1, #examSuite h2{ font-family:'Fraunces',Georgia,serif; }
   #examView{ display:none; }
-  .exam-header-bar{
-    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:14px 18px; margin-bottom:16px;
-  }
-  .exam-header-bar .eh-title{ font-size:14.5px; font-weight:700; }
-  .exam-header-bar .eh-sub{ font-size:12px; color:var(--slate); margin-top:2px; }
-  .timer{
-    font-size:19px; font-weight:800; letter-spacing:-0.01em; padding:7px 14px; border-radius:9px;
-    background:var(--indigo-soft); color:var(--indigo-dark); font-variant-numeric:tabular-nums;
-  }
-  .timer.warn{ background:var(--red-soft); color:var(--red); }
-
-  .qnav{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
-  .qnav button{
-    width:34px; height:34px; border-radius:8px; border:1.5px solid var(--line); background:var(--paper);
-    color:var(--slate); font-size:12.5px; font-weight:700; cursor:pointer;
-  }
-  .qnav button.answered{ background:var(--indigo-soft); border-color:var(--indigo); color:var(--indigo-dark); }
-  .qnav button.current{ background:var(--indigo); border-color:var(--indigo); color:#fff; }
-
-  .question-card{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:16px; }
-  .question-num{ font-size:12.5px; font-weight:700; color:var(--indigo-dark); margin-bottom:8px; }
-  .question-text{ font-size:15.5px; line-height:1.6; margin-bottom:14px; white-space:pre-line; }
-  .question-img{ max-width:100%; border-radius:10px; border:1px solid var(--line); margin-bottom:14px; display:block; }
-  .q-table-wrap{ overflow-x:auto; margin-bottom:14px; border:1px solid var(--line); border-radius:10px; }
-  table.q-table{ width:100%; border-collapse:collapse; font-size:calc(13px * var(--fscale)); }
-  table.q-table th, table.q-table td{ border:1px solid var(--line); padding:8px 12px; text-align:left; white-space:pre-line; }
-  table.q-table thead th{ background:var(--mist); font-weight:700; }
-
-  .opt-choice{
-    display:flex; align-items:flex-start; gap:12px; padding:13px 14px; border:1.5px solid var(--line);
-    border-radius:10px; margin-bottom:9px; cursor:pointer; transition:border-color 0.15s ease, background 0.15s ease;
-  }
-  .opt-choice:hover{ border-color:var(--indigo); }
-  .opt-choice.selected{ border-color:var(--indigo); background:var(--indigo-soft); }
-  .opt-choice input{ margin-top:2px; width:17px; height:17px; accent-color:var(--indigo); flex-shrink:0; }
-  .opt-choice .opt-letter{ font-weight:700; color:var(--slate); flex-shrink:0; }
-  .opt-choice.selected .opt-letter{ color:var(--indigo-dark); }
-  .opt-choice .opt-text{ flex:1; font-size:14px; line-height:1.5; }
-  .opt-choice img{ max-width:160px; border-radius:8px; margin-top:6px; display:block; }
-
-  .exam-nav-bottom{ display:flex; justify-content:space-between; gap:10px; margin-bottom:26px; }
-
-  /* ---------- Ujian Online engine additions ---------- */
   #examView.locked, #examView.locked *{
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none; -webkit-touch-callout:none;
   }
   #examView.locked textarea, #examView.locked input{
     -webkit-user-select:text; -moz-user-select:text; -ms-user-select:text; user-select:text;
   }
-  :root{ --fscale:1; --doubt:#B8862E; --doubt-soft:#F3E9D2; --empty:#C7CCD8; }
 
-  .eh-controls{ display:flex; align-items:center; gap:8px; }
-  .icon-toggle{
-    border:1.5px solid var(--line); background:#fff; color:var(--slate); border-radius:8px; padding:7px 9px;
-    font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
+  /* ---------- Progress shell (bar atas: judul, timer, progres, palet) ---------- */
+  #examSuite .sn-progress-shell{
+    position:sticky; top:0; z-index:30; background:var(--sn-paper); border:1px solid var(--sn-line);
+    border-radius:14px; padding:12px 16px; margin-bottom:16px;
   }
-  .icon-toggle svg{ width:14px; height:14px; }
-  .icon-toggle.active{ border-color:var(--indigo); color:var(--indigo-dark); background:var(--indigo-soft); }
+  #examSuite .sn-progress-inner{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #examSuite .sn-exam-title-wrap{ flex:1 1 170px; min-width:0; margin-right:4px; }
+  #examSuite .sn-exam-title{
+    font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:14.5px; color:var(--sn-navy);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #examSuite .sn-exam-sub{ font-size:11px; color:var(--sn-muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #examSuite .timer{
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:700; color:var(--sn-ink);
+    background:#eef0fb; border:1px solid #c9cdf0; padding:6px 12px; border-radius:99px; white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  #examSuite .timer.warn{ background:var(--sn-t3-bg); border-color:var(--sn-t3); color:#7a4e0a; }
+  #examSuite .timer.danger{ background:var(--sn-bad-bg); border-color:var(--sn-bad); color:var(--sn-bad); animation:snPulse 1s infinite; }
+  @keyframes snPulse{ 0%,100%{opacity:1;} 50%{opacity:.5;} }
+  #examSuite .sn-progress-track{ flex:1 1 90px; height:8px; background:var(--sn-line); border-radius:99px; overflow:hidden; min-width:60px; }
+  #examSuite .sn-progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--sn-t1),var(--sn-t3)); transition:width .3s ease; }
+  #examSuite .sn-progress-label{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sn-muted); white-space:nowrap; }
 
-  .fontsize-wrap{ position:relative; }
-  .fontsize-menu{
-    position:absolute; top:calc(100% + 6px); right:0; display:flex; gap:4px; background:#fff; border:1px solid var(--line);
+  #examSuite .icon-toggle{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; background:#fff; border:1px solid var(--sn-line);
+    color:var(--sn-ink); padding:7px 11px; border-radius:99px; cursor:pointer; display:flex; align-items:center; gap:5px;
+    white-space:nowrap;
+  }
+  #examSuite .icon-toggle:hover{ background:#f3f1ea; border-color:#d7d3c4; }
+  #examSuite .icon-toggle.active{ border-color:var(--sn-t1); color:var(--sn-t1); background:var(--sn-t1-bg); }
+  #examSuite .hide-header-btn{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700; background:var(--sn-navy); border:1px solid var(--sn-navy);
+    color:#fff; padding:7px 11px; border-radius:99px; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  #examSuite .hide-header-btn svg{ width:14px; height:14px; }
+  #examSuite .hide-header-btn:hover{ background:#232849; }
+  #examSuite .hide-header-btn.active{ background:var(--sn-t3); border-color:var(--sn-t3); color:#241a05; }
+
+  #examSuite .fontsize-wrap{ position:relative; }
+  #examSuite .fontsize-menu{
+    position:absolute; top:calc(100% + 6px); right:0; display:flex; gap:4px; background:#fff; border:1px solid var(--sn-line);
     border-radius:10px; padding:6px; box-shadow:0 8px 24px rgba(20,20,30,.15); z-index:40;
   }
-  .fontsize-menu.hidden{ display:none; }
-  .fontsize-opt{
-    width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--line);
-    background:#fff; color:var(--slate); font-weight:800; border-radius:7px; cursor:pointer; font-family:inherit;
+  #examSuite .fontsize-menu.hidden{ display:none; }
+  #examSuite .fontsize-opt{
+    width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--sn-line);
+    background:#fff; color:var(--sn-muted); font-weight:800; border-radius:7px; cursor:pointer; font-family:inherit; font-size:12px;
   }
-  .fontsize-opt.active{ border-color:var(--indigo); color:var(--indigo-dark); background:var(--indigo-soft); }
+  #examSuite .fontsize-opt.active{ border-color:var(--sn-t1); color:var(--sn-t1); background:var(--sn-t1-bg); }
 
-  .nav-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; }
-  .legend{ display:flex; gap:10px; font-size:10.5px; color:var(--slate); flex-wrap:wrap; }
-  .legend span{ display:inline-flex; align-items:center; gap:4px; }
-  .legend .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
-  .legend .dot.done{ background:var(--indigo); }
-  .legend .dot.doubt{ background:var(--doubt); }
-  .legend .dot.empty{ background:var(--empty); }
-
+  /* ---------- Panel palet nomor soal ---------- */
   #navpanel{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
-  #navpanel.open{ max-height:220px; overflow-y:auto; }
-  .navgrid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding-top:10px; }
-  .navcell{
-    aspect-ratio:1/1; border-radius:8px; border:2px solid var(--empty); background:#fff; color:var(--ink);
-    font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  #navpanel.open{ max-height:320px; overflow-y:auto; margin-top:12px; padding-top:12px; border-top:1px solid var(--sn-line); }
+  #examSuite .legend{ display:flex; gap:12px; font-size:10.5px; color:var(--sn-muted); flex-wrap:wrap; font-family:'JetBrains Mono',monospace; margin-bottom:10px; }
+  #examSuite .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  #examSuite .legend .dot{ width:9px; height:9px; border-radius:3px; display:inline-block; border:1.5px solid; }
+  #examSuite .legend .dot.done{ background:var(--sn-t1-bg); border-color:var(--sn-t1); }
+  #examSuite .legend .dot.doubt{ background:var(--sn-t3-bg); border-color:var(--sn-t3); }
+  #examSuite .legend .dot.empty{ background:#fff; border-color:var(--empty); }
+  #examSuite .navgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(36px,1fr)); gap:7px; }
+  #examSuite .navcell{
+    aspect-ratio:1; border-radius:8px; border:1.5px solid var(--empty); background:#fff; color:var(--sn-muted);
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700; display:flex; align-items:center;
+    justify-content:center; cursor:pointer; transition:transform .1s ease;
   }
-  .navcell.done{ border-color:var(--indigo); background:var(--indigo-soft); color:var(--indigo-dark); }
-  .navcell.doubt{ border-color:var(--doubt); background:var(--doubt-soft); color:var(--doubt); }
-  .navcell.current{ outline:2px solid var(--indigo); outline-offset:2px; }
+  #examSuite .navcell:hover{ transform:translateY(-1px); }
+  #examSuite .navcell.done{ background:var(--sn-t1-bg); border-color:var(--sn-t1); color:var(--sn-t1); }
+  #examSuite .navcell.doubt{ background:var(--sn-t3-bg); border-color:var(--sn-t3); color:#7a4e0a; }
+  #examSuite .navcell.current{ outline:2px solid var(--sn-navy); outline-offset:2px; }
 
-  .qmeta-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
-  .qmeta-left{ display:flex; align-items:center; gap:8px; }
-  .qtype-pill{ font-size:11px; font-weight:700; color:var(--indigo-dark); background:var(--indigo-soft); padding:3px 9px; border-radius:999px; }
-  .qpoin-pill{ font-size:11px; font-weight:700; color:var(--slate); }
-  .doubt-btn{
-    border:1.5px solid var(--line); background:#fff; color:var(--slate); border-radius:999px; padding:6px 12px;
+  #examSuite .nav-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; flex-wrap:wrap; }
+
+  /* ---------- Bacaan / kutipan ---------- */
+  #examSuite .bacaan-group-label{
+    display:flex; align-items:center; gap:7px; font-family:'JetBrains Mono',monospace; font-size:11px;
+    font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--sn-muted); margin-bottom:8px;
+  }
+  #examSuite .bacaan-group-label::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--sn-t1); flex-shrink:0; }
+  #examSuite .bacaan-box{
+    background:var(--sn-card); border:1px solid var(--sn-line); border-left:5px solid var(--sn-t1); border-radius:10px;
+    padding:18px 20px; margin-bottom:18px; font-size:calc(14.5px * var(--fscale)); line-height:1.75; color:#33313c;
+    max-height:280px; overflow-y:auto; white-space:pre-line; text-align:justify; transition:max-height .2s ease;
+  }
+  /* Saat soal disematkan (pin), area bacaan tidak lagi dibatasi scroll internal —
+     seluruh halaman yang digulir, sementara kartu soal melayang tetap di bagian bawah layar. */
+  #examSuite.passage-pinned .bacaan-box{ max-height:none; overflow-y:visible; }
+
+  /* ---------- Header baris jenis soal / indeks ---------- */
+  #examSuite .sn-stage-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  #examSuite .qtype-pill{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    padding:5px 11px; border-radius:99px; font-weight:700; background:var(--sn-t1-bg); color:var(--sn-t1);
+  }
+  #examSuite .sn-stage-index{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--sn-muted); }
+
+  /* ---------- Kartu soal ---------- */
+  #examSuite .question-card{
+    background:var(--sn-card); border:1px solid var(--sn-line); border-radius:12px; padding:20px 22px 22px; margin-bottom:16px;
+  }
+  #examSuite .qmeta-row{ display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  #examSuite .qpoin-pill{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:var(--sn-muted); margin-right:auto; }
+  #examSuite .doubt-btn{
+    border:1px solid var(--sn-line); background:#fff; color:var(--sn-muted); border-radius:99px; padding:6px 13px;
     font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
   }
-  .doubt-btn.active{ border-color:var(--doubt); background:var(--doubt-soft); color:var(--doubt); }
-
-  .bacaan-box{
-    background:var(--mist); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:14px;
-    font-size:calc(13.5px * var(--fscale)); line-height:1.7; color:var(--ink); max-height:240px; overflow-y:auto; white-space:pre-line;
+  #examSuite .doubt-btn.active{ border-color:var(--sn-t3); background:var(--sn-t3-bg); color:#7a4e0a; }
+  #examSuite .pin-btn{
+    border:1px solid var(--sn-line); background:#fff; color:var(--sn-muted); border-radius:99px; padding:6px 13px;
+    font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
   }
-  .question-text{ font-size:calc(15.5px * var(--fscale)); white-space:pre-line; }
-  .opt-choice .opt-text{ font-size:calc(14px * var(--fscale)); }
-
-  .bs-choice-row{ display:flex; gap:10px; margin-top:6px; }
-  .bs-choice{
-    flex:1; text-align:center; padding:16px 10px; border:1.5px solid var(--line); border-radius:10px; cursor:pointer;
-    font-size:calc(14px * var(--fscale)); font-weight:700; color:var(--slate); transition:all .15s ease;
+  #examSuite .pin-btn.active{ border-color:var(--sn-t1); background:var(--sn-t1); color:#fff; }
+  #examSuite .question-card.pinned{
+    border-color:var(--sn-t1); box-shadow:0 -4px 24px rgba(20,20,30,.14);
+    border-radius:16px 16px 0 0; background:var(--sn-card);
+    padding-bottom:calc(22px + env(safe-area-inset-bottom, 0px));
   }
-  .bs-choice.selected{ border-color:var(--indigo); background:var(--indigo-soft); color:var(--indigo-dark); }
+  /* Efek "fade" di atas kartu yang disematkan — mengesankan teks bacaan memudar
+     di balik kartu soal yang melayang, seperti sorotan kaca buram. */
+  #examSuite .question-card.pinned::before{
+    content:''; position:absolute; left:0; right:0; top:-26px; height:26px; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(248,248,250,0), var(--sn-card));
+    border-radius:16px 16px 0 0;
+  }
+  #examSuite .question-card.pinned #ev-answer-area{ padding-bottom:4px; }
+  #examSuite .pin-placeholder{ margin-bottom:16px; }
 
-  /* ---------- Pernyataan Ganda (matriks benar/salah dengan beberapa pernyataan) ---------- */
-  .bsg-table{ margin-top:6px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
-  .bsg-head-row, .bsg-row{ display:flex; align-items:center; gap:8px; padding:10px 14px; }
-  .bsg-head-row{ background:var(--mist); font-size:10.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.02em; }
-  .bsg-row{ border-top:1px solid var(--line); }
-  .bsg-row:hover{ background:var(--cream); }
-  .bsg-pernyataan-text, .bsg-head-pernyataan{ flex:1; font-size:calc(13.5px * var(--fscale)); line-height:1.5; }
-  .bsg-head-kat{ width:64px; text-align:center; flex-shrink:0; }
-  .bsg-radios{ display:flex; gap:0; flex-shrink:0; }
-  .bsg-radio{ width:64px; display:flex; justify-content:center; align-items:center; cursor:pointer; }
-  .bsg-radio input{ width:18px; height:18px; accent-color:var(--indigo); cursor:pointer; }
+  #examSuite .sn-q-top{ margin-bottom:6px; }
+  #examSuite .question-text{
+    font-size:15.5px; font-weight:600; line-height:1.55; padding-top:4px;
+    white-space:pre-line; color:var(--sn-ink);
+  }
+  #examSuite img.question-img{ max-width:100%; border-radius:10px; border:1px solid var(--sn-line); margin:0 0 14px 0; display:block; }
+
+  #examSuite .q-table-wrap{ overflow-x:auto; margin:0 0 14px 0; border:1px solid var(--sn-line); border-radius:10px; }
+  #examSuite table.q-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  #examSuite table.q-table th, #examSuite table.q-table td{ border:1px solid var(--sn-line); padding:8px 12px; text-align:left; white-space:pre-line; }
+  #examSuite table.q-table thead th{
+    background:#faf9f5; font-weight:700; font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em;
+  }
+
+  /* ---------- Opsi PG / PGK ---------- */
+  #examSuite .opt-choice{
+    display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border:1px solid var(--sn-line);
+    border-radius:9px; margin:0 0 9px 0; cursor:pointer; background:#fff; transition:background .15s ease, border-color .15s ease;
+  }
+  #examSuite .opt-choice:hover{ background:#faf9f5; }
+  #examSuite .opt-choice.selected{ background:var(--sn-t1-bg); border-color:var(--sn-t1); }
+  #examSuite .opt-text{ flex:1; font-size:14.5px; line-height:1.5; }
+  #examSuite .opt-choice img{ max-width:180px; border-radius:8px; margin-top:6px; display:block; }
+
+  /* ---------- Benar/Salah dua pilihan ---------- */
+  #examSuite .bs-choice-row{ display:flex; gap:10px; margin:0 0 4px 0; }
+  #examSuite .bs-choice{
+    flex:1; text-align:center; padding:15px 10px; border:1px solid var(--sn-line); border-radius:9px; cursor:pointer;
+    font-size:14px; font-weight:700; color:var(--sn-muted); background:#fff; transition:all .15s ease;
+  }
+  #examSuite .bs-choice.selected{ border-color:var(--sn-t1); background:var(--sn-t1-bg); color:var(--sn-t1); }
+
+  /* ---------- Pernyataan Ganda (matriks benar/salah beberapa pernyataan) ---------- */
+  #examSuite .bsg-table{ margin:0 0 4px 0; border:1px solid var(--sn-line); border-radius:9px; overflow:hidden; }
+  #examSuite .bsg-head-row, #examSuite .bsg-row{ display:flex; align-items:center; gap:8px; padding:10px 14px; }
+  #examSuite .bsg-head-row{
+    background:#faf9f5; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; color:var(--sn-muted);
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  #examSuite .bsg-row{ border-top:1px solid var(--sn-line); }
+  #examSuite .bsg-row:hover{ background:#faf9f5; }
+  #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ flex:1; font-size:13.5px; line-height:1.5; }
+  #examSuite .bsg-head-kat{ width:60px; text-align:center; flex-shrink:0; }
+  #examSuite .bsg-radios{ display:flex; gap:0; flex-shrink:0; }
+  #examSuite .bsg-radio{ width:60px; display:flex; justify-content:center; align-items:center; cursor:pointer; }
+  #examSuite .bsg-radio input{ width:17px; height:17px; accent-color:var(--sn-t1); cursor:pointer; }
   @media (max-width:480px){
-    .bsg-head-kat, .bsg-radio{ width:44px; }
-    .bsg-pernyataan-text, .bsg-head-pernyataan{ font-size:calc(12.5px * var(--fscale)); }
+    #examSuite .bsg-head-kat, #examSuite .bsg-radio{ width:42px; }
+    #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ font-size:12.5px; }
   }
 
-  .essay-box{
-    width:100%; min-height:160px; border:1.5px solid var(--line); border-radius:10px; padding:13px 14px;
-    font-family:inherit; font-size:calc(14px * var(--fscale)); line-height:1.6; resize:vertical;
+  /* ---------- Esai ---------- */
+  #examSuite .essay-box{
+    width:100%; margin-left:0; min-height:160px; border:1px solid var(--sn-line); border-radius:9px;
+    padding:13px 14px; font-family:inherit; font-size:14px; line-height:1.6; resize:vertical;
   }
-  .essay-box:focus{ border-color:var(--indigo); outline:none; }
+  #examSuite .essay-box:focus{ border-color:var(--sn-t1); outline:none; }
 
-  /* ---------- Modals ---------- */
-  .modal-bg{
-    position:fixed; inset:0; background:rgba(15,18,30,.5); display:flex; align-items:center; justify-content:center;
-    padding:20px; z-index:100;
+  @media (max-width:520px){
+    #examSuite img.question-img, #examSuite .q-table-wrap, #examSuite .opt-choice,
+    #examSuite .bs-choice-row, #examSuite .bsg-table, #examSuite .essay-box{ margin-left:0; }
+    #examSuite .essay-box{ width:100%; }
   }
-  .modal-bg.hidden{ display:none; }
-  .modal-card{ background:#fff; border-radius:16px; padding:24px; max-width:380px; width:100%; }
-  .modal-card h2{ font-size:17px; margin-bottom:8px; }
-  .modal-card p{ font-size:13px; color:var(--slate); line-height:1.6; margin:0 0 16px; }
-  .modal-summary{ display:flex; gap:8px; margin-bottom:18px; }
-  .modal-summary .pill{ flex:1; text-align:center; border-radius:10px; padding:10px 6px; }
-  .modal-summary .pill .n{ font-size:18px; font-weight:800; }
-  .modal-summary .pill .l{ font-size:10.5px; color:var(--slate); }
-  .modal-summary .pill.done{ background:var(--indigo-soft); }
-  .modal-summary .pill.doubt{ background:var(--doubt-soft); }
-  .modal-summary .pill.empty{ background:var(--mist); }
-  .modal-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
-  .modal-actions.stack{ flex-direction:column; }
-  .modal-actions.stack button{ width:100%; justify-content:center; }
 
-  /* ---------- Result view breakdown ---------- */
-  .nilai-breakdown{ text-align:left; max-width:340px; margin:0 auto 20px; font-size:12.5px; color:var(--slate); }
-  .nilai-breakdown div{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--line); }
+  /* ---------- Navigasi soal — sekarang ikut alur halaman, menyatu tepat
+     di bawah opsi jawaban (bukan bar terpisah yang menempel/fixed) ---------- */
+  #examSuite .sn-nav-row{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--sn-line);
+  }
+  #examSuite .sn-navbtn{
+    background:#fff; color:var(--sn-t1); border:1.5px solid var(--sn-t1); padding:10px 14px;
+    border-radius:99px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:700;
+    transition:background .15s ease; flex:1 1 0; text-align:center; white-space:nowrap;
+  }
+  #examSuite .sn-navbtn:hover{ background:var(--sn-t1-bg); }
+  #examSuite .sn-navbtn:disabled{ opacity:.35; cursor:not-allowed; }
+  #examSuite .sn-navbtn.sn-finish{ background:var(--sn-t1); color:#fff; border-color:var(--sn-t1); }
+  #examSuite .sn-navbtn.sn-finish:hover{ background:#2559c9; }
+  #examSuite .muted-note{ font-size:11.5px; color:var(--sn-muted); text-align:center; margin-top:8px; font-family:'JetBrains Mono',monospace; }
 
-  /* ---------- Result view ---------- */
-  #resultView{ display:none; text-align:center; padding:40px 20px; }
-  .result-circle{
-    width:120px; height:120px; border-radius:50%; background:var(--emerald-soft); color:var(--emerald-dark);
+  /* ---------- Modal (konfirmasi, token, pindah tab, keluar) ---------- */
+  #examSuite .modal-bg{
+    position:fixed; inset:0; background:rgba(22,26,46,.55); display:flex; align-items:center; justify-content:center;
+    padding:20px; z-index:100; backdrop-filter:blur(3px);
+  }
+  #examSuite .modal-bg.hidden{ display:none; }
+  #examSuite .modal-card{
+    background:var(--sn-card); border:1px solid var(--sn-line); border-radius:16px; padding:26px; max-width:400px;
+    width:100%; box-shadow:0 20px 40px rgba(15,18,30,.25);
+  }
+  #examSuite .modal-card h2{ font-family:'Fraunces',Georgia,serif; font-size:19px; font-weight:600; color:var(--sn-navy); margin-bottom:8px; }
+  #examSuite .modal-card p{ font-size:13.5px; color:var(--sn-muted); line-height:1.6; margin:0 0 16px; }
+  #examSuite .modal-summary{ display:flex; gap:8px; margin-bottom:18px; }
+  #examSuite .modal-summary .pill{ flex:1; text-align:center; border-radius:10px; padding:10px 6px; }
+  #examSuite .modal-summary .pill .n{ font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:800; color:var(--sn-navy); }
+  #examSuite .modal-summary .pill .l{ font-size:10.5px; color:var(--sn-muted); }
+  #examSuite .modal-summary .pill.done{ background:var(--sn-t1-bg); }
+  #examSuite .modal-summary .pill.doubt{ background:var(--sn-t3-bg); }
+  #examSuite .modal-summary .pill.empty{ background:#f1f1ee; }
+  #examSuite .submit-warn{
+    display:flex; gap:9px; align-items:flex-start; background:#FBF2DC; border:1px solid #E4CE96; color:#6b4f12;
+    border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5; margin-bottom:16px; font-weight:600;
+  }
+  #examSuite .submit-warn.hidden{ display:none; }
+  #examSuite .submit-warn.all-good{ background:var(--sn-t1-bg); border-color:var(--sn-t1); color:#0B7D57; }
+  #examSuite .modal-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  #examSuite .modal-actions.stack{ flex-direction:column; }
+  #examSuite .modal-actions.stack button{ width:100%; justify-content:center; }
+  #examSuite .btn-primary{
+    background:var(--sn-navy); color:#fff; border:none; border-radius:99px; padding:10px 18px;
+    font-size:13.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-family:'Inter',sans-serif;
+  }
+  #examSuite .btn-primary:hover{ background:#232849; }
+  #examSuite .btn-secondary{
+    display:inline-flex; align-items:center; gap:7px; background:#fff; color:var(--sn-ink);
+    border:1.5px solid var(--sn-line); border-radius:99px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  #examSuite .btn-secondary:hover{ border-color:var(--sn-t1); color:var(--sn-t1); }
+
+  /* ---------- Layar hasil ---------- */
+  #examSuite #resultView{ display:none; text-align:center; padding:40px 20px; }
+  #examSuite .result-circle{
+    width:120px; height:120px; border-radius:50%; background:var(--sn-good-bg); color:var(--sn-good);
     display:flex; align-items:center; justify-content:center; flex-direction:column; margin:0 auto 20px;
   }
-  .result-circle .num{ font-size:34px; font-weight:800; letter-spacing:-0.02em; }
-  .result-circle .lbl{ font-size:11px; font-weight:700; text-transform:uppercase; }
+  #examSuite .result-circle .num{ font-family:'Fraunces',Georgia,serif; font-size:34px; font-weight:700; letter-spacing:-0.02em; }
+  #examSuite .result-circle .lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; text-transform:uppercase; }
+  #examSuite #resultView h1{ font-family:'Fraunces',Georgia,serif; color:var(--sn-navy); }
+  #examSuite .nilai-breakdown{ text-align:left; max-width:340px; margin:0 auto 20px; font-size:12.5px; color:var(--sn-muted); }
+  #examSuite .nilai-breakdown div{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--sn-line); }
 
-  @media (max-width:480px){
-    .exam-actions{ flex-direction:column; align-items:stretch; }
-    .exam-actions .btn-primary{ justify-content:center; }
-  }
-
-  /* ---------- Sembunyikan/tampilkan header informasi saat mengerjakan ---------- */
-  .hide-header-btn{
-    border:1.5px solid var(--line); background:#fff; color:var(--slate); border-radius:8px; padding:7px 9px;
-    font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; flex-shrink:0;
-  }
-  .hide-header-btn svg{ width:14px; height:14px; }
-  .hide-header-btn.active{ border-color:var(--indigo); color:var(--indigo-dark); background:var(--indigo-soft); }
-
-  body.compact-exam .site-header,
-  body.compact-exam .tabs-wrap,
-  body.compact-exam .notice{ display:none; }
-
+  /* ---------- Mode "Ciutkan" (sembunyikan semua atribut header saat mengerjakan) ---------- */
+  body.compact-exam .site-header, body.compact-exam .tabs-wrap, body.compact-exam .notice{ display:none; }
   body.compact-exam .shell{ padding-top:12px; }
+  /* Saat diciutkan, seluruh bar info (judul, timer, progres, tombol) disembunyikan total
+     supaya area bacaan seluas mungkin — yang tersisa hanya tombol "Tampilkan". */
+  body.compact-exam #examSuite .sn-progress-shell{ display:none; }
 
-  body.compact-exam .exam-header-bar{
-    position:sticky; top:0; z-index:25; margin:-12px -16px 16px; border-radius:0;
-    border-left:none; border-right:none; border-top:none;
+  #examSuite .show-header-fab{
+    display:none; position:fixed; top:12px; right:14px; z-index:35;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700; background:var(--sn-navy); border:1px solid var(--sn-navy);
+    color:#fff; padding:8px 14px; border-radius:99px; cursor:pointer; align-items:center; gap:6px;
+    box-shadow:0 6px 18px rgba(20,20,30,.28);
   }
+  #examSuite .show-header-fab svg{ width:14px; height:14px; }
+  #examSuite .show-header-fab:hover{ background:#232849; }
+  body.compact-exam #examSuite .show-header-fab{ display:flex; }
 
-  /* saat compact, sembunyikan judul/subjudul & baris navigasi soal, sisakan timer + tombol */
-  body.compact-exam .exam-header-bar .eh-text,
-  body.compact-exam .exam-header-bar .nav-toggle-row{ display:none; }
-
-  .exam-header-bar .exam-top{ transition:margin .15s ease; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -376,73 +477,80 @@
     <div id="exam-list"></div>
   </div>
 
+  <!-- ============ EXAM SUITE — tampilan mengikuti soal.html ============ -->
+  <div id="examSuite">
+
   <!-- ============ EXAM-TAKING VIEW ============ -->
   <div id="examView" class="locked">
-    <div class="exam-header-bar">
-      <div class="exam-top" style="margin-bottom:0;">
-        <div class="eh-text">
-          <div class="eh-title" id="ev-title">—</div>
-          <div class="eh-sub" id="ev-sub">—</div>
+    <div class="sn-progress-shell">
+      <div class="sn-progress-inner">
+        <div class="sn-exam-title-wrap">
+          <div class="sn-exam-title" id="ev-title">—</div>
+          <div class="sn-exam-sub" id="ev-sub">—</div>
         </div>
-        <div class="eh-controls">
-          <div class="timer" id="ev-timer">--:--</div>
-          <button type="button" class="hide-header-btn" id="hideHeaderBtn" onclick="toggleHeaderCompact()" title="Sembunyikan header agar teks bacaan lebih luas">
-            <svg id="hideHeaderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/></svg>
-            <span id="hideHeaderLabel">Ciutkan</span>
-          </button>
+        <div class="timer" id="ev-timer">--:--</div>
+        <div class="sn-progress-track"><div class="sn-progress-fill" id="ev-progress-fill"></div></div>
+        <div class="sn-progress-label" id="ev-progress-label">0/0 terjawab</div>
+        <button type="button" class="icon-toggle" id="navToggleBtn">☰ Nomor Soal</button>
+        <div class="fontsize-wrap">
+          <button type="button" class="icon-toggle" id="fontSizeBtn" onclick="event.stopPropagation(); toggleFontMenu()" title="Ukuran teks bacaan/referensi">Aa</button>
+          <div class="fontsize-menu hidden" id="fontSizeMenu">
+            <button type="button" class="fontsize-opt" data-level="1" onclick="setFontLevel(1)">A</button>
+            <button type="button" class="fontsize-opt" data-level="2" onclick="setFontLevel(2)">A</button>
+            <button type="button" class="fontsize-opt" data-level="3" onclick="setFontLevel(3)">A</button>
+            <button type="button" class="fontsize-opt" data-level="4" onclick="setFontLevel(4)">A</button>
+            <button type="button" class="fontsize-opt" data-level="5" onclick="setFontLevel(5)">A</button>
+          </div>
         </div>
-      </div>
-      <div class="nav-toggle-row">
-        <button type="button" class="icon-toggle" id="navToggleBtn">☰ Navigasi Soal</button>
-        <div class="legend">
-          <span><span class="dot done"></span>Terjawab</span>
-          <span><span class="dot doubt"></span>Ragu</span>
-          <span><span class="dot empty"></span>Kosong</span>
-        </div>
+        <button type="button" class="hide-header-btn" id="hideHeaderBtn" onclick="toggleHeaderCompact()" title="Sembunyikan header agar teks bacaan lebih luas">
+          <svg id="hideHeaderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/></svg>
+          <span id="hideHeaderLabel">Ciutkan</span>
+        </button>
       </div>
       <div id="navpanel">
+        <div class="legend">
+          <span><span class="dot done"></span>Terjawab</span>
+          <span><span class="dot doubt"></span>Ragu-ragu</span>
+          <span><span class="dot empty"></span>Kosong</span>
+        </div>
         <div class="navgrid" id="ev-qnav"></div>
       </div>
     </div>
 
-    <div class="question-card" style="margin-top:16px;">
-      <div class="qmeta-row">
-        <div class="qmeta-left">
-          <span class="question-num" style="margin:0;" id="ev-qnum">Soal 1</span>
-          <span class="qtype-pill" id="ev-qtype">—</span>
-          <span class="qpoin-pill" id="ev-qpoin"></span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button type="button" class="doubt-btn" id="ev-doubt-btn" onclick="toggleDoubt()">☆ Ragu-ragu</button>
-          <div class="fontsize-wrap">
-            <button type="button" class="icon-toggle" id="fontSizeBtn" onclick="event.stopPropagation(); toggleFontMenu()">Aa</button>
-            <div class="fontsize-menu hidden" id="fontSizeMenu">
-              <button type="button" class="fontsize-opt" data-level="1" onclick="setFontLevel(1)">A</button>
-              <button type="button" class="fontsize-opt" data-level="2" onclick="setFontLevel(2)">A</button>
-              <button type="button" class="fontsize-opt" data-level="3" onclick="setFontLevel(3)">A</button>
-              <button type="button" class="fontsize-opt" data-level="4" onclick="setFontLevel(4)">A</button>
-              <button type="button" class="fontsize-opt" data-level="5" onclick="setFontLevel(5)">A</button>
-            </div>
-          </div>
-        </div>
+    <button type="button" class="show-header-fab" id="showHeaderFab" onclick="toggleHeaderCompact()" title="Tampilkan kembali header ujian">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Tampilkan</span>
+    </button>
+
+    <div class="sn-stage-head">
+      <span class="qtype-pill" id="ev-qtype">—</span>
+      <span class="sn-stage-index" id="ev-qnum">Soal 1 dari 0</span>
+    </div>
+
+    <div id="ev-bacaan"></div>
+
+    <div class="question-card" id="ev-question-card">
+      <div class="sn-q-top">
+        <div class="question-text" id="ev-question-text"></div>
       </div>
-      <div id="ev-bacaan"></div>
-      <div class="question-text" id="ev-question-text"></div>
       <div id="ev-question-img"></div>
       <div id="ev-question-table"></div>
+      <div class="qmeta-row">
+        <span class="qpoin-pill" id="ev-qpoin"></span>
+        <button type="button" class="doubt-btn" id="ev-doubt-btn" onclick="toggleDoubt()">☆ Ragu-ragu</button>
+        <button type="button" class="pin-btn" id="ev-pin-btn" onclick="togglePinQuestion()" title="Sematkan soal agar tetap terlihat di layar saat menggulir">📌 Sematkan</button>
+      </div>
       <div id="ev-answer-area"></div>
+
+      <div class="sn-nav-row">
+        <button class="sn-navbtn" id="ev-prev" onclick="navQuestion(-1)">← Sebelumnya</button>
+        <button class="sn-navbtn" id="ev-next" onclick="navQuestion(1)">Selanjutnya →</button>
+        <button class="sn-navbtn sn-finish" id="ev-finish-btn" onclick="openSubmitModal()">Kumpulkan</button>
+      </div>
     </div>
 
-    <div class="exam-nav-bottom">
-      <button class="btn-secondary" id="ev-prev" onclick="navQuestion(-1)">← Sebelumnya</button>
-      <button class="btn-primary" id="ev-next" onclick="navQuestion(1)">Selanjutnya →</button>
-    </div>
-
-    <div style="text-align:center; margin-bottom:30px;">
-      <button class="btn-secondary" style="border-color:var(--emerald); color:var(--emerald-dark);" onclick="openSubmitModal()">
-        Selesai &amp; Kumpulkan Ujian
-      </button>
-      <div class="muted-note" style="margin-top:8px;" id="ev-progress"></div>
+    <div style="text-align:center; margin:16px 0 4px;">
+      <div class="muted-note" id="ev-progress"></div>
     </div>
   </div>
 
@@ -456,9 +564,10 @@
         <div class="pill doubt"><div class="n" id="sumDoubt">0</div><div class="l">Ragu</div></div>
         <div class="pill empty"><div class="n" id="sumEmpty">0</div><div class="l">Kosong</div></div>
       </div>
+      <div class="submit-warn hidden" id="submitWarnBox"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeSubmitModal()">Kembali</button>
-        <button class="btn-primary" style="background:var(--emerald-dark);" onclick="confirmSubmit()">Ya, Kumpulkan</button>
+        <button class="btn-primary" style="background:var(--sn-good);" onclick="confirmSubmit()">Ya, Kumpulkan</button>
       </div>
     </div>
   </div>
@@ -469,9 +578,9 @@
       <h2>Masukkan token ujian</h2>
       <p>Ujian ini memerlukan token dari gurumu sebelum bisa dimulai.</p>
       <input type="text" id="tokenInput" placeholder="Masukkan token" autocomplete="off"
-        style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;"
+        style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid var(--sn-line); border-radius:10px; font-size:15px; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; font-family:'JetBrains Mono',monospace;"
         onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmToken(); }">
-      <p id="tokenError" style="color:var(--red); font-size:12.5px; margin:0 0 14px; display:none;">Token salah, coba lagi.</p>
+      <p id="tokenError" style="color:var(--sn-bad); font-size:12.5px; margin:0 0 14px; display:none;">Token salah, coba lagi.</p>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeTokenModal()">Batal</button>
         <button class="btn-primary" onclick="confirmToken()">Mulai Ujian</button>
@@ -486,8 +595,8 @@
       <p>Ujian masih berjalan. Percobaan keluar tab/aplikasi ini tercatat dan bisa dilihat oleh gurumu. Pilih salah satu:</p>
       <div class="modal-actions stack">
         <button class="btn-primary" onclick="closeTabLeaveModal()">Lanjutkan Ujian</button>
-        <button class="btn-secondary" style="border-color:var(--emerald); color:var(--emerald-dark);" onclick="closeTabLeaveModal(); openSubmitModal();">Submit Ujian</button>
-        <button class="btn-secondary" style="border-color:var(--red); color:var(--red);" onclick="closeTabLeaveModal(); openExitNoSubmitModal();">Keluar Tanpa Submit</button>
+        <button class="btn-secondary" style="border-color:var(--sn-good); color:var(--sn-good);" onclick="closeTabLeaveModal(); openSubmitModal();">Submit Ujian</button>
+        <button class="btn-secondary" style="border-color:var(--sn-bad); color:var(--sn-bad);" onclick="closeTabLeaveModal(); openExitNoSubmitModal();">Keluar Tanpa Submit</button>
       </div>
     </div>
   </div>
@@ -499,7 +608,7 @@
       <p>Ujian belum dikumpulkan. Jawaban yang sudah kamu isi tetap tersimpan dan kamu masih bisa melanjutkan ujian ini nanti selama waktunya belum habis — tapi ujian ini <strong>tidak dianggap selesai</strong> sampai kamu menekan Kumpulkan.</p>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeExitNoSubmitModal()">Batal</button>
-        <button class="btn-primary" style="background:var(--red);" onclick="confirmExitNoSubmit()">Ya, Keluar</button>
+        <button class="btn-primary" style="background:var(--sn-bad);" onclick="confirmExitNoSubmit()">Ya, Keluar</button>
       </div>
     </div>
   </div>
@@ -515,6 +624,9 @@
     <div class="nilai-breakdown" id="rv-breakdown"></div>
     <button class="btn-primary" onclick="backToList()">Kembali ke Ujianku</button>
   </div>
+
+  </div>
+  <!-- ============ /EXAM SUITE ============ -->
 
 </div>
 
@@ -557,6 +669,32 @@ function shuffle(arr){
   }
   return a;
 }
+/* Mengacak urutan soal TANPA memisahkan kelompok bacaan/referensi.
+   Soal-soal berurutan (pada urutan asli paket soal) yang berbagi teks
+   `bacaan` yang sama dianggap satu blok utuh — blok ini boleh berpindah
+   posisi bersama-sama saat diacak, dan urutan DI DALAM blok juga ikut
+   diacak, tapi anggotanya tidak akan pernah tercampur dengan soal dari
+   kelompok/nomor lain. Soal tanpa bacaan (blok berisi 1 soal) diacak bebas
+   seperti biasa. */
+function buildQuestionOrder(soal, acak){
+  const ids = soal.map(q => q.id);
+  if(!acak) return ids;
+  const blocks = [];
+  let i = 0;
+  while(i < soal.length){
+    const q = soal[i];
+    if(q.bacaan){
+      let j = i + 1;
+      while(j < soal.length && soal[j].bacaan === q.bacaan) j++;
+      blocks.push(soal.slice(i, j).map(x => x.id));
+      i = j;
+    } else {
+      blocks.push([q.id]);
+      i++;
+    }
+  }
+  return shuffle(blocks).map(b => (b.length > 1 ? shuffle(b) : b)).flat();
+}
 
 function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
 function mapQuestionSet(row){
@@ -579,7 +717,7 @@ function mapAttempt(row){
   };
 }
 
-const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', bsg: 'Pernyataan Ganda', essay: 'Esai' };
+const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', bsg: 'Pernyataan Ganda', rb: 'Radio Button', essay: 'Esai' };
 const FONT_SCALES = [0.85, 0.925, 1, 1.1, 1.2];
 
 /* ============================================================
@@ -786,7 +924,7 @@ async function proceedEnterExam(scheduleId){
 
   let at = findAttempt(j.id, selectedSiswaId);
   if(!at){
-    const qOrder = j.acakSoal ? shuffle(qs.soal.map(q => q.id)) : qs.soal.map(q => q.id);
+    const qOrder = buildQuestionOrder(qs.soal, j.acakSoal);
     const optOrder = {};
     qs.soal.forEach(q => {
       if(q.type === 'pg' || q.type === 'pgk'){
@@ -812,6 +950,7 @@ async function proceedEnterExam(scheduleId){
   document.getElementById('ev-title').textContent = qs.judul;
   document.getElementById('ev-sub').textContent = (subjects.find(s=>s.id===qs.subjectId)||{}).nama || '';
   resetHeaderCompact();
+  unpinQuestionCard();
   window.scrollTo({ top:0 });
 
   document.getElementById('navToggleBtn').onclick = () => {
@@ -828,9 +967,9 @@ async function proceedEnterExam(scheduleId){
 function normalizeQuestionClient(q){
   if(!q.type) q.type = 'pg';
   if(q.kunciIds === undefined) q.kunciIds = [];
-  if(q.kategori === undefined) q.kategori = (q.type === 'bs' || q.type === 'bsg') ? ['Benar','Salah'] : null;
+  if(q.kategori === undefined) q.kategori = (q.type === 'bs' || q.type === 'bsg') ? ['Benar','Salah'] : (q.type === 'rb' ? ['Kolom 1','Kolom 2'] : null);
   if(q.kunciKategori === undefined) q.kunciKategori = null;
-  if(q.pernyataan === undefined) q.pernyataan = q.type === 'bsg' ? [] : null;
+  if(q.pernyataan === undefined) q.pernyataan = (q.type === 'bsg' || q.type === 'rb') ? [] : null;
   if(q.bacaan === undefined) q.bacaan = null;
   if(q.tabel === undefined) q.tabel = null;
   if(!q.poin) q.poin = 10;
@@ -854,11 +993,32 @@ function isAnswered(q, attempt){
     const ans = (a && typeof a === 'object') ? a : {};
     return pernyataan.every(p => ans[p.id] === 0 || ans[p.id] === 1);
   }
+  if(q.type === 'rb'){
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    if(pernyataan.length === 0) return false;
+    const ans = (a && typeof a === 'object') ? a : {};
+    return pernyataan.every(p => Number.isInteger(ans[p.id]));
+  }
   return a !== undefined && a !== null && a !== '';
 }
 function statusOf(q, attempt){
   if(attempt.ragu[q.id]) return 'doubt';
   return isAnswered(q, attempt) ? 'done' : 'empty';
+}
+
+/* Jika beberapa soal berurutan berbagi teks bacaan yang sama (soal kelompok bacaan),
+   tampilkan label kecil "Soal No. X-Y" di atas kotak bacaan — mengikuti urutan tampil
+   siswa saat ini (bisa berbeda per siswa jika soal diacak). */
+function bacaanGroupLabelHtml(currentIndex){
+  const { attempt, questionSet } = liveExam;
+  const order = attempt.urutanSoal;
+  const qAt = i => questionSet.soal.find(x => x.id === order[i]);
+  const teks = qAt(currentIndex).bacaan;
+  let start = currentIndex, end = currentIndex;
+  while(start > 0 && qAt(start - 1) && qAt(start - 1).bacaan === teks) start--;
+  while(end < order.length - 1 && qAt(end + 1) && qAt(end + 1).bacaan === teks) end++;
+  if(start === end) return '';
+  return `<div class="bacaan-group-label">Soal No. ${start + 1}–${end + 1}</div>`;
 }
 
 function renderQnav(){
@@ -879,7 +1039,7 @@ function renderQuestion(){
   document.getElementById('ev-qnum').textContent = `Soal ${currentIndex + 1} dari ${total}`;
   document.getElementById('ev-qtype').textContent = TYPE_LABEL[q.type] || q.type;
   document.getElementById('ev-qpoin').textContent = `${q.poin} poin`;
-  document.getElementById('ev-bacaan').innerHTML = q.bacaan ? `<div class="bacaan-box">${escapeHtml(q.bacaan)}</div>` : '';
+  document.getElementById('ev-bacaan').innerHTML = q.bacaan ? `${bacaanGroupLabelHtml(currentIndex)}<div class="bacaan-box">${escapeHtml(q.bacaan)}</div>` : '';
   document.getElementById('ev-question-text').innerHTML = escapeHtml(q.teks);
   document.getElementById('ev-question-img').innerHTML = q.gambar ? `<img class="question-img" src="${q.gambar}" alt="">` : '';
   document.getElementById('ev-question-table').innerHTML = renderTabelHtml(q.tabel);
@@ -897,23 +1057,27 @@ function renderQuestion(){
 
   document.getElementById('ev-prev').disabled = currentIndex === 0;
   document.getElementById('ev-prev').style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
-  document.getElementById('ev-next').textContent = currentIndex === total - 1 ? 'Ke soal terakhir' : 'Selanjutnya →';
+  const isLastQuestion = currentIndex === total - 1;
+  document.getElementById('ev-next').textContent = 'Selanjutnya →';
+  document.getElementById('ev-next').style.display = isLastQuestion ? 'none' : '';
+  document.getElementById('ev-finish-btn').style.display = isLastQuestion ? '' : 'none';
 
   const c = counts();
   document.getElementById('ev-progress').textContent = `${c.done} terjawab · ${c.doubt} ragu · ${c.empty} kosong dari ${total} soal`;
+  const pct = total > 0 ? Math.round((c.done / total) * 100) : 0;
+  document.getElementById('ev-progress-fill').style.width = pct + '%';
+  document.getElementById('ev-progress-label').textContent = `${c.done}/${total} terjawab`;
 }
 
 function renderAnswerArea(q, attempt){
   const optOrder = attempt.urutanOpsi[q.id] || q.opsi.map(o=>o.id);
   if(q.type === 'pg'){
     const selected = attempt.jawaban[q.id];
-    return optOrder.map((oid, i) => {
+    return `<div class="muted-note" style="margin-bottom:8px;">Pilih salah satu jawaban yang benar.</div>` +
+      optOrder.map((oid, i) => {
       const o = q.opsi.find(x => x.id === oid);
       if(!o) return '';
-      const letter = String.fromCharCode(65 + i);
       return `<label class="opt-choice ${selected === oid ? 'selected' : ''}" onclick="setAnswerPG('${q.id}','${oid}')">
-        <input type="radio" name="opt-${q.id}" ${selected === oid ? 'checked' : ''}>
-        <span class="opt-letter">${letter}.</span>
         <span class="opt-text">${escapeHtml(o.teks)}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
       </label>`;
     }).join('');
@@ -924,11 +1088,8 @@ function renderAnswerArea(q, attempt){
       optOrder.map((oid, i) => {
         const o = q.opsi.find(x => x.id === oid);
         if(!o) return '';
-        const letter = String.fromCharCode(65 + i);
         const isSel = selected.includes(oid);
         return `<label class="opt-choice ${isSel ? 'selected' : ''}" onclick="toggleAnswerPGK('${q.id}','${oid}')">
-          <input type="checkbox" ${isSel ? 'checked' : ''}>
-          <span class="opt-letter">${letter}.</span>
           <span class="opt-text">${escapeHtml(o.teks)}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
         </label>`;
       }).join('');
@@ -945,6 +1106,29 @@ function renderAnswerArea(q, attempt){
     const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
     const ans = (attempt.jawaban[q.id] && typeof attempt.jawaban[q.id] === 'object') ? attempt.jawaban[q.id] : {};
     return `<div class="bsg-table">
+      <div class="bsg-head-row">
+        <span class="bsg-head-pernyataan">Pernyataan</span>
+        ${kat.map(label => `<span class="bsg-head-kat">${escapeHtml(label)}</span>`).join('')}
+      </div>
+      ${pernyataan.map((p, i) => {
+        const chosen = ans[p.id];
+        return `<div class="bsg-row">
+          <span class="bsg-pernyataan-text">${i+1}. ${escapeHtml(p.teks)}</span>
+          <span class="bsg-radios">
+            ${kat.map((label, ki) => `<label class="bsg-radio" title="${escapeHtml(label)}">
+              <input type="radio" name="bsg-${q.id}-${p.id}" ${chosen === ki ? 'checked' : ''} onchange="setAnswerBSG('${q.id}','${p.id}', ${ki})">
+            </label>`).join('')}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  if(q.type === 'rb'){
+    const kat = Array.isArray(q.kategori) && q.kategori.length >= 2 ? q.kategori : ['Kolom 1','Kolom 2'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const ans = (attempt.jawaban[q.id] && typeof attempt.jawaban[q.id] === 'object') ? attempt.jawaban[q.id] : {};
+    return `<div class="muted-note" style="margin-bottom:8px;">Tandai satu kategori yang benar untuk setiap pernyataan.</div>
+    <div class="bsg-table">
       <div class="bsg-head-row">
         <span class="bsg-head-pernyataan">Pernyataan</span>
         ${kat.map(label => `<span class="bsg-head-kat">${escapeHtml(label)}</span>`).join('')}
@@ -1026,29 +1210,85 @@ function toggleDoubt(){
 
 /* ---------- sembunyikan/tampilkan header informasi ---------- */
 function toggleHeaderCompact(){
-  const on = document.body.classList.toggle('compact-exam');
-  document.getElementById('hideHeaderBtn').classList.toggle('active', on);
-  document.getElementById('hideHeaderLabel').textContent = on ? 'Tampilkan' : 'Ciutkan';
-  document.getElementById('hideHeaderIcon').innerHTML = on
-    ? '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>'
-    : '<path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/>';
+  document.body.classList.toggle('compact-exam');
   window.scrollTo({ top:0 });
+  repositionPinnedCard();
 }
 function resetHeaderCompact(){
   document.body.classList.remove('compact-exam');
-  const btn = document.getElementById('hideHeaderBtn');
-  const lbl = document.getElementById('hideHeaderLabel');
-  const icon = document.getElementById('hideHeaderIcon');
-  if(btn) btn.classList.remove('active');
-  if(lbl) lbl.textContent = 'Ciutkan';
-  if(icon) icon.innerHTML = '<path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/>';
 }
+
+/* ---------- sematkan (pin) soal agar tetap terlihat saat menggulir ---------- */
+function togglePinQuestion(){
+  const card = document.getElementById('ev-question-card');
+  if(!card) return;
+  if(card.classList.contains('pinned')) unpinQuestionCard();
+  else pinQuestionCard();
+}
+function pinQuestionCard(){
+  const card = document.getElementById('ev-question-card');
+  const pinBtn = document.getElementById('ev-pin-btn');
+  if(!card || card.classList.contains('pinned')) return;
+
+  const rect = card.getBoundingClientRect();
+  const placeholder = document.createElement('div');
+  placeholder.id = 'ev-pin-placeholder';
+  placeholder.className = 'pin-placeholder';
+  placeholder.style.height = rect.height + 'px';
+  card.parentNode.insertBefore(placeholder, card);
+
+  card.classList.add('pinned');
+  card.style.position = 'fixed';
+  card.style.left = rect.left + 'px';
+  card.style.width = rect.width + 'px';
+  card.style.overflowY = 'auto';
+  card.style.zIndex = '32';
+
+  if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Disematkan'; }
+  document.getElementById('examSuite').classList.add('passage-pinned');
+  repositionPinnedCard();
+}function unpinQuestionCard(){
+  const card = document.getElementById('ev-question-card');
+  const pinBtn = document.getElementById('ev-pin-btn');
+  if(!card) return;
+  card.classList.remove('pinned');
+  card.style.position = '';
+  card.style.top = '';
+  card.style.bottom = '';
+  card.style.left = '';
+  card.style.width = '';
+  card.style.maxHeight = '';
+  card.style.overflowY = '';
+  card.style.zIndex = '';
+  const placeholder = document.getElementById('ev-pin-placeholder');
+  if(placeholder) placeholder.remove();
+  if(pinBtn){ pinBtn.classList.remove('active'); pinBtn.innerHTML = '📌 Sematkan'; }
+  document.getElementById('examSuite').classList.remove('passage-pinned');
+}
+function repositionPinnedCard(){
+  const card = document.getElementById('ev-question-card');
+  if(!card || !card.classList.contains('pinned')) return;
+  const placeholder = document.getElementById('ev-pin-placeholder');
+  if(placeholder){
+    const prect = placeholder.getBoundingClientRect();
+    card.style.left = prect.left + 'px';
+    card.style.width = prect.width + 'px';
+  }
+  // Soal + opsi (termasuk navigasi di bawahnya, karena kini satu kartu yang sama)
+  // disematkan mulai dari TENGAH layar dan menempel RATA sampai ke tepi bawah layar
+  // (sudut bawah kartu memang siku, bukan melengkung, supaya menyatu dengan tepi) —
+  // posisi kiri/lebar tetap mengikuti kolom soal, bukan berpindah ke tengah horizontal.
+  card.style.top = '50vh';
+  card.style.bottom = '0px';
+  card.style.maxHeight = '';
+}
+window.addEventListener('resize', repositionPinnedCard);
 
 /* ---------- ukuran font ---------- */
 function toggleFontMenu(){ document.getElementById('fontSizeMenu').classList.toggle('hidden'); }
 function setFontLevel(level){
   fontLevel = level;
-  document.documentElement.style.setProperty('--fscale', FONT_SCALES[level-1]);
+  document.getElementById('examSuite').style.setProperty('--fscale', FONT_SCALES[level-1]);
   document.querySelectorAll('.fontsize-opt').forEach(b => b.classList.toggle('active', parseInt(b.dataset.level,10) === level));
   document.getElementById('fontSizeMenu').classList.add('hidden');
 }
@@ -1083,6 +1323,7 @@ function updateTimer(){
   if(remain <= 0){
     el.textContent = '00:00';
     clearInterval(timerInterval);
+    unpinQuestionCard();
     finalizeAttempt(liveExam.attempt, liveExam.schedule, true).then(() => {
       alert('Waktu ujian habis. Jawabanmu otomatis dikumpulkan.');
       showResult();
@@ -1092,7 +1333,8 @@ function updateTimer(){
   const mm = Math.floor(remain / 60000);
   const ss = Math.floor((remain % 60000) / 1000);
   el.textContent = String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
-  el.classList.toggle('warn', remain < 5 * 60000);
+  el.classList.toggle('warn', remain < 5 * 60000 && remain >= 60000);
+  el.classList.toggle('danger', remain < 60000);
 }
 
 /* ---------- submit ---------- */
@@ -1101,12 +1343,27 @@ function openSubmitModal(){
   document.getElementById('sumDone').textContent = c.done;
   document.getElementById('sumDoubt').textContent = c.doubt;
   document.getElementById('sumEmpty').textContent = c.empty;
+
+  const warnBox = document.getElementById('submitWarnBox');
+  if(c.empty > 0 || c.doubt > 0){
+    const parts = [];
+    if(c.empty > 0) parts.push(`<strong>${c.empty} soal masih kosong</strong>`);
+    if(c.doubt > 0) parts.push(`<strong>${c.doubt} soal ditandai ragu-ragu</strong>`);
+    warnBox.classList.remove('all-good', 'hidden');
+    warnBox.innerHTML = `<span>⚠️</span><span>Masih ada ${parts.join(' dan ')}. Periksa kembali sebelum mengumpulkan — jawaban tidak bisa diubah lagi setelah dikumpulkan.</span>`;
+  } else {
+    warnBox.classList.add('all-good');
+    warnBox.classList.remove('hidden');
+    warnBox.innerHTML = `<span>✅</span><span>Semua soal sudah terjawab. Kamu yakin ingin mengumpulkan sekarang?</span>`;
+  }
+
   document.getElementById('submitModalBg').classList.remove('hidden');
 }
 function closeSubmitModal(){ document.getElementById('submitModalBg').classList.add('hidden'); }
 
 function confirmSubmit(){
   closeSubmitModal();
+  unpinQuestionCard();
   clearInterval(timerInterval);
   finalizeAttempt(liveExam.attempt, liveExam.schedule, false).then(showResult);
 }
@@ -1187,6 +1444,26 @@ function gradeAttempt(qs, attempt){
       // soal ini dinilai manual oleh guru (sama seperti soal BS beropini).
       const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
       const allKeyed = pernyataan.length > 0 && pernyataan.every(p => p.kunci === 0 || p.kunci === 1);
+      if(allKeyed){
+        const n = pernyataan.length;
+        const per = poin / n;
+        const ans = (a && typeof a === 'object') ? a : {};
+        pernyataan.forEach(p => {
+          if(ans[p.id] === p.kunci){ autoEarned += per; correctCount++; }
+          else { incorrectCount++; }
+        });
+        autoMax += poin;
+      } else {
+        manualQids.push(q.id);
+      }
+      return;
+    }
+
+    if(q.type === 'rb'){
+      // Soal radio button (klasifikasi 2-4 kolom): sama seperti BSG, tapi
+      // kunci per pernyataan adalah index kolom (0..3), bukan cuma 0/1.
+      const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+      const allKeyed = pernyataan.length > 0 && pernyataan.every(p => Number.isInteger(p.kunci));
       if(allKeyed){
         const n = pernyataan.length;
         const per = poin / n;
