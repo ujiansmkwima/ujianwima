@@ -131,9 +131,14 @@
   .shell{ max-width:1040px; margin:0 auto; padding:26px 16px 60px; }
   .panel{ display:none; }
   .panel.active{ display:block; }
-  .section-head{ margin-bottom:18px; }
+  .section-head{ margin-bottom:18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .section-head h1{ font-size:22px; letter-spacing:-0.01em; }
   .section-head p{ margin:5px 0 0; font-size:13.5px; color:var(--slate); }
+  .section-head-text{ flex:1 1 240px; min-width:0; }
+  .refresh-btn{ flex-shrink:0; }
+  .refresh-btn svg{ transition:transform .5s ease; }
+  .refresh-btn.spinning svg{ animation:refresh-spin .8s linear infinite; }
+  @keyframes refresh-spin{ to{ transform:rotate(360deg); } }
 
   /* ---------- Card ---------- */
   .card{
@@ -263,6 +268,45 @@
   }
   .tkn-token-empty{ font-size:12px; color:var(--slate); font-style:italic; }
 
+  /* ---------- Kalender token ---------- */
+  .kal-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding:16px; margin-bottom:18px; box-shadow:0 1px 2px rgba(20,20,30,0.03);
+  }
+  .kal-nav{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+  .kal-nav-label{ font-size:14.5px; font-weight:700; text-transform:capitalize; }
+  .kal-nav-btn{
+    background:var(--mist); border:none; color:var(--ink); width:32px; height:32px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  .kal-nav-btn:hover{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .kal-nav-btn svg{ width:16px; height:16px; }
+  .kal-nav-today{
+    background:none; border:1.5px solid var(--line); color:var(--slate); font-size:12px; font-weight:600;
+    padding:6px 10px; border-radius:8px; cursor:pointer;
+  }
+  .kal-nav-today:hover{ border-color:var(--emerald); color:var(--emerald-dark); }
+  .kal-grid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; }
+  .kal-weekday{ text-align:center; font-size:11px; font-weight:700; color:var(--slate); padding:4px 0 8px; }
+  .kal-cell{
+    position:relative; aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border-radius:8px; font-size:13px; font-weight:600; cursor:default; color:var(--ink); background:none; border:none;
+    font-family:inherit;
+  }
+  .kal-cell.kal-empty{ visibility:hidden; }
+  .kal-cell.kal-has{ cursor:pointer; }
+  .kal-cell.kal-has:hover{ background:var(--mist); }
+  .kal-cell.kal-today{ box-shadow:inset 0 0 0 1.5px var(--emerald); color:var(--emerald-dark); }
+  .kal-cell.kal-selected{ background:var(--emerald); color:#fff; }
+  .kal-cell.kal-selected.kal-today{ box-shadow:none; }
+  .kal-dot{ width:5px; height:5px; border-radius:50%; background:var(--indigo); margin-top:2px; }
+  .kal-cell.kal-selected .kal-dot{ background:#fff; }
+  .kal-legend{ display:flex; align-items:center; gap:14px; margin-top:12px; font-size:11.5px; color:var(--slate); flex-wrap:wrap; }
+  .kal-legend span{ display:flex; align-items:center; gap:5px; }
+  .kal-legend .kal-dot{ margin-top:0; }
+  .kal-legend-ring{ width:10px; height:10px; border-radius:50%; box-shadow:inset 0 0 0 1.5px var(--emerald); }
+  .kal-detail-heading{ padding:12px 16px; font-size:12.5px; font-weight:700; color:var(--ink); background:var(--mist); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--line); }
+
   /* ---------- Badges ---------- */
   .badge{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; }
   .badge-draft{ background:var(--mist); color:var(--slate); }
@@ -369,6 +413,75 @@
   .editor-toolbar h2{ font-size:17px; }
   .editor-meta{ font-size:12.5px; color:var(--slate); margin-top:2px; }
 
+  /* ---------- Preview tampilan siswa ---------- */
+  .pv-modal-bg{
+    position:fixed; inset:0; background:rgba(22,26,35,0.55); z-index:1000;
+    display:flex; align-items:flex-start; justify-content:center; padding:24px 16px; overflow-y:auto;
+  }
+  .pv-modal-bg.hidden{ display:none; }
+  .pv-modal-card{
+    background:var(--cream); border-radius:16px; width:100%; max-width:760px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.25); overflow:hidden; margin-bottom:24px;
+  }
+  .pv-modal-head{
+    background:var(--paper); border-bottom:1px solid var(--line); padding:16px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; position:sticky; top:0;
+  }
+  .pv-modal-head-text{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .pv-modal-badge{
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--indigo); background:var(--indigo-soft); padding:3px 9px; border-radius:999px;
+  }
+  .pv-modal-title{ font-size:15.5px; font-weight:700; }
+  .pv-modal-note{ font-size:11.5px; color:var(--slate); padding:10px 20px 0; }
+  .pv-modal-body{ padding:16px 20px 20px; }
+  .pv-qnav{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .pv-navcell{
+    width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--paper);
+    font-size:12.5px; font-weight:700; color:var(--slate); cursor:pointer;
+  }
+  .pv-navcell.current{ border-color:var(--indigo); background:var(--indigo-soft); color:var(--indigo); }
+  .pv-question-card{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .pv-qmeta-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .pv-question-num{ font-size:12.5px; font-weight:700; color:var(--indigo); }
+  .pv-qtype-pill{ font-size:11px; font-weight:700; color:var(--indigo); background:var(--indigo-soft); padding:3px 9px; border-radius:999px; }
+  .pv-qpoin-pill{ font-size:11px; font-weight:700; color:var(--slate); }
+  .pv-bacaan-box{ background:var(--mist); border:1px solid var(--line); border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.6; white-space:pre-line; margin-bottom:14px; }
+  .pv-question-text{ font-size:15.5px; line-height:1.6; margin-bottom:14px; white-space:pre-line; }
+  .pv-question-img{ max-width:100%; border-radius:10px; border:1px solid var(--line); margin-bottom:14px; display:block; }
+  .pv-opt-choice{
+    display:flex; align-items:flex-start; gap:10px; border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; margin-bottom:8px; cursor:pointer;
+  }
+  .pv-opt-choice:hover{ border-color:var(--indigo); }
+  .pv-opt-choice.selected{ border-color:var(--indigo); background:var(--indigo-soft); }
+  .pv-opt-choice input{ margin-top:2px; width:17px; height:17px; accent-color:var(--indigo); flex-shrink:0; }
+  .pv-opt-choice .pv-opt-letter{ font-weight:700; color:var(--slate); flex-shrink:0; }
+  .pv-opt-choice.selected .pv-opt-letter{ color:var(--indigo); }
+  .pv-opt-choice .pv-opt-text{ flex:1; font-size:14px; line-height:1.5; }
+  .pv-opt-choice img{ max-width:160px; border-radius:8px; margin-top:6px; display:block; }
+  .pv-bs-choice-row{ display:flex; gap:10px; margin-top:6px; }
+  .pv-bs-choice{
+    flex:1; text-align:center; padding:12px; border:1px solid var(--line); border-radius:10px;
+    font-weight:700; font-size:13.5px; color:var(--slate); cursor:pointer;
+  }
+  .pv-bs-choice.selected{ border-color:var(--indigo); background:var(--indigo-soft); color:var(--indigo); }
+  .pv-bsg-table{ margin-top:6px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .pv-bsg-head-row, .pv-bsg-row{ display:flex; align-items:center; gap:8px; padding:10px 14px; }
+  .pv-bsg-head-row{ background:var(--mist); font-size:10.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.02em; }
+  .pv-bsg-row{ border-top:1px solid var(--line); }
+  .pv-bsg-pernyataan-text, .pv-bsg-head-pernyataan{ flex:1; font-size:13.5px; line-height:1.5; }
+  .pv-bsg-head-kat{ width:64px; text-align:center; flex-shrink:0; }
+  .pv-bsg-radios{ display:flex; gap:0; flex-shrink:0; }
+  .pv-bsg-radio{ width:64px; display:flex; justify-content:center; align-items:center; cursor:pointer; }
+  .pv-bsg-radio input{ width:18px; height:18px; accent-color:var(--indigo); cursor:pointer; }
+  .pv-essay-box{
+    width:100%; min-height:120px; border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-family:inherit; font-size:14px; line-height:1.6; resize:vertical;
+  }
+  .pv-essay-box:focus{ border-color:var(--indigo); outline:none; }
+  .pv-nav-bottom{ display:flex; justify-content:space-between; gap:10px; margin-top:16px; }
+
   /* ---------- Monitoring ---------- */
   .stat-pills{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
   .stat-pill{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 16px; min-width:120px; }
@@ -470,6 +583,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg>
       Token Ujian
     </button>
+    <button class="tab" onclick="showPanel('panel-kalender', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Kalender
+    </button>
     <button class="tab" onclick="showPanel('panel-rekap', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
       Rekap
@@ -482,8 +599,14 @@
   <!-- ============================================================ PANEL: ASESMEN ============================================================ -->
   <section id="panel-asesmen" class="panel active">
     <div class="section-head">
-      <h1>Asesmen</h1>
-      <p>Buat soal dari file Word, sunting secara manual, lalu jadwalkan ujiannya.</p>
+      <div class="section-head-text">
+        <h1>Asesmen</h1>
+        <p>Buat soal dari file Word, sunting secara manual, lalu jadwalkan ujiannya.</p>
+      </div>
+      <button type="button" class="btn-secondary refresh-btn" id="refresh-btn-asesmen" onclick="reloadGuruData(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>
+        Refresh
+      </button>
     </div>
 
     <div class="subtabs">
@@ -631,6 +754,10 @@
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn-secondary" onclick="backToBank()">← Kembali</button>
+            <button type="button" class="btn-secondary" onclick="openStudentPreview()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Preview Tampilan Siswa
+            </button>
             <button class="btn-secondary" onclick="toggleSetStatus()" id="ed-status-btn">Tandai Siap</button>
             <button class="btn-primary" onclick="saveEditor()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
@@ -765,8 +892,14 @@
   <!-- ============================================================ PANEL: MONITORING ============================================================ -->
   <section id="panel-monitoring" class="panel">
     <div class="section-head">
-      <h1>Monitoring Ujian</h1>
-      <p>Pantau peserta yang sedang mengerjakan ujian di ruang yang kamu awasi.</p>
+      <div class="section-head-text">
+        <h1>Monitoring Ujian</h1>
+        <p>Pantau peserta yang sedang mengerjakan ujian di ruang yang kamu awasi.</p>
+      </div>
+      <button type="button" class="btn-secondary refresh-btn" id="refresh-btn-monitoring" onclick="reloadGuruData(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>
+        Refresh
+      </button>
     </div>
 
     <div id="mon-not-supervisor" class="notice" style="margin:0 0 18px; padding:0;">
@@ -799,8 +932,14 @@
   <!-- ============================================================ PANEL: TOKEN UJIAN ============================================================ -->
   <section id="panel-token" class="panel">
     <div class="section-head">
-      <h1>Token Ujian</h1>
-      <p>Daftar token dari seluruh ujian yang sudah terjadwal (semua mata pelajaran), terurut per tanggal dari jadwal paling awal ke paling akhir. Status ujian (Terjadwal/Berlangsung/Selesai) ditampilkan di samping tiap token dan diperbarui otomatis.</p>
+      <div class="section-head-text">
+        <h1>Token Ujian</h1>
+        <p>Daftar token ujian yang terjadwal <strong>hari ini</strong>, terurut dari jadwal paling awal ke paling akhir. Status ujian (Terjadwal/Berlangsung/Selesai) ditampilkan di samping tiap token dan diperbarui otomatis. Token untuk tanggal lain bisa dilihat lewat menu <strong>Kalender</strong>.</p>
+      </div>
+      <button type="button" class="btn-secondary refresh-btn" id="refresh-btn-token" onclick="reloadGuruData(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>
+        Refresh
+      </button>
     </div>
 
     <div class="list-card">
@@ -811,11 +950,59 @@
     </div>
   </section>
 
+  <!-- ============================================================ PANEL: KALENDER TOKEN ============================================================ -->
+  <section id="panel-kalender" class="panel">
+    <div class="section-head">
+      <div class="section-head-text">
+        <h1>Kalender Ujian</h1>
+        <p>Pilih tanggal untuk melihat token ujian pada tanggal tersebut (semua mata pelajaran). Tanggal dengan titik biru menandakan ada ujian terjadwal.</p>
+      </div>
+      <button type="button" class="btn-secondary refresh-btn" id="refresh-btn-kalender" onclick="reloadGuruData(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>
+        Refresh
+      </button>
+    </div>
+
+    <div class="kal-card">
+      <div class="kal-nav">
+        <button type="button" class="kal-nav-btn" onclick="kalGeserBulan(-1)" aria-label="Bulan sebelumnya">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="kal-nav-label" id="kal-nav-label">—</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="kal-nav-today" onclick="kalKeHariIni()">Hari ini</button>
+          <button type="button" class="kal-nav-btn" onclick="kalGeserBulan(1)" aria-label="Bulan berikutnya">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="kal-grid" id="kal-grid"></div>
+      <div class="kal-legend">
+        <span><span class="kal-legend-ring"></span>Hari ini</span>
+        <span><span class="kal-dot"></span>Ada ujian terjadwal</span>
+      </div>
+    </div>
+
+    <div class="list-card">
+      <div class="kal-detail-heading">
+        <span id="kal-detail-title">Pilih tanggal pada kalender</span>
+        <span class="list-count" id="kal-detail-count"></span>
+      </div>
+      <div id="kal-detail-wrap"></div>
+    </div>
+  </section>
+
   <!-- ============================================================ PANEL: REKAP ============================================================ -->
   <section id="panel-rekap" class="panel">
     <div class="section-head">
-      <h1>Rekap Ujian</h1>
-      <p>Daftar peserta yang telah menyelesaikan ujian per jadwal.</p>
+      <div class="section-head-text">
+        <h1>Rekap Ujian</h1>
+        <p>Daftar peserta yang telah menyelesaikan ujian per jadwal.</p>
+      </div>
+      <button type="button" class="btn-secondary refresh-btn" id="refresh-btn-rekap" onclick="reloadGuruData(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>
+        Refresh
+      </button>
     </div>
 
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px;">
@@ -895,6 +1082,41 @@
     </div>
   </section>
 
+</div>
+
+<!-- ============ MODAL: PREVIEW TAMPILAN SISWA ============ -->
+<div class="pv-modal-bg hidden" id="pvModalBg">
+  <div class="pv-modal-card">
+    <div class="pv-modal-head">
+      <div class="pv-modal-head-text">
+        <span class="pv-modal-badge">Preview</span>
+        <span class="pv-modal-title" id="pv-title">Preview soal</span>
+      </div>
+      <button type="button" class="btn-secondary" onclick="closeStudentPreview()">Tutup</button>
+    </div>
+    <div class="pv-modal-note">Ini simulasi tampilan soal dari sisi siswa. Jawaban yang dipilih di sini <strong>tidak tersimpan</strong> dan hanya untuk melihat tampilan.</div>
+    <div class="pv-modal-body">
+      <div class="pv-qnav" id="pv-qnav"></div>
+      <div class="pv-question-card">
+        <div class="pv-qmeta-row">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="pv-question-num" id="pv-qnum">Soal 1</span>
+            <span class="pv-qtype-pill" id="pv-qtype">—</span>
+            <span class="pv-qpoin-pill" id="pv-qpoin"></span>
+          </div>
+        </div>
+        <div id="pv-bacaan"></div>
+        <div class="pv-question-text" id="pv-question-text"></div>
+        <div id="pv-question-img"></div>
+        <div id="pv-question-table"></div>
+        <div id="pv-answer-area"></div>
+      </div>
+      <div class="pv-nav-bottom">
+        <button type="button" class="btn-secondary" id="pv-prev" onclick="pvNav(-1)">← Sebelumnya</button>
+        <button type="button" class="btn-secondary" id="pv-next" onclick="pvNav(1)">Selanjutnya →</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -1059,9 +1281,75 @@ function refreshAll(){
   populateTingkatSelect();
   renderJadwalList();
   renderTokenView();
+  renderKalender();
   renderMonitoringGate();
   populateRekapJadwalSelect();
   renderRekap();
+}
+
+/* ---------- Tombol Refresh (semua halaman guru) ---------- */
+let reloadInFlight = false;
+async function reloadGuruData(btn){
+  if(reloadInFlight) return;
+  reloadInFlight = true;
+  if(btn){
+    btn.disabled = true;
+    btn.classList.add('spinning');
+  }
+  try{
+    const [subjRes, usersRes, supvRes, qsRes, schRes, atRes] = await Promise.all([
+      sb.from('subjects').select('*'),
+      sb.from('profiles').select('id,nama,username,kelas,ruang').eq('role', 'siswa'),
+      sb.from('supervisors').select('*'),
+      sb.from('question_sets').select('*'),
+      sb.from('schedules').select('*'),
+      sb.from('exam_attempts').select('*')
+    ]);
+    const firstError = [subjRes, usersRes, supvRes, qsRes, schRes, atRes].find(r => r.error);
+    if(firstError){ alert('Gagal memuat ulang data: ' + firstError.error.message); return; }
+
+    subjects = (subjRes.data || []).map(mapSubject);
+    users = usersRes.data || [];
+    supervisors = (supvRes.data || []).map(mapSupervisor);
+    questionSets = (qsRes.data || []).map(mapQuestionSet);
+    schedules = (schRes.data || []).map(mapSchedule);
+    attempts = (atRes.data || []).map(mapAttempt);
+
+    populateMapelSelect();
+    renderQuestionBank();
+    renderReadyList();
+
+    // jaga posisi guru: kalau sedang membuka editor paket soal, jangan dilempar kembali ke daftar
+    if(editingSetId){
+      const fresh = questionSets.find(q => q.id === editingSetId);
+      if(fresh){
+        editingSet = JSON.parse(JSON.stringify(fresh));
+        renderEditorMeta();
+        renderEditorQuestions();
+      } else {
+        backToBank();
+      }
+    } else {
+      backToBank();
+    }
+
+    populateJadwalSetSelect();
+    populateTingkatSelect();
+    renderJadwalList();
+    renderTokenView();
+    renderKalender();
+    renderMonitoringGate();
+    populateRekapJadwalSelect();
+    renderRekap();
+  } catch(err){
+    alert('Gagal memuat ulang data: ' + (err && err.message ? err.message : err));
+  } finally {
+    reloadInFlight = false;
+    if(btn){
+      btn.disabled = false;
+      btn.classList.remove('spinning');
+    }
+  }
 }
 
 /* ---------- tab / subtab switching ---------- */
@@ -1082,6 +1370,9 @@ function showPanel(id, el){
     startTokenAutoRefresh();
   } else {
     stopTokenAutoRefresh();
+  }
+  if(id === 'panel-kalender'){
+    renderKalender();
   }
 }
 function showSubtab(id, el){
@@ -1785,6 +2076,139 @@ function backToBank(){
   document.getElementById('bank-list-view').style.display = 'block';
   document.getElementById('bank-editor-view').style.display = 'none';
 }
+
+/* ---------- Preview tampilan siswa (dari editor draft) ---------- */
+let pvState = null; // { soal, index, jawaban }
+
+function openStudentPreview(){
+  editingSet.soal.forEach(normalizeQuestion);
+  if(editingSet.soal.length === 0){
+    alert('Belum ada soal untuk dipreview. Tambahkan soal terlebih dahulu.');
+    return;
+  }
+  pvState = { soal: editingSet.soal, index: 0, jawaban: {} };
+  document.getElementById('pv-title').textContent = editingSet.judul || 'Paket soal';
+  document.getElementById('pvModalBg').classList.remove('hidden');
+  renderPvNav();
+  renderPvQuestion();
+}
+function closeStudentPreview(){
+  pvState = null;
+  document.getElementById('pvModalBg').classList.add('hidden');
+}
+function pvJumpTo(i){
+  pvState.index = i;
+  renderPvNav();
+  renderPvQuestion();
+}
+function pvNav(delta){
+  const total = pvState.soal.length;
+  pvState.index = Math.min(total - 1, Math.max(0, pvState.index + delta));
+  renderPvNav();
+  renderPvQuestion();
+}
+function renderPvNav(){
+  document.getElementById('pv-qnav').innerHTML = pvState.soal.map((q, i) =>
+    `<button type="button" class="pv-navcell ${i === pvState.index ? 'current' : ''}" onclick="pvJumpTo(${i})">${i+1}</button>`
+  ).join('');
+}
+function renderPvQuestion(){
+  const q = pvState.soal[pvState.index];
+  const total = pvState.soal.length;
+  document.getElementById('pv-qnum').textContent = `Soal ${pvState.index + 1} dari ${total}`;
+  document.getElementById('pv-qtype').textContent = TYPE_LABEL[q.type] || q.type;
+  document.getElementById('pv-qpoin').textContent = `${q.poin} poin`;
+  document.getElementById('pv-bacaan').innerHTML = q.bacaan ? `<div class="pv-bacaan-box">${escapeHtml(q.bacaan)}</div>` : '';
+  document.getElementById('pv-question-text').innerHTML = escapeHtml(q.teks || '(Teks soal belum diisi)');
+  document.getElementById('pv-question-img').innerHTML = q.gambar ? `<img class="pv-question-img" src="${q.gambar}" alt="">` : '';
+  document.getElementById('pv-question-table').innerHTML = renderTabelHtml(q.tabel);
+  document.getElementById('pv-answer-area').innerHTML = renderPvAnswerArea(q);
+  if(q.type === 'essay'){
+    const box = document.getElementById('pvEssayInput');
+    if(box) box.addEventListener('input', () => { pvState.jawaban[q.id] = box.value; });
+  }
+  document.getElementById('pv-prev').disabled = pvState.index === 0;
+  document.getElementById('pv-prev').style.visibility = pvState.index === 0 ? 'hidden' : 'visible';
+  document.getElementById('pv-next').textContent = pvState.index === total - 1 ? 'Soal terakhir' : 'Selanjutnya →';
+  document.getElementById('pv-next').disabled = pvState.index === total - 1;
+}
+function renderPvAnswerArea(q){
+  const opsi = q.opsi || [];
+  if(q.type === 'pg'){
+    const selected = pvState.jawaban[q.id];
+    return opsi.map((o, i) => {
+      const letter = String.fromCharCode(65 + i);
+      return `<label class="pv-opt-choice ${selected === o.id ? 'selected' : ''}" onclick="pvSetPG('${q.id}','${o.id}')">
+        <input type="radio" name="pv-opt-${q.id}" ${selected === o.id ? 'checked' : ''}>
+        <span class="pv-opt-letter">${letter}.</span>
+        <span class="pv-opt-text">${escapeHtml(o.teks || '')}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
+      </label>`;
+    }).join('') || '<div class="empty-state">Belum ada opsi jawaban.</div>';
+  }
+  if(q.type === 'pgk'){
+    const selected = Array.isArray(pvState.jawaban[q.id]) ? pvState.jawaban[q.id] : [];
+    return `<div class="muted-note" style="margin-bottom:8px;">Pilih semua jawaban yang benar (boleh lebih dari satu).</div>` +
+      (opsi.map((o, i) => {
+        const letter = String.fromCharCode(65 + i);
+        const isSel = selected.includes(o.id);
+        return `<label class="pv-opt-choice ${isSel ? 'selected' : ''}" onclick="pvTogglePGK('${q.id}','${o.id}')">
+          <input type="checkbox" ${isSel ? 'checked' : ''}>
+          <span class="pv-opt-letter">${letter}.</span>
+          <span class="pv-opt-text">${escapeHtml(o.teks || '')}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
+        </label>`;
+      }).join('') || '<div class="empty-state">Belum ada opsi jawaban.</div>');
+  }
+  if(q.type === 'bs'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const selected = pvState.jawaban[q.id];
+    return `<div class="pv-bs-choice-row">
+      ${kat.map((label, i) => `<div class="pv-bs-choice ${selected === i ? 'selected' : ''}" onclick="pvSetBS('${q.id}', ${i})">${escapeHtml(label)}</div>`).join('')}
+    </div>`;
+  }
+  if(q.type === 'bsg'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const ans = (pvState.jawaban[q.id] && typeof pvState.jawaban[q.id] === 'object') ? pvState.jawaban[q.id] : {};
+    if(pernyataan.length === 0) return '<div class="empty-state">Belum ada pernyataan.</div>';
+    return `<div class="pv-bsg-table">
+      <div class="pv-bsg-head-row">
+        <span class="pv-bsg-head-pernyataan">Pernyataan</span>
+        ${kat.map(label => `<span class="pv-bsg-head-kat">${escapeHtml(label)}</span>`).join('')}
+      </div>
+      ${pernyataan.map((p, i) => {
+        const chosen = ans[p.id];
+        return `<div class="pv-bsg-row">
+          <span class="pv-bsg-pernyataan-text">${i+1}. ${escapeHtml(p.teks || '')}</span>
+          <span class="pv-bsg-radios">
+            ${kat.map((label, ki) => `<label class="pv-bsg-radio" title="${escapeHtml(label)}">
+              <input type="radio" name="pv-bsg-${q.id}-${p.id}" ${chosen === ki ? 'checked' : ''} onchange="pvSetBSG('${q.id}','${p.id}', ${ki})">
+            </label>`).join('')}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  // essay
+  const val = typeof pvState.jawaban[q.id] === 'string' ? pvState.jawaban[q.id] : '';
+  return `<textarea id="pvEssayInput" class="pv-essay-box" placeholder="Tulis jawabanmu di sini…">${escapeHtml(val)}</textarea>`;
+}
+function pvSetPG(qid, oid){ pvState.jawaban[qid] = oid; renderPvQuestion(); }
+function pvTogglePGK(qid, oid){
+  const a = pvState.jawaban[qid];
+  const arr = Array.isArray(a) ? a.slice() : [];
+  const idx = arr.indexOf(oid);
+  if(idx === -1) arr.push(oid); else arr.splice(idx, 1);
+  pvState.jawaban[qid] = arr;
+  renderPvQuestion();
+}
+function pvSetBS(qid, idx){ pvState.jawaban[qid] = idx; renderPvQuestion(); }
+function pvSetBSG(qid, pid, idx){
+  const a = pvState.jawaban[qid];
+  const obj = (a && typeof a === 'object') ? { ...a } : {};
+  obj[pid] = idx;
+  pvState.jawaban[qid] = obj;
+  renderPvQuestion();
+}
 function renderEditorMeta(){
   const subj = subjects.find(s => s.id === editingSet.subjectId);
   document.getElementById('ed-judul').textContent = editingSet.judul || 'Paket soal';
@@ -2260,6 +2684,7 @@ async function submitJadwal(event){
   cancelJadwalEdit();
   renderJadwalList();
   renderTokenView();
+  renderKalender();
   populateRekapJadwalSelect();
   return false;
 }
@@ -2317,6 +2742,7 @@ async function deleteJadwal(id){
   if(editingJadwalId === id) cancelJadwalEdit();
   renderJadwalList();
   renderTokenView();
+  renderKalender();
   populateRekapJadwalSelect();
 }
 
@@ -2400,11 +2826,11 @@ function stopTokenAutoRefresh(){
 }
 
 function renderTokenView(){
-  const all = schedules.slice();
-  document.getElementById('tkn-count').textContent = all.length + ' jadwal ujian';
+  const all = schedules.filter(j => j.tanggal === todayLocalStr());
+  document.getElementById('tkn-count').textContent = all.length + ' jadwal ujian hari ini';
   const wrap = document.getElementById('tkn-wrap');
   if(all.length === 0){
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal ujian</strong>Token akan muncul di sini begitu ada jadwal ujian yang dibuat.</div>`;
+    wrap.innerHTML = `<div class="empty-state"><strong>Tidak ada ujian terjadwal hari ini</strong>Token untuk tanggal lain bisa dilihat lewat menu Kalender.</div>`;
     return;
   }
 
@@ -2443,6 +2869,113 @@ function renderTokenView(){
       }).join('')}
     </div>
   `).join('');
+}
+
+/* ============================================================
+   KALENDER TOKEN (lihat token per tanggal lewat kalender bulanan)
+============================================================ */
+const KAL_HARI = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const KAL_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+let kalTahun, kalBulan, kalTanggalTerpilih;
+(function initKalenderState(){
+  const now = new Date();
+  kalTahun = now.getFullYear();
+  kalBulan = now.getMonth();
+  kalTanggalTerpilih = todayLocalStr();
+})();
+
+function kalGeserBulan(delta){
+  kalBulan += delta;
+  if(kalBulan < 0){ kalBulan = 11; kalTahun--; }
+  if(kalBulan > 11){ kalBulan = 0; kalTahun++; }
+  renderKalender();
+}
+function kalKeHariIni(){
+  const now = new Date();
+  kalTahun = now.getFullYear();
+  kalBulan = now.getMonth();
+  kalTanggalTerpilih = todayLocalStr();
+  renderKalender();
+}
+function kalPilihTanggal(tanggal){
+  kalTanggalTerpilih = tanggal;
+  renderKalender();
+}
+function kalTanggalStr(y, m, d){
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function renderKalender(){
+  document.getElementById('kal-nav-label').textContent = `${KAL_BULAN[kalBulan]} ${kalTahun}`;
+
+  const tanggalDenganUjian = new Set(schedules.map(j => j.tanggal));
+  const today = todayLocalStr();
+
+  const firstDow = new Date(kalTahun, kalBulan, 1).getDay();
+  const jumlahHari = new Date(kalTahun, kalBulan + 1, 0).getDate();
+
+  let cells = KAL_HARI.map(h => `<div class="kal-weekday">${h}</div>`).join('');
+  for(let i = 0; i < firstDow; i++){
+    cells += `<div class="kal-cell kal-empty"></div>`;
+  }
+  for(let d = 1; d <= jumlahHari; d++){
+    const tgl = kalTanggalStr(kalTahun, kalBulan, d);
+    const punyaUjian = tanggalDenganUjian.has(tgl);
+    const cls = ['kal-cell'];
+    if(punyaUjian) cls.push('kal-has');
+    if(tgl === today) cls.push('kal-today');
+    if(tgl === kalTanggalTerpilih) cls.push('kal-selected');
+    cells += `<button type="button" class="${cls.join(' ')}" onclick="kalPilihTanggal('${tgl}')">${d}${punyaUjian ? '<span class="kal-dot"></span>' : ''}</button>`;
+  }
+  document.getElementById('kal-grid').innerHTML = cells;
+
+  renderKalenderDetail();
+}
+
+function renderKalenderDetail(){
+  const titleEl = document.getElementById('kal-detail-title');
+  const countEl = document.getElementById('kal-detail-count');
+  const wrap = document.getElementById('kal-detail-wrap');
+  if(!kalTanggalTerpilih){
+    titleEl.textContent = 'Pilih tanggal pada kalender';
+    countEl.textContent = '';
+    wrap.innerHTML = '';
+    return;
+  }
+
+  const isToday = kalTanggalTerpilih === todayLocalStr();
+  titleEl.textContent = formatTanggalPanjang(kalTanggalTerpilih) + (isToday ? ' (Hari ini)' : '');
+
+  const items = schedules
+    .filter(j => j.tanggal === kalTanggalTerpilih)
+    .sort((a, b) => (a.jamMulai||'').localeCompare(b.jamMulai||''));
+
+  countEl.textContent = items.length + ' ujian';
+
+  if(items.length === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Tidak ada ujian terjadwal</strong>Tidak ada ujian pada tanggal ini.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = items.map(j => {
+    const qs = questionSets.find(x => x.id === j.questionSetId);
+    const subj = qs ? subjects.find(s => s.id === qs.subjectId) : null;
+    const mapelNama = subj ? subj.nama : (qs ? qs.judul : 'Paket dihapus');
+    const g2 = subj ? guruList.find(x => x.id === subj.guruId) : null;
+    const kelasStr = j.kelas && j.kelas.length ? j.kelas.map(escapeHtml).join(', ') : '—';
+    const st = getJadwalStatus(j);
+    return `
+    <div class="tkn-row">
+      <div class="tkn-row-main">
+        <div class="tkn-row-mapel">${escapeHtml(mapelNama)}</div>
+        <div class="tkn-row-meta">${escapeHtml(j.jamMulai || '')} · Kelas ${kelasStr}${g2 ? ' · ' + escapeHtml(g2.nama) : ''}</div>
+      </div>
+      <div class="tkn-row-token">
+        <span class="badge badge-${st}">${st === 'berlangsung' ? '<span class="badge-dot"></span>' : ''}${statusLabel[st]}</span>
+        ${j.token ? `<span class="tkn-token-pill">${escapeHtml(j.token)}</span>` : '<span class="tkn-token-empty">Belum ada token</span>'}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* ============================================================
