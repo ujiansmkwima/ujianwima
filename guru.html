@@ -802,6 +802,21 @@ D. Medan
             <input type="number" id="jd-durasi" min="5" step="5" placeholder="Contoh: 90" required>
           </label>
           <label class="field">
+            <span>Tanggal selesai (opsional)</span>
+            <input type="date" id="jd-tanggal-selesai">
+            <span class="field-hint">Kosongkan agar ujian selesai sesuai durasi.</span>
+          </label>
+          <label class="field">
+            <span>Jam selesai (opsional)</span>
+            <input type="time" id="jd-jam-selesai">
+            <span class="field-hint">Kosongkan agar ujian selesai sesuai durasi.</span>
+          </label>
+          <div class="field full field-hint" style="margin-top:-6px;">
+            Jika diisi, siswa tetap bisa mulai/melanjutkan ujian sampai batas tanggal &amp; jam ini,
+            walaupun durasi sejak jam mulai sudah lewat. Durasi pengerjaan tiap siswa tetap dihitung
+            sesuai "Durasi (menit)" dari saat siswa itu mulai mengerjakan.
+          </div>
+          <label class="field">
             <span>Tingkat</span>
             <select id="jd-tingkat" onchange="onTingkatChange()" required></select>
           </label>
@@ -1152,6 +1167,7 @@ function mapSchedule(row){
   return {
     id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
     durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
+    tanggalSelesai: row.tanggal_selesai || '', jamSelesai: row.jam_selesai || '',
     acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai, token: row.token || ''
   };
 }
@@ -2782,11 +2798,20 @@ function togglePesertaAll(select){
 async function submitJadwal(event){
   event.preventDefault();
   if(jdSelectedPeserta.size === 0){ alert('Pilih minimal satu peserta.'); return false; }
+  const tglSelesaiVal = document.getElementById('jd-tanggal-selesai').value;
+  const jamSelesaiVal = document.getElementById('jd-jam-selesai').value;
+  if(tglSelesaiVal){
+    const mulaiDt = new Date(document.getElementById('jd-tanggal').value + 'T' + (document.getElementById('jd-jam').value || '00:00'));
+    const selesaiDt = new Date(tglSelesaiVal + 'T' + (jamSelesaiVal || '23:59'));
+    if(selesaiDt <= mulaiDt){ alert('Jadwal selesai harus setelah jam mulai ujian.'); return false; }
+  }
   const record = {
     questionSetId: document.getElementById('jd-set').value,
     tanggal: document.getElementById('jd-tanggal').value,
     jamMulai: document.getElementById('jd-jam').value,
     durasiMenit: parseInt(document.getElementById('jd-durasi').value, 10) || 60,
+    tanggalSelesai: document.getElementById('jd-tanggal-selesai').value || null,
+    jamSelesai: document.getElementById('jd-jam-selesai').value || null,
     tingkat: document.getElementById('jd-tingkat').value,
     kelas: Array.from(jdSelectedKelas),
     peserta: Array.from(jdSelectedPeserta),
@@ -2797,7 +2822,8 @@ async function submitJadwal(event){
   };
   const dbRecord = {
     question_set_id: record.questionSetId, tanggal: record.tanggal, jam_mulai: record.jamMulai,
-    durasi_menit: record.durasiMenit, tingkat: record.tingkat, kelas: record.kelas, peserta: record.peserta,
+    durasi_menit: record.durasiMenit, tanggal_selesai: record.tanggalSelesai, jam_selesai: record.jamSelesai,
+    tingkat: record.tingkat, kelas: record.kelas, peserta: record.peserta,
     acak_soal: record.acakSoal, acak_opsi: record.acakOpsi, tampilkan_nilai: record.tampilkanNilai,
     token: record.token || null
   };
@@ -2845,6 +2871,8 @@ function editJadwal(id){
   document.getElementById('jd-tanggal').value = j.tanggal;
   document.getElementById('jd-jam').value = j.jamMulai;
   document.getElementById('jd-durasi').value = j.durasiMenit;
+  document.getElementById('jd-tanggal-selesai').value = j.tanggalSelesai || '';
+  document.getElementById('jd-jam-selesai').value = j.jamSelesai || '';
   document.getElementById('jd-tingkat').value = j.tingkat;
   onTingkatChange();
   j.kelas.forEach(k => {
@@ -2876,11 +2904,21 @@ async function deleteJadwal(id){
 
 function getJadwalStatus(j){
   const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
-  const end = new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+  const batas = getBatasAkhir(j);
   const now = new Date();
   if(now < start) return 'terjadwal';
-  if(now >= start && now <= end) return 'berlangsung';
+  if(now <= batas) return 'berlangsung';
   return 'selesai';
+}
+// Batas akhir jendela ujian: pakai "jadwal selesai" jika diisi guru, walau
+// durasi sejak jam mulai sudah lewat siswa tetap boleh mengerjakan sampai
+// batas ini. Kalau tidak diisi, fallback ke jam mulai + durasi (perilaku lama).
+function getBatasAkhir(j){
+  if(j.tanggalSelesai){
+    return new Date(j.tanggalSelesai + 'T' + (j.jamSelesai || '23:59'));
+  }
+  const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
+  return new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
 }
 /* Tanggal hari ini dalam waktu LOKAL (bukan toISOString() yang berbasis UTC).
    Pakai ini untuk mencocokkan j.tanggal, supaya ujian dini hari (00:00-06:59 WIB)
@@ -2912,7 +2950,7 @@ function renderJadwalList(){
         const st = getJadwalStatus(j);
         return `<tr>
           <td data-label="Paket soal" class="cell-primary">${qs ? escapeHtml(qs.judul) : 'Paket dihapus'}</td>
-          <td data-label="Tanggal">${escapeHtml(j.tanggal)} · ${escapeHtml(j.jamMulai)}</td>
+          <td data-label="Tanggal">${escapeHtml(j.tanggal)} · ${escapeHtml(j.jamMulai)}${j.tanggalSelesai ? `<br><span class="cell-muted" style="font-size:12px;">s.d. ${escapeHtml(j.tanggalSelesai)} ${escapeHtml(j.jamSelesai || '23:59')}</span>` : ''}</td>
           <td data-label="Kelas" class="cell-muted">${j.kelas.map(escapeHtml).join(', ')}</td>
           <td data-label="Peserta">${j.peserta.length}</td>
           <td data-label="Token">${j.token ? `<code>${escapeHtml(j.token)}</code>` : '<span class="cell-muted">—</span>'}</td>

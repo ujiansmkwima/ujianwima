@@ -12,7 +12,20 @@ alter table exam_attempts add column if not exists ragu jsonb default '{}'::json
 alter table exam_attempts add column if not exists penilaian jsonb default null;
 alter table schedules add column if not exists token text default null;
 alter table exam_attempts add column if not exists percobaan_keluar integer default 0;
+alter table schedules add column if not exists tanggal_selesai date default null;
+alter table schedules add column if not exists jam_selesai time default null;
 ```
+
+### Pengaturan "Jadwal selesai"
+
+`schedules.tanggal_selesai` + `schedules.jam_selesai` (keduanya opsional) adalah
+batas akhir jendela ujian. Kalau diisi, siswa tetap bisa mulai/melanjutkan
+ujian sampai batas ini walaupun waktu sejak jam mulai + durasi sudah lewat.
+Durasi pengerjaan tiap siswa tetap dihitung dari `durasi_menit` sejak siswa
+itu sendiri mulai mengerjakan (`exam_attempts.mulai`), dibatasi oleh
+`tanggal_selesai`/`jam_selesai` — mana yang lebih dulu tercapai. Kalau kedua
+kolom ini dikosongkan, perilaku lama tetap berlaku: jendela ujian ditutup
+tepat pada jam mulai + durasi.
 
 `question_sets.soal` tidak perlu migrasi skema (kolom `jsonb` sudah fleksibel).
 Soal lama (format PG lama tanpa field `type`) tetap terbaca — kode di kedua

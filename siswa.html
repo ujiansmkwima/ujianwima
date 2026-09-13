@@ -704,7 +704,8 @@ function mapSchedule(row){
   return {
     id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
     durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
-    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai, token: row.token || ''
+    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai, token: row.token || '',
+    tanggalSelesai: row.tanggal_selesai || '', jamSelesai: row.jam_selesai || ''
   };
 }
 function mapAttempt(row){
@@ -763,15 +764,33 @@ async function init(){
 ============================================================ */
 function getJadwalStatus(j){
   const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
-  const end = new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+  const batas = getBatasAkhir(j);
   const now = new Date();
   if(now < start) return 'terjadwal';
-  if(now >= start && now <= end) return 'berlangsung';
+  if(now <= batas) return 'berlangsung';
   return 'selesai';
 }
 function getScheduleEnd(j){
   const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
   return new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+}
+// Batas akhir jendela ujian (kapan siswa masih boleh mulai/lanjut mengerjakan).
+// Jika guru mengisi "jadwal selesai", pakai itu — walaupun sudah lewat durasi
+// dari jam mulai, siswa masih bisa mengerjakan selama belum lewat batas ini.
+// Jika tidak diisi, fallback ke perilaku lama (jam mulai + durasi).
+function getBatasAkhir(j){
+  if(j.tanggalSelesai){
+    return new Date(j.tanggalSelesai + 'T' + (j.jamSelesai || '23:59'));
+  }
+  return getScheduleEnd(j);
+}
+// Batas waktu pengerjaan untuk seorang siswa: durasi dihitung dari saat DIA
+// mulai mengerjakan (attempt.mulai), tapi tidak boleh melewati batas akhir
+// jendela ujian (jadwal selesai / fallback jam mulai + durasi).
+function getAttemptDeadline(j, at){
+  const batas = getBatasAkhir(j).getTime();
+  if(!at || !at.mulai) return batas;
+  return Math.min(at.mulai + (j.durasiMenit || 0) * 60000, batas);
 }
 function findAttempt(scheduleId, userId){
   return attempts.find(a => a.scheduleId === scheduleId && a.userId === userId);
@@ -785,12 +804,13 @@ function renderExamList(){
 
   const mine = schedules.filter(j => j.peserta.includes(selectedSiswaId));
 
-  // finalisasi otomatis: jika waktu sudah habis tapi status masih 'mengerjakan'
+  // finalisasi otomatis: jika batas waktu pengerjaan siswa sudah habis tapi
+  // status masih 'mengerjakan' (dihitung dari waktu mulai siswa, dibatasi
+  // jadwal selesai — bukan cuma dari jam mulai + durasi jadwal)
   mine.forEach(j => {
-    const st = getJadwalStatus(j);
-    if(st === 'selesai'){
-      const at = findAttempt(j.id, selectedSiswaId);
-      if(at && at.status === 'mengerjakan') finalizeAttempt(at, j, true);
+    const at = findAttempt(j.id, selectedSiswaId);
+    if(at && at.status === 'mengerjakan' && Date.now() > getAttemptDeadline(j, at)){
+      finalizeAttempt(at, j, true);
     }
   });
 
@@ -862,10 +882,17 @@ function renderExamCard(e){
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${escapeHtml(j.jamMulai)} · ${j.durasiMenit} menit</span>
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>${qs ? qs.soal.length : 0} soal</span>
     </div>
+    ${j.tanggalSelesai ? `<div class="exam-meta"><span>Bisa mulai/lanjut mengerjakan sampai ${escapeHtml(formatBatasAkhirLabel(j))}</span></div>` : ''}
     <div class="exam-actions">${actionHtml}</div>
   </div>`;
 }
 
+function formatBatasAkhirLabel(j){
+  const batas = getBatasAkhir(j);
+  const tgl = batas.toLocaleDateString('id-ID', { day:'numeric', month:'long' });
+  const jam = String(batas.getHours()).padStart(2,'0') + ':' + String(batas.getMinutes()).padStart(2,'0');
+  return `${tgl}, ${jam}`;
+}
 function renderNilaiInfo(j, at){
   if(j.tampilkanNilai && at.nilai !== null && at.nilai !== undefined){
     return `<span class="nilai-pill">Nilai: ${at.nilai}</span>`;
@@ -884,6 +911,11 @@ function enterExam(scheduleId){
   if(getJadwalStatus(j) !== 'berlangsung'){ alert('Waktu ujian ini sudah tidak aktif.'); renderExamList(); return; }
 
   const at = findAttempt(j.id, selectedSiswaId);
+  if(at && at.status === 'mengerjakan' && Date.now() > getAttemptDeadline(j, at)){
+    finalizeAttempt(at, j, true).then(() => renderExamList());
+    alert('Waktu pengerjaanmu untuk ujian ini sudah habis. Jawabanmu otomatis dikumpulkan.');
+    return;
+  }
   if(!at && j.token){
     openTokenModal(scheduleId);
     return;
@@ -1317,7 +1349,7 @@ function startTimer(){
   timerInterval = setInterval(updateTimer, 1000);
 }
 function updateTimer(){
-  const end = getScheduleEnd(liveExam.schedule).getTime();
+  const end = getAttemptDeadline(liveExam.schedule, liveExam.attempt);
   const remain = end - Date.now();
   const el = document.getElementById('ev-timer');
   if(remain <= 0){
