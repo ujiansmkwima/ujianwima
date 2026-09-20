@@ -1813,7 +1813,7 @@
       durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
       tanggalSelesai: row.tanggal_selesai || '', jamSelesai: row.jam_selesai || '',
       acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai,
-      token: row.token || ''
+      token: row.token || '', dibuatOleh: row.dibuat_oleh || null
     };
   }
 
@@ -2343,7 +2343,8 @@
     if(wasEditing){
       result = await sb.from('schedules').update(dbRecord).eq('id', editingJwId).select().single();
     } else {
-      result = await sb.from('schedules').insert(dbRecord).select().single();
+      // penanda agar guru melihat keterangan "Dijadwalkan oleh proktor (admin)"; tidak diubah saat edit
+      result = await sb.from('schedules').insert({ ...dbRecord, dibuat_oleh: 'admin' }).select().single();
     }
     btn.disabled = false;
     if(result.error){

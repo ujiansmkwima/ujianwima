@@ -271,6 +271,8 @@
   .badge-belum{ background:var(--mist); color:var(--slate); }
   .badge-mengerjakan{ background:var(--amber-soft); color:#8A6414; }
   .badge-warn{ background:var(--red-soft); color:var(--red); }
+  .badge-proktor{ background:var(--indigo-soft); color:var(--indigo); white-space:normal; }
+  .jd-by{ margin-top:5px; }
   .badge-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
   .badge-mengerjakan .badge-dot, .badge-berlangsung .badge-dot{ animation:pulse 1.4s infinite; }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
@@ -1168,7 +1170,8 @@ function mapSchedule(row){
     id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
     durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
     tanggalSelesai: row.tanggal_selesai || '', jamSelesai: row.jam_selesai || '',
-    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai, token: row.token || ''
+    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai, token: row.token || '',
+    dibuatOleh: row.dibuat_oleh || null   // 'admin' = dijadwalkan oleh proktor; null = dibuat guru sendiri
   };
 }
 function mapAttempt(row){
@@ -2867,7 +2870,6 @@ function editJadwal(id){
   const j = schedules.find(x => x.id === id);
   if(!j) return;
   editingJadwalId = id;
-  document.getElementById('jd-set').value = j.questionSetId;
   document.getElementById('jd-tanggal').value = j.tanggal;
   document.getElementById('jd-jam').value = j.jamMulai;
   document.getElementById('jd-durasi').value = j.durasiMenit;
@@ -2875,6 +2877,9 @@ function editJadwal(id){
   document.getElementById('jd-jam-selesai').value = j.jamSelesai || '';
   document.getElementById('jd-tingkat').value = j.tingkat;
   onTingkatChange();
+  // pilih paket SETELAH daftar paket dibangun ulang oleh onTingkatChange(); kalau sebelumnya,
+  // pilihan hilang dan edit jadwal diam-diam berpindah ke paket pertama di daftar.
+  document.getElementById('jd-set').value = j.questionSetId;
   j.kelas.forEach(k => {
     const id2 = 'kelas-' + k.replace(/\W+/g, '');
     const el = document.getElementById(id2);
@@ -2949,7 +2954,7 @@ function renderJadwalList(){
         const qs = questionSets.find(x => x.id === j.questionSetId);
         const st = getJadwalStatus(j);
         return `<tr>
-          <td data-label="Paket soal" class="cell-primary">${qs ? escapeHtml(qs.judul) : 'Paket dihapus'}</td>
+          <td data-label="Paket soal" class="cell-primary"><div>${qs ? escapeHtml(qs.judul) : 'Paket dihapus'}${j.dibuatOleh === 'admin' ? `<div class="jd-by"><span class="badge badge-proktor" title="Jadwal ini dibuat oleh proktor melalui halaman admin">Dijadwalkan oleh proktor (admin)</span></div>` : ''}</div></td>
           <td data-label="Tanggal">${escapeHtml(j.tanggal)} · ${escapeHtml(j.jamMulai)}${j.tanggalSelesai ? `<br><span class="cell-muted" style="font-size:12px;">s.d. ${escapeHtml(j.tanggalSelesai)} ${escapeHtml(j.jamSelesai || '23:59')}</span>` : ''}</td>
           <td data-label="Kelas" class="cell-muted">${j.kelas.map(escapeHtml).join(', ')}</td>
           <td data-label="Peserta">${j.peserta.length}</td>
