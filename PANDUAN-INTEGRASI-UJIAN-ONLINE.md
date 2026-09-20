@@ -14,6 +14,33 @@ alter table schedules add column if not exists token text default null;
 alter table exam_attempts add column if not exists percobaan_keluar integer default 0;
 alter table schedules add column if not exists tanggal_selesai date default null;
 alter table schedules add column if not exists jam_selesai time default null;
+
+-- Tabel ruang ujian (untuk menu "Pembagian Ruang" di Admin).
+-- profiles.ruang tetap kolom text seperti sebelumnya; tabel ini hanya
+-- menyimpan daftar nama ruang yang boleh dipilih dan tidak diikat dengan
+-- foreign key ke profiles, supaya kompatibel dengan data ruang lama.
+create table if not exists rooms (
+  id uuid primary key default gen_random_uuid(),
+  nama text not null unique,
+  created_at timestamptz not null default now()
+);
+
+alter table rooms enable row level security;
+
+-- Sesuaikan dengan pola RLS tabel lain di project ini (mis. subjects/supervisors):
+-- hanya admin yang boleh insert/update/delete, semua role yang login boleh select.
+-- (Postgres tidak punya "create policy if not exists", jadi drop dulu baru create.)
+drop policy if exists "rooms_select_authenticated" on rooms;
+create policy "rooms_select_authenticated" on rooms
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "rooms_all_admin" on rooms;
+create policy "rooms_all_admin" on rooms
+  for all using (
+    exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
+  ) with check (
+    exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
 ```
 
 ### Pengaturan "Jadwal selesai"
@@ -30,6 +57,50 @@ tepat pada jam mulai + durasi.
 `question_sets.soal` tidak perlu migrasi skema (kolom `jsonb` sudah fleksibel).
 Soal lama (format PG lama tanpa field `type`) tetap terbaca — kode di kedua
 halaman otomatis menganggapnya `type: "pg"`.
+
+## 1a. Skema baru: Pembagian Ruang (Admin)
+
+Sebelumnya ruang ujian diisi manual per siswa saat mendaftarkan akun. Sekarang:
+
+- Form "Tambah pengguna" di tab **Pengguna** tidak lagi meminta ruang ujian.
+- Tab baru **Pembagian Ruang** menggantikannya:
+  1. Admin membuat daftar ruang (mis. "Ruang 12") di kartu "Daftar ruang".
+  2. Admin memilih kelas pada kartu "Tetapkan peserta ke ruang" — daftar
+     peserta kelas tersebut muncul sebagai daftar centang.
+  3. Peserta dicentang satu per satu, atau dengan **klik + tahan Shift**
+     pada centang lain untuk memilih rentang berurutan (mis. centang siswa
+     No. 1, tahan Shift, lalu klik centang siswa No. 15 → siswa No. 1–15
+     ikut tercentang), lalu pilih ruang tujuan dan klik "Tetapkan ke ruang
+     terpilih".
+- Nilai yang tersimpan tetap di kolom `profiles.ruang` (text) seperti
+  sebelumnya, sehingga halaman Guru (monitoring per ruang) dan Guru
+  Pengawas tidak perlu diubah.
+- Import massal siswa via Excel: kolom "Ruang Ujian" kini opsional (boleh
+  dikosongkan/dihapus dari file); kalau diisi tetap dipakai sebagai nilai
+  awal, tapi cara utama sekarang lewat tab Pembagian Ruang.
+
+### Guru pengawas kini mengacu ke daftar ruang
+
+Tab **Guru pengawas** (Admin) tidak lagi memakai kolom teks bebas untuk
+ruang. Field "Ruang ujian yang diawasi" sekarang berupa dropdown berisi:
+
+- **Semua ruang** — guru bisa memantau semua ruang ujian yang ada (nilai
+  `supervisors.ruang` disimpan `null`).
+- Salah satu ruang spesifik dari daftar yang dibuat di tab **Pembagian
+  Ruang** (mis. "Ruang 12").
+
+Admin bisa menambahkan beberapa baris pengawasan untuk guru yang sama kalau
+ingin ia mengawas beberapa ruang tertentu (tanpa memilih "Semua ruang").
+
+Di sisi guru (`guru.html`), `mySupervisorRooms()` memperluas penugasan
+"Semua ruang" menjadi daftar seluruh ruang yang ada saat itu (diambil dari
+tabel `rooms`), sehingga menu Monitoring otomatis mengikuti ruang terbaru
+tanpa admin perlu mengedit ulang data pengawas setiap kali ruang berubah.
+
+Import massal guru pengawas: kolom "Ruang Ujian" boleh dikosongkan atau
+diisi "Semua Ruang" (berarti semua ruang); kalau diisi nama ruang spesifik,
+nama itu harus sudah ada di tab Pembagian Ruang, kalau belum baris tersebut
+akan ditolak dengan pesan error.
 
 ## 2. Enam jenis soal yang kini didukung
 
@@ -190,3 +261,19 @@ per peserta (kolom "Percobaan Keluar", ditandai lencana merah jika lebih
 dari 0) supaya kecurigaan pindah tab/aplikasi selama ujian bisa langsung
 terlihat saat memantau ruang ujian.
 
+
+## 9. Hapus massal dengan centang (Admin)
+
+Tab **Guru**, **Mata Pelajaran**, dan **Guru Pengawas** kini punya kolom
+centang seperti tab Pengguna: centang per baris, centang header untuk memilih
+semua baris yang sedang tampil (mengikuti pencarian), lalu klik **Hapus
+terpilih** pada bar yang muncul di atas tabel.
+
+- **Guru**: memanggil `manage-users` (`delete_user`) satu per satu, sehingga
+  akun login ikut terhapus. Dialog konfirmasi menampilkan berapa mata pelajaran
+  dan tugas pengawasan yang ikut terhapus. Jika sebagian gagal, yang gagal
+  tetap tercentang dan alasannya ditampilkan.
+- **Mata pelajaran** dan **Guru pengawas**: satu kali `delete ... in('id', ids)`
+  ke Supabase. Hanya baris yang benar-benar terhapus yang dibuang dari daftar;
+  jika ada yang tidak terhapus (mis. ditolak RLS) muncul peringatan.
+- Tidak ada perubahan skema SQL maupun edge function.

@@ -256,6 +256,43 @@
     position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
   }
 
+  .btn-danger{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:#FDEDEC;
+    color:#B3261E;
+    border:1.5px solid #F3C6C2;
+    border-radius:8px;
+    padding:9px 14px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-danger:hover{ background:#B3261E; color:#fff; border-color:#B3261E; }
+  .btn-danger:disabled{ background:var(--mist); color:var(--slate); border-color:var(--line); cursor:not-allowed; }
+  .btn-danger svg{ width:15px; height:15px; flex-shrink:0; }
+
+  .bulk-select-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    background:var(--wine-soft);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:9px 14px;
+    margin:-6px 0 12px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--wine-dark);
+  }
+  .bulk-select-bar-actions{ display:flex; align-items:center; gap:14px; }
+  .cell-check{ width:34px; }
+  .cell-check input, th.cell-check input{ width:16px; height:16px; accent-color:var(--wine); margin:0; cursor:pointer; }
+
   .import-result{ display:none; margin:-4px 0 16px; font-size:12.5px; }
   .import-line{ padding:10px 13px; border-radius:9px; margin-bottom:6px; line-height:1.55; }
   .import-ok{ background:#DCF5EA; color:#0B6B49; font-weight:600; }
@@ -564,6 +601,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Pengguna
     </button>
+    <button class="tab" onclick="showPanel('panel-ruang', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      Pembagian Ruang
+    </button>
     <button class="tab" onclick="showPanel('panel-guru', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
       Guru
@@ -593,7 +634,7 @@
   <section id="panel-users" class="panel active">
     <div class="section-head">
       <h1>Pengguna</h1>
-      <p>Daftarkan akun siswa: nama lengkap, username, email, kelas, dan ruang ujian.</p>
+      <p>Daftarkan akun siswa: nama lengkap, username, email, dan kelas. Pembagian ruang ujian diatur di tab <strong>Pembagian Ruang</strong>.</p>
     </div>
 
     <div class="bulk-card">
@@ -637,10 +678,6 @@
           <span>Kelas</span>
           <input type="text" id="u-kelas" placeholder="Contoh: XI RPL 2" required>
         </label>
-        <label class="field">
-          <span>Ruang ujian</span>
-          <input type="text" id="u-ruang" placeholder="Contoh: Ruang 12" required>
-        </label>
         <label class="field full">
           <span>Kata sandi (opsional)</span>
           <input type="text" id="u-password" placeholder="Kosongkan agar dibuatkan otomatis (min. 6 karakter)" minlength="6">
@@ -667,7 +704,80 @@
           </div>
         </div>
       </div>
+      <div class="bulk-select-bar" id="u-bulk-bar" style="display:none;">
+        <span id="u-bulk-count">0 dipilih</span>
+        <div class="bulk-select-bar-actions">
+          <button type="button" class="link-btn" onclick="clearUserSelection()">Batalkan pilihan</button>
+          <button type="button" class="btn-danger" id="u-bulk-delete-btn" onclick="bulkDeleteUsers()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            Hapus terpilih
+          </button>
+        </div>
+      </div>
       <div id="u-table-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL: PEMBAGIAN RUANG ============ -->
+  <section id="panel-ruang" class="panel">
+    <div class="section-head">
+      <h1>Pembagian Ruang</h1>
+      <p>Buat ruang ujian, lalu pilih kelas dan tandai peserta yang masuk ke ruang tersebut.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <span class="card-title">Daftar ruang</span>
+      </div>
+      <form onsubmit="return submitRoom(event)" style="margin-bottom:14px;">
+        <label class="field full">
+          <span>Nama ruang baru</span>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="rm-nama" placeholder="Contoh: Ruang 12" required style="flex:1;">
+            <button type="submit" class="btn-primary" style="white-space:nowrap;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Tambah ruang
+            </button>
+          </div>
+        </label>
+      </form>
+      <div id="rm-list-wrap"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <span class="card-title">Tetapkan peserta ke ruang</span>
+      </div>
+      <div class="form-grid">
+        <label class="field">
+          <span>Kelas</span>
+          <select id="rp-kelas" onchange="onRuangKelasChange()"><option value="">Pilih kelas</option></select>
+        </label>
+        <label class="field">
+          <span>Ruang tujuan</span>
+          <select id="rp-target"><option value="">Pilih ruang</option></select>
+        </label>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="peserta-toolbar">
+          <span id="rp-count">0 peserta dipilih</span>
+          <div>
+            <button type="button" onclick="toggleRuangSelectAll(true)">Pilih semua</button> ·
+            <button type="button" onclick="toggleRuangSelectAll(false)">Kosongkan pilihan</button>
+          </div>
+        </div>
+        <div class="field-hint" style="margin-bottom:8px;">Klik kotak centang siswa pertama, lalu tahan <strong>Shift</strong> dan klik kotak centang siswa terakhir untuk memilih beberapa siswa sekaligus secara berurutan.</div>
+        <div class="peserta-list" id="rp-peserta-list"></div>
+      </div>
+
+      <div class="card-actions" style="margin-top:16px;">
+        <button type="button" class="btn-secondary" onclick="clearRuangFromSelected()">Kosongkan ruang peserta terpilih</button>
+        <button type="button" class="btn-primary" onclick="assignRuangToSelected()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Tetapkan ke ruang terpilih
+        </button>
+      </div>
     </div>
   </section>
 
@@ -736,6 +846,16 @@
           <input type="text" id="g-search" placeholder="Cari nama guru" oninput="renderGuru()">
         </div>
       </div>
+      <div class="bulk-select-bar" id="g-bulk-bar" style="display:none;">
+        <span id="g-bulk-count">0 dipilih</span>
+        <div class="bulk-select-bar-actions">
+          <button type="button" class="link-btn" onclick="clearBulkSelection('guru')">Batalkan pilihan</button>
+          <button type="button" class="btn-danger" id="g-bulk-delete-btn" onclick="bulkDelete_guru()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            Hapus terpilih
+          </button>
+        </div>
+      </div>
       <div id="g-table-wrap"></div>
     </div>
   </section>
@@ -798,6 +918,16 @@
           <input type="text" id="s-search" placeholder="Cari mata pelajaran" oninput="renderSubjects()">
         </div>
       </div>
+      <div class="bulk-select-bar" id="s-bulk-bar" style="display:none;">
+        <span id="s-bulk-count">0 dipilih</span>
+        <div class="bulk-select-bar-actions">
+          <button type="button" class="link-btn" onclick="clearBulkSelection('subject')">Batalkan pilihan</button>
+          <button type="button" class="btn-danger" id="s-bulk-delete-btn" onclick="bulkDelete_subject()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            Hapus terpilih
+          </button>
+        </div>
+      </div>
       <div id="s-table-wrap"></div>
     </div>
   </section>
@@ -812,7 +942,7 @@
     <div class="bulk-card">
       <div class="bulk-card-text">
         <strong>Tambah massal</strong>
-        <span>Unduh template, isi username guru & ruang ujian, lalu unggah kembali filenya.</span>
+        <span>Unduh template, isi username guru & nama ruang (atau "Semua Ruang"), lalu unggah kembali filenya. Ruang harus sudah dibuat di tab Pembagian Ruang.</span>
       </div>
       <div class="bulk-actions">
         <button type="button" class="btn-secondary" onclick="downloadTemplate('supervisors')">
@@ -841,7 +971,10 @@
         </label>
         <label class="field">
           <span>Ruang ujian yang diawasi</span>
-          <input type="text" id="p-ruang" placeholder="Contoh: Ruang 12" required>
+          <select id="p-ruang" required>
+            <option value="__ALL__">Semua ruang</option>
+          </select>
+          <span class="field-hint">Ruang di daftar ini berasal dari tab Pembagian Ruang. Pilih "Semua ruang" agar guru bisa memantau seluruh ruang.</span>
         </label>
       </div>
       <div class="card-actions">
@@ -858,6 +991,16 @@
         <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" id="p-search" placeholder="Cari nama atau ruang" oninput="renderSupervisors()">
+        </div>
+      </div>
+      <div class="bulk-select-bar" id="p-bulk-bar" style="display:none;">
+        <span id="p-bulk-count">0 dipilih</span>
+        <div class="bulk-select-bar-actions">
+          <button type="button" class="link-btn" onclick="clearBulkSelection('supervisor')">Batalkan pilihan</button>
+          <button type="button" class="btn-danger" id="p-bulk-delete-btn" onclick="bulkDelete_supervisor()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            Hapus terpilih
+          </button>
         </div>
       </div>
       <div id="p-table-wrap"></div>
@@ -1130,11 +1273,17 @@
 
   /* ---------- state ---------- */
   let users = [];
+  let userSelected = new Set();
+  let userVisibleRows = [];
   let guru = [];
   let subjects = [];
   let supervisors = [];
   let questionSets = [];
   let schedules = [];
+  let rooms = [];
+  let ruangKelasSiswa = [];
+  let ruangSelected = new Set();
+  let ruangLastIndex = null;
 
   let editingUserId = null;
   let editingGuruId = null;
@@ -1150,6 +1299,13 @@
     el.classList.add('active');
     window.scrollTo({ top:0, behavior:'smooth' });
     if(id === 'panel-jadwal') refreshJwPanel();
+    if(id === 'panel-ruang'){
+      populateRuangKelasSelect();
+      populateRuangTargetSelect();
+    populateSupervisorRuangSelect();
+      renderRuangPesertaList();
+      renderRoomsList();
+    }
   }
 
   /* ============================================================
@@ -1159,8 +1315,8 @@
     users: {
       filename: 'template-pengguna.xlsx',
       sheetName: 'Pengguna',
-      headers: ['Nama Lengkap','Username','Email','Kelas','Ruang Ujian','Kata Sandi (opsional)'],
-      example: ['Ahmad Fauzan','ahmad.fauzan','ahmad.fauzan@contoh.sch.id','XI RPL 2','Ruang 12',''],
+      headers: ['Nama Lengkap','Username','Email','Kelas','Kata Sandi (opsional)'],
+      example: ['Ahmad Fauzan','ahmad.fauzan','ahmad.fauzan@contoh.sch.id','XI RPL 2',''],
       resultId: 'u-import-result'
     },
     guru: {
@@ -1181,7 +1337,7 @@
       filename: 'template-guru-pengawas.xlsx',
       sheetName: 'Guru Pengawas',
       headers: ['Username Guru','Ruang Ujian'],
-      example: ['siti.rahayu','Ruang 12'],
+      example: ['siti.rahayu','Semua Ruang'],
       resultId: 'p-import-result'
     }
   };
@@ -1259,9 +1415,11 @@
         const username = getField(row, ['username']);
         const email = getField(row, ['email']);
         const kelas = getField(row, ['kelas']);
+        // Kolom "ruang" opsional untuk kompatibilitas template lama — ruang sekarang
+        // ditetapkan lewat tab Pembagian Ruang, bukan lagi wajib saat mendaftar siswa.
         const ruang = getField(row, ['ruang ujian','ruang']);
         const password = getField(row, ['kata sandi (opsional)','kata sandi','password','sandi']);
-        if(!nama || !username || !email || !kelas || !ruang){
+        if(!nama || !username || !email || !kelas){
           errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
           return;
         }
@@ -1275,7 +1433,7 @@
           errors.push(`Baris ${rowNum}: username "${username}" sudah terdaftar`);
           return;
         }
-        newItems.push({ id: genId(), nama, username, email, kelas, ruang, password: password || undefined });
+        newItems.push({ id: genId(), nama, username, email, kelas, ruang: ruang || null, password: password || undefined });
       }
 
       if(type === 'guru'){
@@ -1317,8 +1475,8 @@
 
       if(type === 'supervisors'){
         const guruUsername = getField(row, ['username guru','username','guru']);
-        const ruang = getField(row, ['ruang ujian','ruang']);
-        if(!guruUsername || !ruang){
+        const ruangRaw = getField(row, ['ruang ujian','ruang']);
+        if(!guruUsername){
           errors.push(`Baris ${rowNum}: data belum lengkap, dilewati`);
           return;
         }
@@ -1327,10 +1485,21 @@
           errors.push(`Baris ${rowNum}: guru dengan username "${guruUsername}" tidak ditemukan`);
           return;
         }
-        const dup = supervisors.some(p => p.guruId === g.id && p.ruang.toLowerCase() === ruang.toLowerCase())
-          || newItems.some(p => p.guruId === g.id && p.ruang.toLowerCase() === ruang.toLowerCase());
+        // Kosong atau "Semua Ruang" = pengawas semua ruang (disimpan sebagai ruang = null).
+        // Kalau diisi, nama ruang harus sudah dibuat di tab Pembagian Ruang.
+        let ruang = null;
+        if(ruangRaw && !/^semua(\s+ruang)?$/i.test(ruangRaw)){
+          const r = rooms.find(x => x.nama.toLowerCase() === ruangRaw.toLowerCase());
+          if(!r){
+            errors.push(`Baris ${rowNum}: ruang "${ruangRaw}" belum dibuat di tab Pembagian Ruang`);
+            return;
+          }
+          ruang = r.nama;
+        }
+        const dup = supervisors.some(p => p.guruId === g.id && (p.ruang || '') === (ruang || ''))
+          || newItems.some(p => p.guruId === g.id && (p.ruang || '') === (ruang || ''));
         if(dup){
-          errors.push(`Baris ${rowNum}: "${g.nama}" sudah mengawas "${ruang}"`);
+          errors.push(`Baris ${rowNum}: "${g.nama}" sudah mengawas "${ruang || 'Semua ruang'}"`);
           return;
         }
         newItems.push({ id: genId(), guruId: g.id, ruang });
@@ -1450,8 +1619,7 @@
       nama: document.getElementById('u-nama').value.trim(),
       username: document.getElementById('u-username').value.trim(),
       email: document.getElementById('u-email').value.trim(),
-      kelas: document.getElementById('u-kelas').value.trim(),
-      ruang: document.getElementById('u-ruang').value.trim()
+      kelas: document.getElementById('u-kelas').value.trim()
     };
     const password = document.getElementById('u-password').value.trim();
     if(password && password.length < 6){
@@ -1486,7 +1654,6 @@
     document.getElementById('u-username').value = u.username;
     document.getElementById('u-email').value = u.email;
     document.getElementById('u-kelas').value = u.kelas;
-    document.getElementById('u-ruang').value = u.ruang;
     document.getElementById('u-password').value = '';
     document.getElementById('u-card-title').textContent = 'Edit pengguna';
     document.getElementById('u-submit-btn').lastChild.textContent = ' Simpan perubahan';
@@ -1498,9 +1665,63 @@
     const res = await callAdminFn({ action: 'delete_user', id });
     if(res.error){ alert(res.error); return; }
     users = users.filter(u => u.id !== id);
+    userSelected.delete(id);
     if(editingUserId === id) cancelEdit('user');
     renderUsers();
   }
+
+  // ---- pilih & hapus massal ----
+  function onUserRowCheck(id, checked){
+    if(checked) userSelected.add(id); else userSelected.delete(id);
+    const headerCb = document.getElementById('u-select-all');
+    if(headerCb) headerCb.checked = userVisibleRows.length > 0 && userVisibleRows.every(u => userSelected.has(u.id));
+    updateUserBulkBar();
+  }
+  function toggleUserSelectAll(el){
+    const checked = el.checked;
+    userVisibleRows.forEach(u => { if(checked) userSelected.add(u.id); else userSelected.delete(u.id); });
+    renderUsers();
+  }
+  function clearUserSelection(){
+    userSelected = new Set();
+    renderUsers();
+  }
+  function updateUserBulkBar(){
+    const bar = document.getElementById('u-bulk-bar');
+    const countEl = document.getElementById('u-bulk-count');
+    if(!bar || !countEl) return;
+    if(userSelected.size > 0){
+      bar.style.display = 'flex';
+      countEl.textContent = userSelected.size + ' pengguna dipilih';
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+  async function bulkDeleteUsers(){
+    if(userSelected.size === 0) return;
+    const ids = Array.from(userSelected);
+    if(!confirm(`Hapus ${ids.length} pengguna terpilih? Akun login mereka juga akan dihapus. Tindakan ini tidak bisa dibatalkan.`)) return;
+    const btn = document.getElementById('u-bulk-delete-btn');
+    if(btn) btn.disabled = true;
+    const errors = [];
+    for(const id of ids){
+      const res = await callAdminFn({ action: 'delete_user', id });
+      if(res.error){
+        const u = users.find(x => x.id === id);
+        errors.push(`${u ? u.nama : id}: ${res.error}`);
+      } else {
+        users = users.filter(u => u.id !== id);
+        userSelected.delete(id);
+        if(editingUserId === id) cancelEdit('user');
+      }
+    }
+    if(btn) btn.disabled = false;
+    renderUsers();
+    if(errors.length > 0){
+      alert(`${errors.length} pengguna gagal dihapus:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n+${errors.length - 5} lainnya` : ''));
+    }
+  }
+
   function renderUsers(){
     const q = document.getElementById('u-search').value.trim().toLowerCase();
 
@@ -1518,6 +1739,7 @@
     const rows = users.filter(u =>
       (!kelasVal || (u.kelas || '').trim() === kelasVal) &&
       (!q || u.nama.toLowerCase().includes(q) || u.kelas.toLowerCase().includes(q)));
+    userVisibleRows = rows;
 
     // Jumlah siswa: total, per kelas terpilih, dan hasil pencarian
     const countEl = document.getElementById('u-count');
@@ -1525,6 +1747,7 @@
     else if(kelasVal && !q) countEl.textContent = rows.length + ' siswa di kelas ' + kelasVal + ' (dari ' + users.length + ' siswa)';
     else countEl.textContent = rows.length + ' dari ' + users.length + ' siswa ditampilkan';
     const wrap = document.getElementById('u-table-wrap');
+    updateUserBulkBar();
 
     if(users.length === 0){
       wrap.innerHTML = `<div class="empty-state"><strong>Belum ada pengguna</strong>Tambahkan pengguna pertama lewat formulir di atas.</div>`;
@@ -1534,16 +1757,18 @@
       wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada siswa yang cocok dengan filter atau pencarian.</div>`;
       return;
     }
+    const allVisibleChecked = rows.every(u => userSelected.has(u.id));
     wrap.innerHTML = `<table>
-      <thead><tr><th>Nama lengkap</th><th>Username</th><th>Email</th><th>Kelas</th><th>Ruang ujian</th><th></th></tr></thead>
+      <thead><tr><th class="cell-check"><input type="checkbox" id="u-select-all" ${allVisibleChecked ? 'checked' : ''} onchange="toggleUserSelectAll(this)" aria-label="Pilih semua"></th><th>Nama lengkap</th><th>Username</th><th>Email</th><th>Kelas</th><th>Ruang ujian</th><th></th></tr></thead>
       <tbody>
         ${rows.map(u => `
           <tr>
+            <td class="cell-check" data-label=""><input type="checkbox" ${userSelected.has(u.id) ? 'checked' : ''} onchange="onUserRowCheck('${u.id}', this.checked)" aria-label="Pilih ${escapeHtml(u.nama)}"></td>
             <td data-label="Nama" class="cell-primary">${escapeHtml(u.nama)}</td>
             <td data-label="Username">${escapeHtml(u.username)}</td>
             <td data-label="Email" class="cell-muted">${escapeHtml(u.email)}</td>
             <td data-label="Kelas">${escapeHtml(u.kelas)}</td>
-            <td data-label="Ruang ujian">${escapeHtml(u.ruang)}</td>
+            <td data-label="Ruang ujian">${u.ruang ? escapeHtml(u.ruang) : '<span class="cell-muted">Belum diatur</span>'}</td>
             <td class="cell-action"><div class="row-actions">
               <button class="icon-btn" onclick="editUser('${u.id}')" aria-label="Edit pengguna">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
@@ -1555,6 +1780,150 @@
           </tr>`).join('')}
       </tbody>
     </table>`;
+  }
+
+  /* ============================================================
+     PILIH & HAPUS MASSAL (Guru, Mata pelajaran, Guru pengawas)
+     Pola sama dengan Pengguna: centang per baris, centang semua
+     (yang sedang tampil), lalu tombol "Hapus terpilih".
+  ============================================================ */
+  const bulkState = {
+    guru:       { sel: new Set(), visible: [], prefix: 'g', noun: 'guru' },
+    subject:    { sel: new Set(), visible: [], prefix: 's', noun: 'mata pelajaran' },
+    supervisor: { sel: new Set(), visible: [], prefix: 'p', noun: 'penugasan pengawas' }
+  };
+  function bulkRerender(kind){
+    if(kind === 'guru') renderGuru();
+    else if(kind === 'subject') renderSubjects();
+    else renderSupervisors();
+  }
+  // Buang id yang sudah tidak ada dari pilihan (mis. setelah data berubah)
+  function bulkPrune(kind, items){
+    const st = bulkState[kind];
+    const alive = new Set(items.map(x => x.id));
+    Array.from(st.sel).forEach(id => { if(!alive.has(id)) st.sel.delete(id); });
+  }
+  function bulkHeaderCell(kind, rows){
+    const st = bulkState[kind];
+    const all = rows.length > 0 && rows.every(x => st.sel.has(x.id));
+    return `<th class="cell-check"><input type="checkbox" id="${st.prefix}-select-all" ${all ? 'checked' : ''} onchange="toggleBulkAll('${kind}', this)" aria-label="Pilih semua"></th>`;
+  }
+  function bulkRowCell(kind, id, label){
+    const st = bulkState[kind];
+    return `<td class="cell-check" data-label=""><input type="checkbox" ${st.sel.has(id) ? 'checked' : ''} onchange="onBulkRowCheck('${kind}', '${id}', this.checked)" aria-label="Pilih ${escapeHtml(label)}"></td>`;
+  }
+  function onBulkRowCheck(kind, id, checked){
+    const st = bulkState[kind];
+    if(checked) st.sel.add(id); else st.sel.delete(id);
+    const headerCb = document.getElementById(st.prefix + '-select-all');
+    if(headerCb) headerCb.checked = st.visible.length > 0 && st.visible.every(x => st.sel.has(x.id));
+    updateBulkBar(kind);
+  }
+  function toggleBulkAll(kind, el){
+    const st = bulkState[kind];
+    st.visible.forEach(x => { if(el.checked) st.sel.add(x.id); else st.sel.delete(x.id); });
+    bulkRerender(kind);
+  }
+  function clearBulkSelection(kind){
+    bulkState[kind].sel = new Set();
+    bulkRerender(kind);
+  }
+  function updateBulkBar(kind){
+    const st = bulkState[kind];
+    const bar = document.getElementById(st.prefix + '-bulk-bar');
+    const countEl = document.getElementById(st.prefix + '-bulk-count');
+    if(!bar || !countEl) return;
+    if(st.sel.size > 0){
+      bar.style.display = 'flex';
+      countEl.textContent = st.sel.size + ' ' + st.noun + ' dipilih';
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+  function bulkSetBusy(kind, busy, text){
+    const btn = document.getElementById(bulkState[kind].prefix + '-bulk-delete-btn');
+    if(!btn) return;
+    if(!btn.dataset.html) btn.dataset.html = btn.innerHTML;
+    btn.disabled = busy;
+    btn.innerHTML = busy ? (text || 'Menghapus…') : btn.dataset.html;
+  }
+  function bulkReport(noun, errors){
+    if(errors.length === 0) return;
+    alert(`${errors.length} ${noun} gagal dihapus:\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n+${errors.length - 5} lainnya` : ''));
+  }
+
+  async function bulkDelete_guru(){
+    const st = bulkState.guru;
+    if(st.sel.size === 0) return;
+    const ids = Array.from(st.sel);
+    const nSub = subjects.filter(x => st.sel.has(x.guruId)).length;
+    const nSup = supervisors.filter(x => st.sel.has(x.guruId)).length;
+    let msg = `Hapus ${ids.length} guru terpilih? Akun login mereka juga akan dihapus.`;
+    if(nSub || nSup) msg += `\n\nIkut terhapus: ${nSub} mata pelajaran (beserta paket soalnya) dan ${nSup} tugas pengawasan.`;
+    msg += '\n\nTindakan ini tidak bisa dibatalkan.';
+    if(!confirm(msg)) return;
+
+    const deleted = new Set();
+    const errors = [];
+    for(let i = 0; i < ids.length; i++){
+      bulkSetBusy('guru', true, `Menghapus ${i + 1}/${ids.length}…`);
+      const res = await callAdminFn({ action: 'delete_user', id: ids[i] });
+      if(res.error){
+        const g = guru.find(x => x.id === ids[i]);
+        errors.push(`${g ? g.nama : ids[i]}: ${res.error}`);
+      } else {
+        deleted.add(ids[i]);
+        st.sel.delete(ids[i]);
+      }
+    }
+    bulkSetBusy('guru', false);
+    guru = guru.filter(g => !deleted.has(g.id));
+    subjects = subjects.filter(x => !deleted.has(x.guruId));
+    supervisors = supervisors.filter(x => !deleted.has(x.guruId));
+    if(editingGuruId && deleted.has(editingGuruId)) cancelEdit('guru');
+    renderGuru();
+    renderSubjects();
+    renderSupervisors();
+    populateGuruSelects();
+    bulkReport('guru', errors);
+  }
+
+  async function bulkDelete_subject(){
+    const st = bulkState.subject;
+    if(st.sel.size === 0) return;
+    const ids = Array.from(st.sel);
+    if(!confirm(`Hapus ${ids.length} mata pelajaran terpilih? Paket soal terkait juga akan terhapus. Tindakan ini tidak bisa dibatalkan.`)) return;
+    bulkSetBusy('subject', true);
+    const { data, error } = await sb.from('subjects').delete().in('id', ids).select('id');
+    bulkSetBusy('subject', false);
+    if(error){ alert(error.message); return; }
+    const deleted = new Set((data || []).map(r => r.id));
+    subjects = subjects.filter(x => !deleted.has(x.id));
+    deleted.forEach(id => st.sel.delete(id));
+    if(editingSubjectId && deleted.has(editingSubjectId)) cancelEdit('subject');
+    renderSubjects();
+    if(deleted.size < ids.length){
+      alert(`${ids.length - deleted.size} mata pelajaran tidak terhapus (kemungkinan tidak ada izin atau data sudah hilang).`);
+    }
+  }
+
+  async function bulkDelete_supervisor(){
+    const st = bulkState.supervisor;
+    if(st.sel.size === 0) return;
+    const ids = Array.from(st.sel);
+    if(!confirm(`Hapus ${ids.length} tugas pengawasan terpilih? Tindakan ini tidak bisa dibatalkan.`)) return;
+    bulkSetBusy('supervisor', true);
+    const { data, error } = await sb.from('supervisors').delete().in('id', ids).select('id');
+    bulkSetBusy('supervisor', false);
+    if(error){ alert(error.message); return; }
+    const deleted = new Set((data || []).map(r => r.id));
+    supervisors = supervisors.filter(x => !deleted.has(x.id));
+    deleted.forEach(id => st.sel.delete(id));
+    if(editingSupervisorId && deleted.has(editingSupervisorId)) cancelEdit('supervisor');
+    renderSupervisors();
+    if(deleted.size < ids.length){
+      alert(`${ids.length - deleted.size} tugas pengawasan tidak terhapus (kemungkinan tidak ada izin atau data sudah hilang).`);
+    }
   }
 
   /* ============================================================
@@ -1612,6 +1981,7 @@
     const res = await callAdminFn({ action: 'delete_user', id });
     if(res.error){ alert(res.error); return; }
     guru = guru.filter(g => g.id !== id);
+    bulkState.guru.sel.delete(id);
     subjects = subjects.filter(s => s.guruId !== id);
     supervisors = supervisors.filter(p => p.guruId !== id);
     if(editingGuruId === id) cancelEdit('guru');
@@ -1623,8 +1993,11 @@
   function renderGuru(){
     const q = document.getElementById('g-search').value.trim().toLowerCase();
     const rows = guru.filter(g => !q || g.nama.toLowerCase().includes(q));
+    bulkPrune('guru', guru);
+    bulkState.guru.visible = rows;
     document.getElementById('g-count').textContent = guru.length + ' guru terdaftar';
     const wrap = document.getElementById('g-table-wrap');
+    updateBulkBar('guru');
 
     if(guru.length === 0){
       wrap.innerHTML = `<div class="empty-state"><strong>Belum ada guru</strong>Tambahkan guru pertama lewat formulir di atas.</div>`;
@@ -1635,10 +2008,11 @@
       return;
     }
     wrap.innerHTML = `<table>
-      <thead><tr><th>Nama lengkap</th><th>Username</th><th>Email</th><th></th></tr></thead>
+      <thead><tr>${bulkHeaderCell('guru', rows)}<th>Nama lengkap</th><th>Username</th><th>Email</th><th></th></tr></thead>
       <tbody>
         ${rows.map(g => `
           <tr>
+            ${bulkRowCell('guru', g.id, g.nama)}
             <td data-label="Nama" class="cell-primary">${escapeHtml(g.nama)}</td>
             <td data-label="Username">${escapeHtml(g.username)}</td>
             <td data-label="Email" class="cell-muted">${escapeHtml(g.email)}</td>
@@ -1719,14 +2093,18 @@
     const { error } = await sb.from('subjects').delete().eq('id', id);
     if(error){ alert(error.message); return; }
     subjects = subjects.filter(s => s.id !== id);
+    bulkState.subject.sel.delete(id);
     if(editingSubjectId === id) cancelEdit('subject');
     renderSubjects();
   }
   function renderSubjects(){
     const q = document.getElementById('s-search').value.trim().toLowerCase();
     const rows = subjects.filter(s => !q || s.nama.toLowerCase().includes(q));
+    bulkPrune('subject', subjects);
+    bulkState.subject.visible = rows;
     document.getElementById('s-count').textContent = subjects.length + ' mata pelajaran';
     const wrap = document.getElementById('s-table-wrap');
+    updateBulkBar('subject');
 
     if(subjects.length === 0){
       wrap.innerHTML = `<div class="empty-state"><strong>Belum ada mata pelajaran</strong>Tambahkan mata pelajaran pertama lewat formulir di atas.</div>`;
@@ -1737,12 +2115,13 @@
       return;
     }
     wrap.innerHTML = `<table>
-      <thead><tr><th>Mata pelajaran</th><th>Guru penyusun soal</th><th></th></tr></thead>
+      <thead><tr>${bulkHeaderCell('subject', rows)}<th>Mata pelajaran</th><th>Guru penyusun soal</th><th></th></tr></thead>
       <tbody>
         ${rows.map(s => {
           const g = guru.find(x => x.id === s.guruId);
           return `
           <tr>
+            ${bulkRowCell('subject', s.id, s.nama)}
             <td data-label="Mata pelajaran" class="cell-primary">${escapeHtml(s.nama)}</td>
             <td data-label="Guru penyusun soal" class="${g ? '' : 'cell-warn'}">${g ? escapeHtml(g.nama) : 'Guru telah dihapus'}</td>
             <td class="cell-action"><div class="row-actions">
@@ -1764,11 +2143,23 @@
   ============================================================ */
   function mapSupervisor(row){ return { id: row.id, guruId: row.guru_id, ruang: row.ruang }; }
 
+  // Populasi pilihan ruang untuk form Guru Pengawas, berdasarkan daftar ruang
+  // yang dibuat admin di tab Pembagian Ruang. "Semua ruang" = ruang bernilai null.
+  function populateSupervisorRuangSelect(){
+    const sel = document.getElementById('p-ruang');
+    if(!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = `<option value="__ALL__">Semua ruang</option>` +
+      rooms.map(r => `<option value="${escapeHtml(r.nama)}">${escapeHtml(r.nama)}</option>`).join('');
+    if(prev === '__ALL__' || rooms.some(r => r.nama === prev)) sel.value = prev;
+  }
+
   async function submitSupervisor(event){
     event.preventDefault();
+    const ruangRaw = document.getElementById('p-ruang').value;
     const record = {
       guruId: document.getElementById('p-guru').value,
-      ruang: document.getElementById('p-ruang').value.trim()
+      ruang: ruangRaw === '__ALL__' ? null : ruangRaw
     };
     if(editingSupervisorId){
       const { error } = await sb.from('supervisors').update({ guru_id: record.guruId, ruang: record.ruang }).eq('id', editingSupervisorId);
@@ -1789,7 +2180,7 @@
     if(!p) return;
     editingSupervisorId = id;
     document.getElementById('p-guru').value = p.guruId;
-    document.getElementById('p-ruang').value = p.ruang;
+    document.getElementById('p-ruang').value = p.ruang || '__ALL__';
     document.getElementById('p-card-title').textContent = 'Edit guru pengawas';
     document.getElementById('p-submit-btn').lastChild.textContent = ' Simpan perubahan';
     document.getElementById('p-form').classList.add('editing');
@@ -1800,15 +2191,19 @@
     const { error } = await sb.from('supervisors').delete().eq('id', id);
     if(error){ alert(error.message); return; }
     supervisors = supervisors.filter(p => p.id !== id);
+    bulkState.supervisor.sel.delete(id);
     if(editingSupervisorId === id) cancelEdit('supervisor');
     renderSupervisors();
   }
   function renderSupervisors(){
     const q = document.getElementById('p-search').value.trim().toLowerCase();
     const enriched = supervisors.map(p => ({ ...p, g: guru.find(x => x.id === p.guruId) }));
-    const rows = enriched.filter(p => !q || (p.g && p.g.nama.toLowerCase().includes(q)) || p.ruang.toLowerCase().includes(q));
+    const rows = enriched.filter(p => !q || (p.g && p.g.nama.toLowerCase().includes(q)) || (p.ruang || 'semua ruang').toLowerCase().includes(q));
+    bulkPrune('supervisor', supervisors);
+    bulkState.supervisor.visible = rows;
     document.getElementById('p-count').textContent = supervisors.length + ' guru pengawas';
     const wrap = document.getElementById('p-table-wrap');
+    updateBulkBar('supervisor');
 
     if(supervisors.length === 0){
       wrap.innerHTML = `<div class="empty-state"><strong>Belum ada guru pengawas</strong>Tambahkan guru pengawas pertama lewat formulir di atas.</div>`;
@@ -1819,13 +2214,14 @@
       return;
     }
     wrap.innerHTML = `<table>
-      <thead><tr><th>Nama guru</th><th>Username</th><th>Ruang ujian</th><th></th></tr></thead>
+      <thead><tr>${bulkHeaderCell('supervisor', rows)}<th>Nama guru</th><th>Username</th><th>Ruang ujian</th><th></th></tr></thead>
       <tbody>
         ${rows.map(p => `
           <tr>
+            ${bulkRowCell('supervisor', p.id, p.g ? p.g.nama : 'guru telah dihapus')}
             <td data-label="Nama" class="cell-primary ${p.g ? '' : 'cell-warn'}">${p.g ? escapeHtml(p.g.nama) : 'Guru telah dihapus'}</td>
             <td data-label="Username" class="cell-muted">${p.g ? escapeHtml(p.g.username) : '—'}</td>
-            <td data-label="Ruang ujian">${escapeHtml(p.ruang)}</td>
+            <td data-label="Ruang ujian">${p.ruang ? escapeHtml(p.ruang) : '<span class="badge badge-siap">Semua ruang</span>'}</td>
             <td class="cell-action"><div class="row-actions">
               <button class="icon-btn" onclick="editSupervisor('${p.id}')" aria-label="Edit guru pengawas">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
@@ -2652,17 +3048,193 @@
     }
   }
 
+  /* ============================================================
+     PEMBAGIAN RUANG
+  ============================================================ */
+  async function submitRoom(event){
+    event.preventDefault();
+    const input = document.getElementById('rm-nama');
+    const nama = input.value.trim();
+    if(!nama) return false;
+    if(rooms.some(r => r.nama.toLowerCase() === nama.toLowerCase())){
+      alert('Ruang dengan nama itu sudah ada.');
+      return false;
+    }
+    const { data, error } = await sb.from('rooms').insert({ nama }).select().single();
+    if(error){ alert('Gagal menambah ruang: ' + error.message); return false; }
+    rooms.push(data);
+    rooms.sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id', { numeric: true }));
+    input.value = '';
+    renderRoomsList();
+    populateRuangTargetSelect();
+    populateSupervisorRuangSelect();
+    return false;
+  }
+
+  async function deleteRoom(id){
+    const room = rooms.find(r => r.id === id);
+    if(!room) return;
+    if(!confirm(`Hapus ruang "${room.nama}"? Peserta yang sudah ditetapkan ke ruang ini akan dikosongkan ruangnya.`)) return;
+    const { error } = await sb.from('rooms').delete().eq('id', id);
+    if(error){ alert('Gagal menghapus ruang: ' + error.message); return; }
+    rooms = rooms.filter(r => r.id !== id);
+    await sb.from('profiles').update({ ruang: null }).eq('ruang', room.nama);
+    users.forEach(u => { if(u.ruang === room.nama) u.ruang = null; });
+    renderRoomsList();
+    populateRuangTargetSelect();
+    populateSupervisorRuangSelect();
+    renderRuangPesertaList();
+    renderUsers();
+  }
+
+  function renderRoomsList(){
+    const wrap = document.getElementById('rm-list-wrap');
+    if(!wrap) return;
+    if(rooms.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada ruang</strong>Tambahkan ruang pertama lewat formulir di atas.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Nama ruang</th><th>Jumlah peserta</th><th></th></tr></thead>
+      <tbody>
+        ${rooms.map(r => {
+          const n = users.filter(u => u.ruang === r.nama).length;
+          return `<tr>
+            <td data-label="Nama ruang" class="cell-primary">${escapeHtml(r.nama)}</td>
+            <td data-label="Jumlah peserta">${n} peserta</td>
+            <td class="cell-action"><div class="row-actions">
+              <button class="icon-btn" onclick="deleteRoom('${r.id}')" aria-label="Hapus ruang">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  function populateRuangTargetSelect(){
+    const sel = document.getElementById('rp-target');
+    if(!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">Pilih ruang</option>` +
+      rooms.map(r => `<option value="${escapeHtml(r.nama)}">${escapeHtml(r.nama)}</option>`).join('');
+    if(rooms.some(r => r.nama === prev)) sel.value = prev;
+  }
+
+  function ruangKelasList(){
+    return Array.from(new Set(users.map(u => (u.kelas || '').trim()).filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+  }
+
+  function populateRuangKelasSelect(){
+    const sel = document.getElementById('rp-kelas');
+    if(!sel) return;
+    const prev = sel.value;
+    const kelasList = ruangKelasList();
+    sel.innerHTML = `<option value="">Pilih kelas</option>` +
+      kelasList.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)} (${users.filter(u => u.kelas === k).length})</option>`).join('');
+    sel.value = kelasList.includes(prev) ? prev : '';
+  }
+
+  function onRuangKelasChange(){
+    ruangSelected = new Set();
+    ruangLastIndex = null;
+    renderRuangPesertaList();
+  }
+
+  function renderRuangPesertaList(){
+    const kelasSel = document.getElementById('rp-kelas');
+    const wrap = document.getElementById('rp-peserta-list');
+    if(!kelasSel || !wrap) return;
+    const kelas = kelasSel.value;
+    ruangKelasSiswa = kelas
+      ? users.filter(u => u.kelas === kelas).sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id'))
+      : [];
+    if(!kelas){
+      wrap.innerHTML = `<div class="empty-state" style="padding:20px;">Pilih kelas terlebih dahulu untuk menampilkan daftar peserta.</div>`;
+    } else if(ruangKelasSiswa.length === 0){
+      wrap.innerHTML = `<div class="empty-state" style="padding:20px;">Belum ada siswa terdaftar pada kelas ini.</div>`;
+    } else {
+      wrap.innerHTML = ruangKelasSiswa.map((u, i) => `<label class="peserta-row">
+        <input type="checkbox" data-idx="${i}" ${ruangSelected.has(u.id) ? 'checked' : ''} onclick="onRuangCheckClick(event, ${i})">
+        <span class="p-name">${escapeHtml(u.nama)}</span>
+        <span class="p-meta">${escapeHtml(u.username || '')} · ${u.ruang ? escapeHtml(u.ruang) : 'Belum diatur'}</span>
+      </label>`).join('');
+    }
+    updateRuangCount();
+  }
+
+  // Klik biasa: toggle satu siswa. Klik sambil menahan Shift: pilih semua siswa
+  // di antara centang terakhir yang diklik dan centang yang baru diklik (mirip Excel/Explorer).
+  function onRuangCheckClick(event, idx){
+    const checked = event.target.checked;
+    if(event.shiftKey && ruangLastIndex !== null){
+      const start = Math.min(ruangLastIndex, idx);
+      const end = Math.max(ruangLastIndex, idx);
+      for(let i = start; i <= end; i++){
+        const u = ruangKelasSiswa[i];
+        if(!u) continue;
+        if(checked) ruangSelected.add(u.id); else ruangSelected.delete(u.id);
+      }
+      renderRuangPesertaList();
+    } else {
+      const u = ruangKelasSiswa[idx];
+      if(u){ if(checked) ruangSelected.add(u.id); else ruangSelected.delete(u.id); }
+      updateRuangCount();
+    }
+    ruangLastIndex = idx;
+  }
+
+  function toggleRuangSelectAll(select){
+    ruangKelasSiswa.forEach(u => { if(select) ruangSelected.add(u.id); else ruangSelected.delete(u.id); });
+    ruangLastIndex = null;
+    renderRuangPesertaList();
+  }
+
+  function updateRuangCount(){
+    const el = document.getElementById('rp-count');
+    if(el) el.textContent = ruangSelected.size + ' peserta dipilih';
+  }
+
+  async function assignRuangToSelected(){
+    const target = document.getElementById('rp-target').value;
+    if(!target){ alert('Pilih ruang tujuan terlebih dahulu.'); return; }
+    if(ruangSelected.size === 0){ alert('Pilih minimal satu peserta.'); return; }
+    const ids = Array.from(ruangSelected);
+    const { error } = await sb.from('profiles').update({ ruang: target }).in('id', ids);
+    if(error){ alert('Gagal menetapkan ruang: ' + error.message); return; }
+    ids.forEach(id => { const u = users.find(x => x.id === id); if(u) u.ruang = target; });
+    renderRuangPesertaList();
+    renderRoomsList();
+    renderUsers();
+    alert(`${ids.length} peserta ditetapkan ke ${target}.`);
+  }
+
+  async function clearRuangFromSelected(){
+    if(ruangSelected.size === 0){ alert('Pilih minimal satu peserta.'); return; }
+    if(!confirm('Kosongkan ruang untuk peserta yang dipilih?')) return;
+    const ids = Array.from(ruangSelected);
+    const { error } = await sb.from('profiles').update({ ruang: null }).in('id', ids);
+    if(error){ alert('Gagal mengosongkan ruang: ' + error.message); return; }
+    ids.forEach(id => { const u = users.find(x => x.id === id); if(u) u.ruang = null; });
+    renderRuangPesertaList();
+    renderRoomsList();
+    renderUsers();
+  }
+
   /* ---------- initial load ---------- */
   async function init(){
     if(!(await requireAdmin())) return;
 
-    const [usersRes, guruRes, subjectsRes, supervisorsRes, questionSetsRes, schedulesRes] = await Promise.all([
+    const [usersRes, guruRes, subjectsRes, supervisorsRes, questionSetsRes, schedulesRes, roomsRes] = await Promise.all([
       sb.from('profiles').select('id,nama,username,email,kelas,ruang').eq('role', 'siswa').order('nama'),
       sb.from('profiles').select('id,nama,username,email').eq('role', 'guru').order('nama'),
       sb.from('subjects').select('*').order('nama'),
       sb.from('supervisors').select('*'),
       sb.from('question_sets').select('id,subject_id,judul,status,tingkat'),
-      sb.from('schedules').select('*')
+      sb.from('schedules').select('*'),
+      sb.from('rooms').select('*').order('nama')
     ]);
     users = usersRes.data || [];
     guru = guruRes.data || [];
@@ -2670,6 +3242,12 @@
     supervisors = (supervisorsRes.data || []).map(mapSupervisor);
     questionSets = (questionSetsRes.data || []).map(mapQuestionSet);
     schedules = (schedulesRes.data || []).map(mapSchedule);
+    if(roomsRes.error){
+      console.warn('Tabel "rooms" belum tersedia di Supabase. Jalankan migrasi SQL dari PANDUAN-INTEGRASI-UJIAN-ONLINE.md.', roomsRes.error);
+      rooms = [];
+    } else {
+      rooms = roomsRes.data || [];
+    }
 
     renderUsers();
     renderGuru();
@@ -2682,6 +3260,11 @@
     renderJwKelasGrid();
     renderJwPesertaList();
     renderJwList();
+    renderRoomsList();
+    populateRuangKelasSelect();
+    populateRuangTargetSelect();
+    populateSupervisorRuangSelect();
+    renderRuangPesertaList();
   }
   init();
 </script>
