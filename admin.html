@@ -357,6 +357,137 @@
     cursor:pointer;
   }
 
+  /* ---------- Penjadwalan ujian (admin) ---------- */
+  .jw-step{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .jw-step-num{
+    width:24px; height:24px; border-radius:50%; flex-shrink:0;
+    background:var(--wine); color:#fff; font-size:12.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .jw-step-title{ font-size:14px; font-weight:700; line-height:1.3; }
+  .jw-step-sub{ font-size:12px; color:var(--slate); }
+  .jw-section{ margin-top:22px; padding-top:20px; border-top:1px dashed var(--line); }
+  fieldset.jw-fieldset{ border:0; margin:0; padding:0; min-width:0; }
+  fieldset.jw-fieldset:disabled{ opacity:.45; }
+  .jw-label{ font-size:12.5px; font-weight:600; margin-bottom:6px; }
+
+  .jw-set-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+  .jw-set-tools{ display:flex; align-items:center; gap:10px; }
+  .link-btn{ background:none; border:none; padding:0; color:var(--wine-dark); font-size:12.5px; font-weight:700; cursor:pointer; }
+  .link-btn:hover{ text-decoration:underline; }
+  .jw-set-list{ display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; }
+  .jw-set{
+    display:flex; align-items:flex-start; gap:12px;
+    border:1.5px solid var(--line); border-radius:10px; padding:12px 14px;
+    background:var(--cream); cursor:pointer;
+  }
+  .jw-set:hover{ border-color:var(--wine); }
+  .jw-set.selected{ border-color:var(--wine); background:var(--wine-soft); }
+  .jw-set input[type=radio]{ accent-color:var(--wine); margin:3px 0 0; width:16px; height:16px; flex-shrink:0; }
+  .jw-set-main{ flex:1; min-width:0; }
+  .jw-set-title{ font-weight:700; font-size:13.5px; word-break:break-word; }
+  .jw-set-meta{ display:flex; flex-wrap:wrap; gap:2px 14px; margin-top:4px; font-size:12px; color:var(--slate); }
+  .jw-view-btn{ padding:6px 11px; font-size:12.5px; flex-shrink:0; }
+  .jw-picked{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:var(--wine-soft); color:var(--wine-dark); border-radius:10px;
+    padding:10px 14px; font-size:13px; margin-bottom:16px;
+  }
+  .jw-picked strong{ font-weight:700; }
+  .jw-flash{ display:none; margin-bottom:14px; padding:10px 13px; border-radius:9px; font-size:13px; font-weight:600; background:#DCF5EA; color:#0B6B49; }
+  .jw-flash.show{ display:block; }
+
+  .badge{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; }
+  .badge-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .badge-draft{ background:var(--mist); color:var(--slate); }
+  .badge-siap, .badge-selesai{ background:#DCF5EA; color:#0B6B49; }
+  .badge-terjadwal{ background:#E4ECFB; color:#2F4EA2; }
+  .badge-berlangsung{ background:var(--amber-soft); color:#8A6414; }
+  .badge-berlangsung .badge-dot{ animation:jwPulse 1.4s infinite; }
+  @keyframes jwPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+
+  .chip-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip-check{ position:relative; }
+  .chip-check input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .chip-check label{
+    display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600;
+    padding:8px 12px; border:1.5px solid var(--line); border-radius:9px; cursor:pointer; background:var(--cream);
+  }
+  .chip-check label .chip-n{ font-size:11.5px; font-weight:600; color:var(--slate); }
+  .chip-check input:checked + label{ border-color:var(--wine); background:var(--wine-soft); color:var(--wine-dark); }
+  .chip-check input:focus-visible + label{ outline:2px solid var(--wine); outline-offset:2px; }
+  .chip-check input:disabled + label{ cursor:not-allowed; }
+
+  .peserta-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 6px; font-size:12.5px; color:var(--slate); }
+  .peserta-toolbar button{ background:none; border:none; color:var(--wine-dark); font-weight:700; cursor:pointer; font-size:12.5px; padding:0; }
+  .peserta-list{ max-height:260px; overflow-y:auto; border:1px solid var(--line); border-radius:10px; }
+  .peserta-row{ display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--line); font-size:13px; cursor:pointer; }
+  .peserta-row:last-child{ border-bottom:none; }
+  .peserta-row input{ width:16px; height:16px; accent-color:var(--wine); flex-shrink:0; margin:0; }
+  .peserta-row .p-name{ font-weight:600; flex:1; }
+  .peserta-row .p-meta{ color:var(--slate); font-size:12px; }
+
+  .toggle-box{ background:var(--mist); border:1.5px dashed var(--line); border-radius:12px; padding:6px 16px; margin-top:18px; }
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .toggle-row:last-child{ border-bottom:none; }
+  .toggle-row-text strong{ display:block; font-size:13.5px; font-weight:600; }
+  .toggle-row-text span{ font-size:12px; color:var(--slate); }
+  .switch{ position:relative; width:42px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch-track{ position:absolute; inset:0; background:#CFD3DB; border-radius:99px; cursor:pointer; transition:background .2s ease; }
+  .switch-track::before{
+    content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%;
+    transition:transform .2s ease; box-shadow:0 1px 3px rgba(0,0,0,.25);
+  }
+  .switch input:checked + .switch-track{ background:var(--wine); }
+  .switch input:checked + .switch-track::before{ transform:translateX(18px); }
+  .switch input:focus-visible + .switch-track{ outline:2px solid var(--wine); outline-offset:2px; }
+
+  .jw-modal-bg{ position:fixed; inset:0; background:rgba(22,26,35,.5); display:none; align-items:center; justify-content:center; padding:20px; z-index:60; }
+  .jw-modal-bg.open{ display:flex; }
+  .jw-modal{ background:#fff; border-radius:16px; width:100%; max-width:780px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(20,20,30,.25); }
+  .jw-modal-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:18px 22px 14px; border-bottom:1px solid var(--line); }
+  .jw-modal-head h2{ font-size:17px; }
+  .jw-pv-meta{ font-size:12.5px; color:var(--slate); margin-top:4px; }
+  .jw-modal-body{ padding:16px 22px; overflow-y:auto; flex:1; background:var(--cream); }
+  .jw-modal-foot{ display:flex; justify-content:flex-end; gap:8px; padding:14px 22px; border-top:1px solid var(--line); }
+  .jw-q{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .jw-q-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; }
+  .jw-q-no{ font-weight:800; color:var(--wine-dark); font-size:13px; }
+  .jw-q-tag{ background:var(--mist); color:var(--slate); font-weight:700; padding:3px 9px; border-radius:99px; }
+  .jw-bacaan{ background:var(--wine-soft); border-radius:12px; padding:12px 16px; margin-bottom:12px; font-size:13px; line-height:1.6; }
+  .jw-bacaan-label{ font-size:11.5px; font-weight:700; color:var(--wine-dark); margin-bottom:5px; }
+  .jw-bacaan-text{ white-space:pre-line; }
+  .jw-q-text{ font-size:14px; line-height:1.6; white-space:pre-line; margin-bottom:8px; }
+  .jw-q img{ display:block; max-width:100%; max-height:260px; border:1px solid var(--line); border-radius:8px; margin:6px 0; }
+  .jw-opt{ display:flex; gap:8px; font-size:13px; padding:4px 0; color:var(--slate); }
+  .jw-opt-l{ font-weight:700; width:18px; flex-shrink:0; }
+  .jw-opt.key{ color:#0B6B49; font-weight:700; }
+  .jw-note{ font-size:12px; color:var(--amber); margin-top:4px; }
+  .jw-sub{ font-size:12px; color:var(--slate); margin-bottom:6px; }
+  .jw-stmt{ font-size:13px; padding:7px 0; border-top:1px solid var(--line); }
+  .jw-stmt-key{ font-size:12px; margin-top:2px; color:var(--amber); }
+  .jw-stmt-key.ok{ color:#0B6B49; font-weight:700; }
+
+  .q-table-wrap{ overflow-x:auto; margin:8px 0; }
+  .q-table{ display:table; width:auto; border-collapse:collapse; }
+  .q-table thead{ display:table-header-group; }
+  .q-table tbody{ display:table-row-group; }
+  .q-table tr{ display:table-row; padding:0; border-bottom:none; }
+  .q-table th, .q-table td{ display:table-cell; width:auto; border:1px solid var(--line); padding:6px 10px; text-align:left; font-size:12.5px; background:#fff; }
+  .q-table th{ background:var(--mist); font-weight:700; color:var(--ink); }
+  .q-table td::before{ content:none; }
+  .q-table tbody tr:last-child td{ border-bottom:1px solid var(--line); }
+
+  @media (max-width:680px){
+    .jw-set{ flex-wrap:wrap; }
+    .jw-view-btn{ margin-left:28px; }
+    .jw-modal-bg{ padding:0; align-items:flex-end; }
+    .jw-modal{ max-height:94vh; border-radius:16px 16px 0 0; }
+  }
+
+  #jw-form .field .field-hint{ font-weight:400; }
+
   /* ---------- Mobile ---------- */
   @media (max-width:680px){
     .form-grid{ grid-template-columns:1fr; }
@@ -430,6 +561,10 @@
     <button class="tab" onclick="showPanel('panel-supervisors', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
       Guru Pengawas
+    </button>
+    <button class="tab" onclick="showPanel('panel-jadwal', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+      Penjadwalan
     </button>
     <button class="tab" onclick="showPanel('panel-tokens', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg>
@@ -710,6 +845,165 @@
     </div>
   </section>
 
+  <!-- ============ PANEL: PENJADWALAN UJIAN ============ -->
+  <section id="panel-jadwal" class="panel">
+    <div class="section-head">
+      <h1>Penjadwalan ujian</h1>
+      <p>Pilih guru terlebih dahulu, lalu pilih paket soal berstatus Siap milik guru tersebut. Setelah itu atur waktu, kelas, dan peserta ujian. Jadwal yang dibuat di sini otomatis muncul di akun guru pemilik soal (jadwal, token, monitoring, dan rekap).</p>
+    </div>
+
+    <form class="card" id="jw-form" novalidate onsubmit="return submitJwForm(event)">
+      <div class="card-title-row">
+        <span class="card-title" id="jw-card-title">Buat jadwal ujian</span>
+        <button type="button" class="cancel-edit" onclick="cancelJwEdit()">Batal edit</button>
+      </div>
+      <div class="jw-flash" id="jw-flash" role="status"></div>
+
+      <!-- Langkah 1: guru -->
+      <div class="jw-step">
+        <span class="jw-step-num">1</span>
+        <div>
+          <div class="jw-step-title">Pilih guru</div>
+          <div class="jw-step-sub">Paket soal yang tampil hanya milik guru yang dipilih.</div>
+        </div>
+      </div>
+      <div class="field">
+        <select id="jw-guru" onchange="onJwGuruChange()" aria-label="Pilih guru"></select>
+      </div>
+
+      <!-- Langkah 2: paket soal -->
+      <div class="jw-section">
+        <div class="jw-step">
+          <span class="jw-step-num">2</span>
+          <div>
+            <div class="jw-step-title">Pilih paket soal</div>
+            <div class="jw-step-sub">Hanya paket berstatus Siap. Klik "Lihat soal" untuk membaca isi paket sebelum dijadwalkan.</div>
+          </div>
+        </div>
+        <div class="jw-set-toolbar">
+          <span class="list-count" id="jw-set-count"></span>
+          <div class="jw-set-tools">
+            <button type="button" class="link-btn" onclick="reloadJwSets()">Muat ulang</button>
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="jw-set-search" placeholder="Cari judul atau mapel" oninput="renderJwSets()" onkeydown="if(event.key==='Enter') event.preventDefault()">
+            </div>
+          </div>
+        </div>
+        <div class="jw-set-list" id="jw-set-list"></div>
+      </div>
+
+      <!-- Langkah 3: waktu, kelas, peserta (terkunci sampai paket dipilih) -->
+      <fieldset class="jw-fieldset" id="jw-step3" disabled>
+        <div class="jw-section">
+          <div class="jw-step">
+            <span class="jw-step-num">3</span>
+            <div>
+              <div class="jw-step-title">Waktu, kelas, dan peserta</div>
+              <div class="jw-step-sub" id="jw-step3-sub">Pilih paket soal terlebih dahulu.</div>
+            </div>
+          </div>
+
+          <div class="jw-picked" id="jw-picked" style="display:none;"></div>
+
+          <div class="form-grid">
+            <div class="field">
+              <span>Tanggal ujian</span>
+              <input type="date" id="jw-tanggal">
+            </div>
+            <div class="field">
+              <span>Jam mulai</span>
+              <input type="time" id="jw-jam">
+            </div>
+            <div class="field">
+              <span>Durasi (menit)</span>
+              <input type="number" id="jw-durasi" min="5" step="5" placeholder="Contoh: 90">
+            </div>
+            <div class="field">
+              <span>Tingkat</span>
+              <select id="jw-tingkat" onchange="onJwTingkatChange()"></select>
+              <span class="field-hint" id="jw-tingkat-hint"></span>
+            </div>
+            <div class="field">
+              <span>Tanggal selesai (opsional)</span>
+              <input type="date" id="jw-tanggal-selesai">
+              <span class="field-hint">Kosongkan agar ujian selesai sesuai durasi.</span>
+            </div>
+            <div class="field">
+              <span>Jam selesai (opsional)</span>
+              <input type="time" id="jw-jam-selesai">
+              <span class="field-hint">Kosongkan agar ujian selesai sesuai durasi.</span>
+            </div>
+            <div class="field full field-hint" style="margin-top:-6px;">
+              Jika diisi, siswa tetap bisa mulai/melanjutkan ujian sampai batas tanggal &amp; jam ini,
+              walaupun durasi sejak jam mulai sudah lewat. Durasi pengerjaan tiap siswa tetap dihitung
+              sesuai "Durasi (menit)" dari saat siswa itu mulai mengerjakan.
+            </div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div class="jw-label">Kelas</div>
+            <div class="chip-grid" id="jw-kelas-grid"></div>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <span>Token ujian (opsional)</span>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="jw-token" placeholder="Kosongkan jika tidak perlu token" maxlength="30" style="flex:1;">
+              <button type="button" class="btn-secondary" onclick="generateJwToken()">Acak</button>
+            </div>
+            <span class="field-hint">Jika diisi, siswa wajib memasukkan token ini sebelum mulai mengerjakan.</span>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div class="jw-label">Peserta</div>
+            <div class="peserta-toolbar">
+              <span id="jw-peserta-count">0 peserta dipilih</span>
+              <div>
+                <button type="button" onclick="toggleJwPesertaAll(true)">Pilih semua</button> ·
+                <button type="button" onclick="toggleJwPesertaAll(false)">Kosongkan</button>
+              </div>
+            </div>
+            <div class="peserta-list" id="jw-peserta-list"></div>
+          </div>
+
+          <div class="toggle-box">
+            <div class="toggle-row">
+              <div class="toggle-row-text"><strong>Acak urutan soal</strong><span>Setiap peserta mendapat urutan soal berbeda — soal yang berbagi bacaan yang sama tetap dikelompokkan berurutan.</span></div>
+              <label class="switch"><input type="checkbox" id="jw-acak-soal"><span class="switch-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-row-text"><strong>Acak urutan opsi jawaban</strong><span>Urutan A/B/C/D/E diacak per peserta</span></div>
+              <label class="switch"><input type="checkbox" id="jw-acak-opsi"><span class="switch-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-row-text"><strong>Nilai langsung muncul</strong><span>Siswa melihat nilai begitu selesai mengerjakan</span></div>
+              <label class="switch"><input type="checkbox" id="jw-tampil-nilai"><span class="switch-track"></span></label>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button type="submit" class="btn-primary" id="jw-submit-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span id="jw-submit-label">Simpan Jadwal</span>
+            </button>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span class="list-count" id="jw-count">Memuat…</span>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="jw-search" placeholder="Cari paket, guru, atau kelas" oninput="renderJwList()">
+        </div>
+      </div>
+      <div id="jw-table-wrap"></div>
+    </div>
+  </section>
+
   <!-- ============ PANEL: TOKENS ============ -->
   <section id="panel-tokens" class="panel">
     <div class="section-head">
@@ -729,6 +1023,26 @@
     </div>
   </section>
 
+</div>
+
+<!-- ============ MODAL: LIHAT SOAL (baca saja) ============ -->
+<div class="jw-modal-bg" id="jwPreviewBg" onclick="if(event.target === this) closeJwPreview()">
+  <div class="jw-modal" role="dialog" aria-modal="true" aria-labelledby="jw-pv-title">
+    <div class="jw-modal-head">
+      <div>
+        <h2 id="jw-pv-title"></h2>
+        <div class="jw-pv-meta" id="jw-pv-meta"></div>
+      </div>
+      <button type="button" class="icon-btn" onclick="closeJwPreview()" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="jw-modal-body" id="jw-pv-body"></div>
+    <div class="jw-modal-foot">
+      <button type="button" class="btn-secondary" onclick="closeJwPreview()">Tutup</button>
+      <button type="button" class="btn-primary" id="jw-pv-pick" onclick="pickFromJwPreview()">Pilih paket ini</button>
+    </div>
+  </div>
 </div>
 
 <!-- ============ MODAL: EDIT TOKEN ============ -->
@@ -816,6 +1130,7 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     window.scrollTo({ top:0, behavior:'smooth' });
+    if(id === 'panel-jadwal') refreshJwPanel();
   }
 
   /* ============================================================
@@ -1489,10 +1804,15 @@
   /* ============================================================
      TOKENS (jadwal ujian)
   ============================================================ */
-  function mapQuestionSet(row){ return { id: row.id, subjectId: row.subject_id, judul: row.judul }; }
-  function mapScheduleForToken(row){
+  function mapQuestionSet(row){
+    return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, tingkat: row.tingkat || null };
+  }
+  function mapSchedule(row){
     return {
       id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
+      durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
+      tanggalSelesai: row.tanggal_selesai || '', jamSelesai: row.jam_selesai || '',
+      acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai,
       token: row.token || ''
     };
   }
@@ -1554,7 +1874,8 @@
     const { error } = await sb.from('schedules').delete().eq('id', scheduleId);
     if(error){ alert(error.message); return; }
     schedules = schedules.filter(x => x.id !== scheduleId);
-    renderTokens();
+    if(editingJwId === scheduleId) resetJwForm();
+    refreshScheduleViews();
   }
 
   function openTokenModal(scheduleId){
@@ -1586,8 +1907,679 @@
     const idx = schedules.findIndex(s => s.id === editingTokenScheduleId);
     if(idx > -1) schedules[idx] = { ...schedules[idx], token: val };
     closeTokenModal();
-    renderTokens();
+    refreshScheduleViews();
   }
+
+  /* ============================================================
+     PENJADWALAN UJIAN (admin)
+     Alur: pilih guru → pilih paket soal berstatus Siap milik guru itu
+     → atur waktu, kelas & peserta → simpan ke tabel `schedules`.
+     Jadwal yang dibuat admin memakai struktur yang sama dengan jadwal
+     buatan guru, jadi otomatis muncul di akun guru pemilik soal dan
+     di halaman siswa.
+  ============================================================ */
+  const JW_TYPE_LABEL = { pg:'Pilihan Ganda', pgk:'PG Kompleks', bs:'Benar/Salah', bsg:'Pernyataan Ganda', rb:'Radio Button', essay:'Esai' };
+
+  let jwGuruId = '';
+  let jwSets = [];              // paket soal siap milik guru terpilih (beserta isi soal)
+  let jwSetsState = 'idle';     // idle | loading | ready | error
+  let jwSetsError = '';
+  let jwSetsSeq = 0;            // penanda request terbaru (cegah balapan saat ganti guru cepat)
+  let jwSetId = '';
+  let jwSelectedKelas = new Set();
+  let jwSelectedPeserta = new Set();
+  let editingJwId = null;
+  let jwPreviewSetId = '';
+  let jwFlashTimer = null;
+
+  /* ---------- helper kecil ---------- */
+  function jwJam(t){ return String(t || '').slice(0, 5); }
+  function jwExtractTingkat(kelas){
+    if(!kelas) return '';
+    const m = String(kelas).trim().match(/^(XII|XI|X)(?=[-\s]|$)/i);
+    if(m) return m[1].toUpperCase();
+    return String(kelas).trim().split(/[-\s]/)[0]; // fallback untuk format kelas lama
+  }
+  function jwSafeImg(src){
+    // gambar soal disimpan sebagai data URI; tolak skema lain (mis. javascript:)
+    return /^(data:image\/|https?:\/\/)/i.test(String(src || '')) ? escapeHtml(src) : '';
+  }
+  function jwNormalizeQuestion(q){
+    q = q || {};
+    if(!q.type) q.type = 'pg';
+    if(!Array.isArray(q.opsi)) q.opsi = [];
+    if(!Array.isArray(q.kunciIds)) q.kunciIds = [];
+    if(q.kunciKategori === undefined) q.kunciKategori = null;
+    if(!Array.isArray(q.pernyataan)) q.pernyataan = [];
+    if(!q.poin) q.poin = 10;
+    return q;
+  }
+  function jwSubjectOf(qs){ return qs ? subjects.find(s => s.id === qs.subjectId) : null; }
+  function jwGuruOf(qs){ const s = jwSubjectOf(qs); return s ? guru.find(g => g.id === s.guruId) : null; }
+  function jwStart(j){ return new Date(j.tanggal + 'T' + (j.jamMulai || '00:00')); }
+  // Batas akhir jendela ujian: "jadwal selesai" jika diisi, selain itu jam mulai + durasi.
+  function jwBatasAkhir(j){
+    if(j.tanggalSelesai) return new Date(j.tanggalSelesai + 'T' + (j.jamSelesai || '23:59'));
+    return new Date(jwStart(j).getTime() + (j.durasiMenit || 0) * 60000);
+  }
+  function jwStatus(j){
+    const now = new Date();
+    if(now < jwStart(j)) return 'terjadwal';
+    if(now <= jwBatasAkhir(j)) return 'berlangsung';
+    return 'selesai';
+  }
+  const JW_STATUS_LABEL = { terjadwal:'Terjadwal', berlangsung:'Berlangsung', selesai:'Selesai' };
+
+  function flashJw(msg){
+    const el = document.getElementById('jw-flash');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(jwFlashTimer);
+    jwFlashTimer = setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  /* ---------- buka panel: segarkan data yang bisa berubah dari sisi guru ---------- */
+  async function refreshJwPanel(){
+    populateJwGuruSelect();
+    renderJwList();
+    const [qsRes, schRes] = await Promise.all([
+      sb.from('question_sets').select('id,subject_id,judul,status,tingkat'),
+      sb.from('schedules').select('*')
+    ]);
+    if(!qsRes.error) questionSets = (qsRes.data || []).map(mapQuestionSet);
+    if(!schRes.error) schedules = (schRes.data || []).map(mapSchedule);
+    populateJwGuruSelect();
+    refreshScheduleViews();
+  }
+
+  function refreshScheduleViews(){
+    renderTokens();
+    renderJwList();
+  }
+
+  /* ---------- langkah 1: guru ---------- */
+  function populateJwGuruSelect(){
+    const sel = document.getElementById('jw-guru');
+    if(guru.length === 0){
+      sel.innerHTML = `<option value="">Belum ada guru</option>`;
+      sel.disabled = true;
+      jwGuruId = '';
+      renderJwSets();
+      return;
+    }
+    sel.disabled = false;
+    const readyCount = {};
+    questionSets.forEach(qs => {
+      if(qs.status !== 'siap') return;
+      const s = jwSubjectOf(qs);
+      if(s) readyCount[s.guruId] = (readyCount[s.guruId] || 0) + 1;
+    });
+    sel.innerHTML = `<option value="">— Pilih guru —</option>` +
+      guru.map(g => `<option value="${g.id}">${escapeHtml(g.nama)} · ${readyCount[g.id] || 0} paket siap</option>`).join('');
+    if(guru.some(g => g.id === jwGuruId)){
+      sel.value = jwGuruId;
+    } else if(jwGuruId){
+      jwGuruId = '';
+      resetJwSelection();
+    }
+    renderJwSets();
+  }
+
+  function resetJwSelection(){
+    jwSets = [];
+    jwSetsState = 'idle';
+    jwSetId = '';
+    jwSetsSeq++;
+    lockJwStep3();
+  }
+
+  async function onJwGuruChange(preselectSetId){
+    jwGuruId = document.getElementById('jw-guru').value;
+    document.getElementById('jw-set-search').value = '';
+    resetJwSelection();
+    renderJwSets();
+    if(!jwGuruId) return;
+    await loadJwSets(preselectSetId);
+    if(preselectSetId) selectJwSet(preselectSetId);
+  }
+
+  /* ---------- langkah 2: paket soal siap milik guru ---------- */
+  async function loadJwSets(extraSetId){
+    const seq = ++jwSetsSeq;
+    const guruId = jwGuruId;
+    const subjIds = subjects.filter(s => s.guruId === guruId).map(s => s.id);
+    if(subjIds.length === 0){
+      jwSets = [];
+      jwSetsState = 'ready';
+      renderJwSets();
+      return;
+    }
+    jwSetsState = 'loading';
+    renderJwSets();
+    const cols = 'id,subject_id,judul,status,tingkat,soal';
+    const { data, error } = await sb.from('question_sets').select(cols)
+      .in('subject_id', subjIds).eq('status', 'siap').order('judul');
+    if(seq !== jwSetsSeq) return; // guru sudah diganti selama memuat
+    if(error){
+      jwSetsState = 'error';
+      jwSetsError = error.message || 'Gagal memuat paket soal';
+      renderJwSets();
+      return;
+    }
+    let rows = data || [];
+    // saat mengedit jadwal, paket yang dipakai tetap ditampilkan walau statusnya sudah bukan Siap
+    if(extraSetId && !rows.some(r => r.id === extraSetId)){
+      const one = await sb.from('question_sets').select(cols).eq('id', extraSetId).maybeSingle();
+      if(seq !== jwSetsSeq) return;
+      if(one.data) rows = rows.concat(one.data);
+    }
+    jwSets = rows.map(r => ({
+      id: r.id, subjectId: r.subject_id, judul: r.judul, status: r.status, tingkat: r.tingkat || null,
+      soal: (Array.isArray(r.soal) ? r.soal : []).map(jwNormalizeQuestion)
+    }));
+    jwSetsState = 'ready';
+    renderJwSets();
+  }
+
+  async function reloadJwSets(){
+    if(!jwGuruId) return;
+    await loadJwSets(jwSetId);
+  }
+
+  function renderJwSets(){
+    const wrap = document.getElementById('jw-set-list');
+    const countEl = document.getElementById('jw-set-count');
+    if(!jwGuruId){
+      countEl.textContent = '';
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 12px;">Pilih guru terlebih dahulu untuk melihat paket soalnya.</div>`;
+      return;
+    }
+    if(jwSetsState === 'loading'){
+      countEl.textContent = '';
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 12px;">Memuat paket soal…</div>`;
+      return;
+    }
+    if(jwSetsState === 'error'){
+      countEl.textContent = '';
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 12px;"><strong>Paket soal gagal dimuat</strong>${escapeHtml(jwSetsError)}</div>`;
+      return;
+    }
+    countEl.textContent = jwSets.length + ' paket soal';
+    if(jwSets.length === 0){
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 12px;"><strong>Belum ada paket soal siap</strong>Paket soal muncul di sini setelah guru menandainya "Siap" di Bank Soal.</div>`;
+      return;
+    }
+    const q = document.getElementById('jw-set-search').value.trim().toLowerCase();
+    const rows = jwSets.filter(qs => {
+      if(!q) return true;
+      const s = jwSubjectOf(qs);
+      return qs.judul.toLowerCase().includes(q) || (s && s.nama.toLowerCase().includes(q));
+    });
+    if(rows.length === 0){
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 12px;"><strong>Tidak ditemukan</strong>Tidak ada paket soal yang cocok dengan pencarian.</div>`;
+      return;
+    }
+    wrap.innerHTML = rows.map(qs => {
+      const s = jwSubjectOf(qs);
+      const selected = qs.id === jwSetId;
+      const totalPoin = qs.soal.reduce((n, x) => n + (Number(x.poin) || 0), 0);
+      return `<label class="jw-set ${selected ? 'selected' : ''}">
+        <input type="radio" name="jw-set" value="${qs.id}" ${selected ? 'checked' : ''} onchange="selectJwSet('${qs.id}')">
+        <div class="jw-set-main">
+          <div class="jw-set-title">${escapeHtml(qs.judul)} ${qs.status !== 'siap' ? '<span class="badge badge-draft">Bukan Siap</span>' : ''}</div>
+          <div class="jw-set-meta">
+            <span>${s ? escapeHtml(s.nama) : '—'}</span>
+            <span>${qs.tingkat ? 'Tingkat ' + escapeHtml(qs.tingkat) : 'Semua tingkat'}</span>
+            <span>${qs.soal.length} soal</span>
+            <span>${totalPoin} poin</span>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary jw-view-btn" onclick="openJwPreview('${qs.id}')">Lihat soal</button>
+      </label>`;
+    }).join('');
+  }
+
+  function selectJwSet(id){
+    const qs = jwSets.find(x => x.id === id);
+    if(!qs) return;
+    jwSetId = id;
+    renderJwSets();
+    unlockJwStep3(qs);
+  }
+
+  /* ---------- langkah 3: waktu, kelas, peserta ---------- */
+  function lockJwStep3(){
+    document.getElementById('jw-step3').disabled = true;
+    document.getElementById('jw-step3-sub').textContent = 'Pilih paket soal terlebih dahulu.';
+    document.getElementById('jw-picked').style.display = 'none';
+  }
+
+  function unlockJwStep3(qs){
+    document.getElementById('jw-step3').disabled = false;
+    document.getElementById('jw-step3-sub').textContent = 'Atur kapan ujian berlangsung dan siapa pesertanya.';
+    const s = jwSubjectOf(qs);
+    const picked = document.getElementById('jw-picked');
+    picked.style.display = 'flex';
+    picked.innerHTML = `<span>Paket terpilih:</span> <strong>${escapeHtml(qs.judul)}</strong>` +
+      `<span>· ${s ? escapeHtml(s.nama) : '—'} · ${qs.soal.length} soal</span>`;
+    populateJwTingkat(qs.tingkat);
+  }
+
+  // Jika paket soal sudah punya tingkat, jadwal hanya boleh untuk tingkat itu.
+  function populateJwTingkat(setTingkat){
+    const sel = document.getElementById('jw-tingkat');
+    const prev = sel.value;
+    let opts;
+    if(setTingkat){
+      opts = [setTingkat];
+    } else {
+      opts = Array.from(new Set(users.map(u => jwExtractTingkat(u.kelas)).filter(Boolean))).sort();
+    }
+    sel.innerHTML = (setTingkat ? '' : `<option value="">Pilih tingkat</option>`) +
+      opts.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+    const next = setTingkat ? setTingkat : (opts.includes(prev) ? prev : '');
+    sel.value = next;
+    document.getElementById('jw-tingkat-hint').textContent = setTingkat ? `Paket soal ini untuk tingkat ${setTingkat}.` : '';
+    if(next !== prev){
+      jwSelectedKelas = new Set();
+      jwSelectedPeserta = new Set();
+    }
+    renderJwKelasGrid();
+    renderJwPesertaList();
+  }
+
+  function onJwTingkatChange(){
+    jwSelectedKelas = new Set();
+    jwSelectedPeserta = new Set();
+    renderJwKelasGrid();
+    renderJwPesertaList();
+  }
+
+  function jwKelasList(tingkat){
+    return Array.from(new Set(users.filter(u => jwExtractTingkat(u.kelas) === tingkat).map(u => u.kelas)))
+      .sort((a, b) => String(a).localeCompare(String(b), 'id', { numeric: true }));
+  }
+
+  function renderJwKelasGrid(){
+    const tingkat = document.getElementById('jw-tingkat').value;
+    const grid = document.getElementById('jw-kelas-grid');
+    if(!tingkat){
+      grid.innerHTML = `<span class="field-hint">Pilih tingkat terlebih dahulu.</span>`;
+      return;
+    }
+    const kelasList = jwKelasList(tingkat);
+    if(kelasList.length === 0){
+      grid.innerHTML = `<span class="field-hint">Belum ada siswa terdaftar pada tingkat ${escapeHtml(tingkat)}.</span>`;
+      return;
+    }
+    grid.innerHTML = kelasList.map((k, i) => {
+      const n = users.filter(u => u.kelas === k).length;
+      return `<div class="chip-check">
+        <input type="checkbox" id="jw-k-${i}" data-kelas="${escapeHtml(k)}" ${jwSelectedKelas.has(k) ? 'checked' : ''} onchange="onJwKelasToggle(this)">
+        <label for="jw-k-${i}">${escapeHtml(k)} <span class="chip-n">${n}</span></label>
+      </div>`;
+    }).join('');
+  }
+
+  function onJwKelasToggle(el){
+    const kelas = el.dataset.kelas;
+    const ids = users.filter(u => u.kelas === kelas).map(u => u.id);
+    if(el.checked){
+      jwSelectedKelas.add(kelas);
+      ids.forEach(id => jwSelectedPeserta.add(id));
+    } else {
+      jwSelectedKelas.delete(kelas);
+      ids.forEach(id => jwSelectedPeserta.delete(id));
+    }
+    renderJwPesertaList();
+  }
+
+  function renderJwPesertaList(){
+    const wrap = document.getElementById('jw-peserta-list');
+    const siswa = users.filter(u => jwSelectedKelas.has(u.kelas))
+      .sort((a, b) => String(a.kelas).localeCompare(String(b.kelas), 'id', { numeric: true }) || String(a.nama).localeCompare(String(b.nama), 'id'));
+    if(siswa.length === 0){
+      wrap.innerHTML = `<div class="empty-state" style="padding:20px;">Pilih kelas terlebih dahulu untuk menampilkan daftar peserta.</div>`;
+    } else {
+      wrap.innerHTML = siswa.map(u => `<label class="peserta-row">
+        <input type="checkbox" ${jwSelectedPeserta.has(u.id) ? 'checked' : ''} onchange="onJwPesertaToggle('${u.id}', this.checked)">
+        <span class="p-name">${escapeHtml(u.nama)}</span>
+        <span class="p-meta">${escapeHtml(u.kelas || '')} · ${escapeHtml(u.username || '')}</span>
+      </label>`).join('');
+    }
+    updateJwPesertaCount();
+  }
+  function updateJwPesertaCount(){
+    document.getElementById('jw-peserta-count').textContent = jwSelectedPeserta.size + ' peserta dipilih';
+  }
+  function onJwPesertaToggle(id, checked){
+    if(checked) jwSelectedPeserta.add(id); else jwSelectedPeserta.delete(id);
+    updateJwPesertaCount();
+  }
+  function toggleJwPesertaAll(select){
+    users.filter(u => jwSelectedKelas.has(u.kelas)).forEach(u => {
+      if(select) jwSelectedPeserta.add(u.id); else jwSelectedPeserta.delete(u.id);
+    });
+    renderJwPesertaList();
+  }
+
+  function generateJwToken(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = '';
+    for(let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    document.getElementById('jw-token').value = out;
+  }
+
+  /* ---------- bentrok jadwal (peringatan lunak, tidak memblokir) ---------- */
+  function jwFindConflicts(rec, ignoreId){
+    const start = new Date(rec.tanggal + 'T' + rec.jamMulai);
+    const end = new Date(start.getTime() + rec.durasiMenit * 60000);
+    const mine = new Set(rec.peserta);
+    const out = [];
+    schedules.forEach(s => {
+      if(s.id === ignoreId) return;
+      const s2 = jwStart(s);
+      const e2 = new Date(s2.getTime() + (s.durasiMenit || 0) * 60000);
+      if(!(start < e2 && s2 < end)) return;
+      const shared = s.peserta.filter(id => mine.has(id)).length;
+      if(shared === 0) return;
+      const qs = questionSets.find(x => x.id === s.questionSetId);
+      out.push({ judul: qs ? qs.judul : 'Paket dihapus', tanggal: s.tanggal, jam: jwJam(s.jamMulai), shared });
+    });
+    return out;
+  }
+
+  /* ---------- simpan ---------- */
+  async function submitJwForm(event){
+    event.preventDefault();
+    if(!jwSetId){ alert('Pilih guru dan paket soal terlebih dahulu.'); return false; }
+    const tanggal = document.getElementById('jw-tanggal').value;
+    const jam = document.getElementById('jw-jam').value;
+    const durasi = parseInt(document.getElementById('jw-durasi').value, 10);
+    const tingkat = document.getElementById('jw-tingkat').value;
+    const tglSelesai = document.getElementById('jw-tanggal-selesai').value;
+    const jamSelesai = document.getElementById('jw-jam-selesai').value;
+
+    if(!tanggal || !jam){ alert('Isi tanggal dan jam mulai ujian.'); return false; }
+    if(!durasi || durasi < 5){ alert('Durasi minimal 5 menit.'); return false; }
+    if(!tingkat){ alert('Pilih tingkat terlebih dahulu.'); return false; }
+    if(jwSelectedPeserta.size === 0){ alert('Pilih minimal satu peserta.'); return false; }
+    if(jamSelesai && !tglSelesai){ alert('Isi tanggal selesai, atau kosongkan jam selesai.'); return false; }
+    if(tglSelesai){
+      const mulaiDt = new Date(tanggal + 'T' + jam);
+      const selesaiDt = new Date(tglSelesai + 'T' + (jamSelesai || '23:59'));
+      if(selesaiDt <= mulaiDt){ alert('Jadwal selesai harus setelah jam mulai ujian.'); return false; }
+    }
+
+    const record = {
+      questionSetId: jwSetId, tanggal, jamMulai: jam, durasiMenit: durasi,
+      tanggalSelesai: tglSelesai || null, jamSelesai: jamSelesai || null,
+      tingkat, kelas: Array.from(jwSelectedKelas), peserta: Array.from(jwSelectedPeserta),
+      acakSoal: document.getElementById('jw-acak-soal').checked,
+      acakOpsi: document.getElementById('jw-acak-opsi').checked,
+      tampilkanNilai: document.getElementById('jw-tampil-nilai').checked,
+      token: document.getElementById('jw-token').value.trim()
+    };
+
+    const conflicts = jwFindConflicts(record, editingJwId);
+    if(conflicts.length){
+      const lines = conflicts.slice(0, 4).map(c => `• ${c.judul} (${c.tanggal} ${c.jam}) — ${c.shared} peserta sama`).join('\n');
+      const more = conflicts.length > 4 ? `\n…dan ${conflicts.length - 4} jadwal lain.` : '';
+      if(!confirm(`Ada peserta yang sudah punya ujian lain di jam yang bertumpuk:\n\n${lines}${more}\n\nTetap simpan jadwal ini?`)) return false;
+    }
+
+    const dbRecord = {
+      question_set_id: record.questionSetId, tanggal: record.tanggal, jam_mulai: record.jamMulai,
+      durasi_menit: record.durasiMenit, tanggal_selesai: record.tanggalSelesai, jam_selesai: record.jamSelesai,
+      tingkat: record.tingkat, kelas: record.kelas, peserta: record.peserta,
+      acak_soal: record.acakSoal, acak_opsi: record.acakOpsi, tampilkan_nilai: record.tampilkanNilai,
+      token: record.token || null
+    };
+
+    const btn = document.getElementById('jw-submit-btn');
+    btn.disabled = true;
+    const wasEditing = !!editingJwId;
+    let result;
+    if(wasEditing){
+      result = await sb.from('schedules').update(dbRecord).eq('id', editingJwId).select().single();
+    } else {
+      result = await sb.from('schedules').insert(dbRecord).select().single();
+    }
+    btn.disabled = false;
+    if(result.error){
+      alert('Jadwal gagal disimpan: ' + result.error.message);
+      return false;
+    }
+    const saved = mapSchedule(result.data);
+    const idx = schedules.findIndex(s => s.id === saved.id);
+    if(idx > -1) schedules[idx] = saved; else schedules.push(saved);
+
+    resetJwForm();
+    refreshScheduleViews();
+    flashJw(wasEditing ? 'Jadwal ujian berhasil diperbarui.' : 'Jadwal ujian berhasil dibuat. Jadwal sudah tampil di akun guru dan siswa peserta.');
+    document.getElementById('jw-form').scrollIntoView({ behavior:'smooth', block:'start' });
+    return false;
+  }
+
+  // Kosongkan isian jadwal; guru yang dipilih dipertahankan supaya bisa lanjut menjadwalkan paket berikutnya.
+  function resetJwForm(){
+    editingJwId = null;
+    document.getElementById('jw-form').classList.remove('editing');
+    document.getElementById('jw-card-title').textContent = 'Buat jadwal ujian';
+    document.getElementById('jw-submit-label').textContent = 'Simpan Jadwal';
+    ['jw-tanggal','jw-jam','jw-durasi','jw-tanggal-selesai','jw-jam-selesai','jw-token'].forEach(id => { document.getElementById(id).value = ''; });
+    ['jw-acak-soal','jw-acak-opsi','jw-tampil-nilai'].forEach(id => { document.getElementById(id).checked = false; });
+    jwSelectedKelas = new Set();
+    jwSelectedPeserta = new Set();
+    jwSetId = '';
+    document.getElementById('jw-tingkat').innerHTML = '';
+    document.getElementById('jw-tingkat-hint').textContent = '';
+    renderJwKelasGrid();
+    renderJwPesertaList();
+    lockJwStep3();
+    renderJwSets();
+  }
+
+  function cancelJwEdit(){
+    resetJwForm();
+  }
+
+  /* ---------- daftar jadwal + edit/hapus ---------- */
+  function renderJwList(){
+    const wrap = document.getElementById('jw-table-wrap');
+    const countEl = document.getElementById('jw-count');
+    const q = document.getElementById('jw-search').value.trim().toLowerCase();
+    countEl.textContent = schedules.length + ' jadwal ujian';
+    if(schedules.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal ujian</strong>Buat jadwal lewat formulir di atas.</div>`;
+      return;
+    }
+    const rows = schedules.map(j => {
+      const qs = questionSets.find(x => x.id === j.questionSetId);
+      return { j, qs, g: jwGuruOf(qs), s: jwSubjectOf(qs) };
+    }).filter(({ j, qs, g }) => {
+      if(!q) return true;
+      return (qs && qs.judul.toLowerCase().includes(q)) ||
+        (g && g.nama.toLowerCase().includes(q)) ||
+        j.kelas.some(k => String(k).toLowerCase().includes(q));
+    }).sort((a, b) => (b.j.tanggal + (b.j.jamMulai || '')).localeCompare(a.j.tanggal + (a.j.jamMulai || '')));
+
+    if(rows.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada jadwal yang cocok dengan pencarian.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Paket soal</th><th>Guru</th><th>Tanggal</th><th>Kelas</th><th>Peserta</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(({ j, qs, g, s }) => {
+          const st = jwStatus(j);
+          return `<tr>
+            <td data-label="Paket soal" class="cell-primary">${qs ? escapeHtml(qs.judul) : 'Paket dihapus'}${s ? `<br><span class="cell-muted" style="font-size:12px; font-weight:400;">${escapeHtml(s.nama)}</span>` : ''}</td>
+            <td data-label="Guru" class="${g ? '' : 'cell-warn'}">${g ? escapeHtml(g.nama) : '—'}</td>
+            <td data-label="Tanggal">${escapeHtml(j.tanggal)} · ${escapeHtml(jwJam(j.jamMulai))}${j.tanggalSelesai ? `<br><span class="cell-muted" style="font-size:12px;">s.d. ${escapeHtml(j.tanggalSelesai)} ${escapeHtml(jwJam(j.jamSelesai) || '23:59')}</span>` : ''}</td>
+            <td data-label="Kelas" class="cell-muted">${j.kelas.map(escapeHtml).join(', ') || '—'}</td>
+            <td data-label="Peserta">${j.peserta.length}</td>
+            <td data-label="Status"><span class="badge badge-${st}"><span class="badge-dot"></span>${JW_STATUS_LABEL[st]}</span></td>
+            <td class="cell-action"><div class="row-actions">
+              <button class="icon-btn" onclick="editJwSchedule('${j.id}')" aria-label="Edit jadwal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5Z"/><path d="m15 5 4 4"/></svg>
+              </button>
+              <button class="icon-btn" onclick="deleteJadwalAdmin('${j.id}')" aria-label="Hapus jadwal ujian">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  async function editJwSchedule(id){
+    const j = schedules.find(x => x.id === id);
+    if(!j) return;
+    const qs = questionSets.find(x => x.id === j.questionSetId);
+    const g = jwGuruOf(qs);
+    if(!qs || !g){
+      alert('Paket soal atau guru untuk jadwal ini sudah tidak ada, jadi jadwal tidak bisa diedit. Hapus jadwal ini lalu buat ulang.');
+      return;
+    }
+    resetJwForm();
+    editingJwId = id;
+    document.getElementById('jw-form').classList.add('editing');
+    document.getElementById('jw-card-title').textContent = 'Edit jadwal ujian';
+    document.getElementById('jw-submit-label').textContent = 'Simpan Perubahan';
+    document.getElementById('jw-form').scrollIntoView({ behavior:'smooth', block:'start' });
+
+    const gsel = document.getElementById('jw-guru');
+    gsel.value = g.id;
+    await onJwGuruChange(qs.id);
+    if(editingJwId !== id || jwSetId !== qs.id) return; // pengguna sudah berpindah selama memuat
+
+    document.getElementById('jw-tanggal').value = j.tanggal || '';
+    document.getElementById('jw-jam').value = jwJam(j.jamMulai);
+    document.getElementById('jw-durasi').value = j.durasiMenit || '';
+    document.getElementById('jw-tanggal-selesai').value = j.tanggalSelesai || '';
+    document.getElementById('jw-jam-selesai').value = jwJam(j.jamSelesai);
+    document.getElementById('jw-token').value = j.token || '';
+    document.getElementById('jw-acak-soal').checked = !!j.acakSoal;
+    document.getElementById('jw-acak-opsi').checked = !!j.acakOpsi;
+    document.getElementById('jw-tampil-nilai').checked = !!j.tampilkanNilai;
+
+    const tsel = document.getElementById('jw-tingkat');
+    if(j.tingkat && !Array.from(tsel.options).some(o => o.value === j.tingkat)){
+      tsel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(j.tingkat)}">${escapeHtml(j.tingkat)}</option>`);
+    }
+    tsel.value = j.tingkat || '';
+    jwSelectedKelas = new Set(j.kelas);
+    jwSelectedPeserta = new Set(j.peserta);
+    renderJwKelasGrid();
+    renderJwPesertaList();
+  }
+
+  /* ---------- lihat soal (baca saja) ---------- */
+  function jwRenderTabel(tabel){
+    if(!tabel || !Array.isArray(tabel.rows) || !tabel.rows.length) return '';
+    const head = tabel.header ? tabel.rows[0] : null;
+    const body = tabel.header ? tabel.rows.slice(1) : tabel.rows;
+    return `<div class="q-table-wrap"><table class="q-table">
+      ${head ? `<thead><tr>${head.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>` : ''}
+      <tbody>${body.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  function jwRenderQuestionBody(q){
+    let html = `<div class="jw-q-text">${escapeHtml(q.teks || '')}</div>`;
+    const img = jwSafeImg(q.gambar);
+    if(img) html += `<img src="${img}" alt="Gambar soal">`;
+    html += jwRenderTabel(q.tabel);
+
+    if(q.type === 'pg' || q.type === 'pgk'){
+      const isKey = o => q.type === 'pg' ? (!!q.kunciId && o.id === q.kunciId) : q.kunciIds.includes(o.id);
+      html += q.opsi.map((o, i) => {
+        const oi = jwSafeImg(o.gambar);
+        return `<div class="jw-opt ${isKey(o) ? 'key' : ''}">
+          <span class="jw-opt-l">${String.fromCharCode(65 + i)}.</span>
+          <span>${escapeHtml(o.teks || '')}${oi ? `<br><img src="${oi}" alt="">` : ''}${isKey(o) ? ' ✓ kunci' : ''}</span>
+        </div>`;
+      }).join('');
+    } else if(q.type === 'bs'){
+      const kat = Array.isArray(q.kategori) && q.kategori.length === 2 ? q.kategori : ['Benar', 'Salah'];
+      html += kat.map((label, i) => `<div class="jw-opt ${q.kunciKategori === i ? 'key' : ''}">
+        <span class="jw-opt-l">${String.fromCharCode(65 + i)}.</span>
+        <span>${escapeHtml(label)}${q.kunciKategori === i ? ' ✓ kunci' : ''}</span>
+      </div>`).join('');
+      if(q.kunciKategori === null || q.kunciKategori === undefined) html += `<div class="jw-note">Tanpa kunci pasti — dinilai manual</div>`;
+    } else if(q.type === 'bsg' || q.type === 'rb'){
+      const kat = Array.isArray(q.kategori) && q.kategori.length >= 2 ? q.kategori
+        : (q.type === 'bsg' ? ['Benar', 'Salah'] : ['Kolom 1', 'Kolom 2']);
+      html += `<div class="jw-sub">${q.type === 'rb' ? 'Kolom' : 'Kategori'}: ${kat.map(k => `<b>${escapeHtml(k)}</b>`).join(' / ')}</div>`;
+      html += q.pernyataan.map((p, i) => {
+        const hasKey = p.kunci !== null && p.kunci !== undefined && kat[p.kunci] !== undefined;
+        return `<div class="jw-stmt">
+          <div>${i + 1}. ${escapeHtml(p.teks || '(kosong)')}</div>
+          <div class="jw-stmt-key ${hasKey ? 'ok' : ''}">${hasKey ? '✓ kunci: ' + escapeHtml(kat[p.kunci]) : 'Tanpa kunci — dinilai manual'}</div>
+        </div>`;
+      }).join('');
+    } else {
+      html += `<div class="jw-note">Soal esai — selalu dinilai manual</div>`;
+    }
+    return html;
+  }
+
+  function openJwPreview(setId){
+    const qs = jwSets.find(x => x.id === setId);
+    if(!qs) return;
+    jwPreviewSetId = setId;
+    const s = jwSubjectOf(qs);
+    const g = jwGuruOf(qs);
+    const totalPoin = qs.soal.reduce((n, x) => n + (Number(x.poin) || 0), 0);
+    document.getElementById('jw-pv-title').textContent = qs.judul;
+    document.getElementById('jw-pv-meta').textContent =
+      `${g ? g.nama : '—'} · ${s ? s.nama : '—'} · ${qs.tingkat ? 'Tingkat ' + qs.tingkat : 'Semua tingkat'} · ${qs.soal.length} soal · ${totalPoin} poin`;
+
+    const body = document.getElementById('jw-pv-body');
+    if(qs.soal.length === 0){
+      body.innerHTML = `<div class="empty-state"><strong>Paket ini belum berisi soal</strong></div>`;
+    } else {
+      // Bacaan yang dipakai beberapa soal berurutan cukup ditampilkan sekali di awal kelompoknya.
+      const soal = qs.soal;
+      body.innerHTML = soal.map((q, i) => {
+        let bacaanHtml = '';
+        if(q.bacaan && (i === 0 || soal[i - 1].bacaan !== q.bacaan)){
+          let end = i;
+          while(end + 1 < soal.length && soal[end + 1].bacaan === q.bacaan) end++;
+          bacaanHtml = `<div class="jw-bacaan">
+            <div class="jw-bacaan-label">${end > i ? `Bacaan untuk soal no. ${i + 1}–${end + 1}` : 'Bacaan'}</div>
+            <div class="jw-bacaan-text">${escapeHtml(q.bacaan)}</div>
+          </div>`;
+        }
+        return `${bacaanHtml}<div class="jw-q">
+          <div class="jw-q-head">
+            <span class="jw-q-no">${i + 1}</span>
+            <span class="jw-q-tag">${escapeHtml(JW_TYPE_LABEL[q.type] || q.type)}</span>
+            <span class="jw-q-tag">${Number(q.poin) || 10} poin</span>
+          </div>
+          ${jwRenderQuestionBody(q)}
+        </div>`;
+      }).join('');
+    }
+    body.scrollTop = 0;
+    const pick = document.getElementById('jw-pv-pick');
+    pick.textContent = setId === jwSetId ? 'Paket ini sudah dipilih' : 'Pilih paket ini';
+    pick.disabled = setId === jwSetId;
+    document.getElementById('jwPreviewBg').classList.add('open');
+  }
+  function closeJwPreview(){
+    document.getElementById('jwPreviewBg').classList.remove('open');
+  }
+  function pickFromJwPreview(){
+    const id = jwPreviewSetId;
+    closeJwPreview();
+    if(!id) return;
+    selectJwSet(id);
+    document.getElementById('jw-step3').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeJwPreview(); });
 
   /* ---------- shared cancel/edit reset ---------- */
   function cancelEdit(kind){
@@ -1630,15 +2622,15 @@
       sb.from('profiles').select('id,nama,username,email').eq('role', 'guru').order('nama'),
       sb.from('subjects').select('*').order('nama'),
       sb.from('supervisors').select('*'),
-      sb.from('question_sets').select('id,subject_id,judul'),
-      sb.from('schedules').select('id,question_set_id,tanggal,jam_mulai,token')
+      sb.from('question_sets').select('id,subject_id,judul,status,tingkat'),
+      sb.from('schedules').select('*')
     ]);
     users = usersRes.data || [];
     guru = guruRes.data || [];
     subjects = (subjectsRes.data || []).map(mapSubject);
     supervisors = (supervisorsRes.data || []).map(mapSupervisor);
     questionSets = (questionSetsRes.data || []).map(mapQuestionSet);
-    schedules = (schedulesRes.data || []).map(mapScheduleForToken);
+    schedules = (schedulesRes.data || []).map(mapSchedule);
 
     renderUsers();
     renderGuru();
@@ -1646,6 +2638,11 @@
     renderSubjects();
     renderSupervisors();
     renderTokens();
+    populateJwGuruSelect();
+    renderJwSets();
+    renderJwKelasGrid();
+    renderJwPesertaList();
+    renderJwList();
   }
   init();
 </script>
