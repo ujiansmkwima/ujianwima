@@ -303,6 +303,18 @@
     max-width:45vw;
   }
   .search-wrap input:focus{ border-color:var(--wine); background:var(--paper); }
+  .list-tools{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+  .list-filter{
+    font-family:inherit;
+    font-size:13.5px;
+    padding:8px 10px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:var(--cream);
+    color:var(--ink);
+    max-width:220px;
+  }
+  .list-filter:focus{ border-color:var(--wine); background:var(--paper); outline:none; }
 
   table{ width:100%; border-collapse:collapse; }
   thead th{
@@ -493,6 +505,8 @@
     .form-grid{ grid-template-columns:1fr; }
     .list-head{ flex-direction:column; align-items:stretch; }
     .search-wrap input{ width:100%; max-width:none; }
+    .list-tools{ flex-direction:column; align-items:stretch; }
+    .list-filter{ width:100%; max-width:none; }
 
     table thead{ display:none; }
     table, tbody, tr, td{ display:block; width:100%; }
@@ -643,9 +657,14 @@
     <div class="list-card">
       <div class="list-head">
         <span class="list-count" id="u-count">Memuat…</span>
-        <div class="search-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="u-search" placeholder="Cari nama atau kelas" oninput="renderUsers()">
+        <div class="list-tools">
+          <select id="u-kelas-filter" class="list-filter" aria-label="Filter per kelas" onchange="renderUsers()">
+            <option value="">Semua kelas</option>
+          </select>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="u-search" placeholder="Cari nama atau kelas" oninput="renderUsers()">
+          </div>
         </div>
       </div>
       <div id="u-table-wrap"></div>
@@ -1484,8 +1503,27 @@
   }
   function renderUsers(){
     const q = document.getElementById('u-search').value.trim().toLowerCase();
-    const rows = users.filter(u => !q || u.nama.toLowerCase().includes(q) || u.kelas.toLowerCase().includes(q));
-    document.getElementById('u-count').textContent = users.length + ' pengguna terdaftar';
+
+    // Filter kelas: daftar opsi dibangun dari data siswa (lengkap dengan jumlah siswa per kelas)
+    const kelasSel = document.getElementById('u-kelas-filter');
+    const kelasCount = new Map();
+    users.forEach(u => { const k = (u.kelas || '').trim(); if(k) kelasCount.set(k, (kelasCount.get(k) || 0) + 1); });
+    const kelasList = Array.from(kelasCount.keys()).sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+    let kelasVal = kelasSel.value;
+    if(kelasVal && !kelasCount.has(kelasVal)) kelasVal = '';
+    kelasSel.innerHTML = `<option value="">Semua kelas (${users.length})</option>` +
+      kelasList.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)} (${kelasCount.get(k)})</option>`).join('');
+    kelasSel.value = kelasVal;
+
+    const rows = users.filter(u =>
+      (!kelasVal || (u.kelas || '').trim() === kelasVal) &&
+      (!q || u.nama.toLowerCase().includes(q) || u.kelas.toLowerCase().includes(q)));
+
+    // Jumlah siswa: total, per kelas terpilih, dan hasil pencarian
+    const countEl = document.getElementById('u-count');
+    if(!kelasVal && !q) countEl.textContent = users.length + ' siswa terdaftar';
+    else if(kelasVal && !q) countEl.textContent = rows.length + ' siswa di kelas ' + kelasVal + ' (dari ' + users.length + ' siswa)';
+    else countEl.textContent = rows.length + ' dari ' + users.length + ' siswa ditampilkan';
     const wrap = document.getElementById('u-table-wrap');
 
     if(users.length === 0){
@@ -1493,7 +1531,7 @@
       return;
     }
     if(rows.length === 0){
-      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada pengguna yang cocok dengan pencarian.</div>`;
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ditemukan</strong>Tidak ada siswa yang cocok dengan filter atau pencarian.</div>`;
       return;
     }
     wrap.innerHTML = `<table>
