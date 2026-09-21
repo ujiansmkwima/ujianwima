@@ -390,6 +390,37 @@
   .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .table-scroll table{ width:100%; }
 
+  /* ---------- Analisis Butir Soal ---------- */
+  .an-toolbar{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .an-pdfinfo{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:10px 16px; margin-bottom:18px; }
+  .an-pdfinfo summary{ cursor:pointer; font-size:12.5px; font-weight:700; color:var(--slate); }
+  .an-pdfinfo-grid{ display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; }
+  .an-card{ margin-bottom:18px; }
+  .an-card-title{ font-size:14px; font-weight:700; }
+  .an-legend{ padding:12px 16px; font-size:12px; color:var(--slate); line-height:1.65; border-bottom:1px solid var(--line); background:var(--cream); }
+  .an-legend strong{ color:var(--ink); }
+  .table-scroll table.an-table{ min-width:1000px; }
+  .table-scroll table.an-mini{ min-width:0; }
+  .an-table td, .an-table th{ vertical-align:top; }
+  .table-scroll tbody td.an-soal{ white-space:normal; min-width:220px; max-width:300px; line-height:1.45; }
+  .table-scroll tbody td.an-wrap{ white-space:normal; min-width:150px; }
+  .an-sub{ display:block; font-size:11.5px; color:var(--slate); margin-top:3px; }
+  .an-chip{ display:inline-block; font-size:11.5px; font-weight:600; padding:2px 8px; border-radius:99px; background:var(--mist); color:var(--slate); margin:0 4px 4px 0; white-space:nowrap; }
+  .an-chip.key{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .an-chip.dead{ background:var(--red-soft); color:var(--red); }
+  .an-flags{ font-size:11.5px; color:var(--slate); margin-top:6px; line-height:1.5; }
+  .table-scroll tbody td.an-c-hi{ background:var(--emerald-soft); color:var(--emerald-dark); font-weight:700; text-align:center; }
+  .table-scroll tbody td.an-c-mid{ background:var(--amber-soft); color:#8A6414; font-weight:700; text-align:center; }
+  .table-scroll tbody td.an-c-lo{ background:var(--red-soft); color:var(--red); font-weight:700; text-align:center; }
+  .table-scroll tbody td.an-c-na{ text-align:center; color:var(--slate); }
+  .an-rtl{ padding:6px 18px 18px; }
+  .an-rtl h3{ font-size:14px; margin:20px 0 6px; letter-spacing:-0.01em; }
+  .an-rtl p{ font-size:13.5px; line-height:1.65; margin:0 0 8px; }
+  .an-rtl ul{ margin:0 0 10px; padding-left:20px; font-size:13.5px; line-height:1.65; }
+  .an-rtl .table-scroll{ border:1px solid var(--line); border-radius:10px; margin:6px 0 10px; }
+  .an-rtl textarea{ width:100%; min-height:96px; font-family:inherit; font-size:13.5px; line-height:1.55; padding:10px 12px; border:1.5px solid var(--line); border-radius:8px; background:var(--cream); resize:vertical; }
+  .an-rtl textarea:focus{ border-color:var(--emerald); background:var(--paper); }
+
   /* ---------- Mobile ---------- */
   @media (max-width:680px){
     .form-grid{ grid-template-columns:1fr; }
@@ -569,6 +600,10 @@
     <button class="tab" onclick="showPanel('panel-rekap', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
       Rekap
+    </button>
+    <button class="tab" onclick="showPanel('panel-analisis', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      Analisis
     </button>
   </nav>
 </div>
@@ -1039,6 +1074,50 @@ D. Medan
     </div>
   </section>
 
+  <!-- ============================================================ PANEL: ANALISIS BUTIR SOAL ============================================================ -->
+  <section id="panel-analisis" class="panel">
+    <div class="section-head">
+      <h1>Analisis Butir Soal</h1>
+      <p>Tingkat kesukaran, daya pembeda, dan sebaran jawaban tiap butir soal per kelas, lengkap dengan rencana tindak lanjut.</p>
+    </div>
+
+    <div class="an-toolbar">
+      <label class="field" style="max-width:420px; flex:1 1 260px;">
+        <span>Pilih jadwal ujian</span>
+        <select id="an-jadwal" onchange="anJadwalChanged()"></select>
+      </label>
+      <label class="field" style="max-width:150px; flex:1 1 130px;">
+        <span>KKM (batas tuntas)</span>
+        <input type="number" id="an-kkm" value="75" min="0" max="100" step="1" onchange="renderAnalisis()">
+      </label>
+    </div>
+
+    <details class="an-pdfinfo">
+      <summary>Informasi untuk PDF (opsional, hanya tampil di dokumen yang diunduh)</summary>
+      <div class="an-pdfinfo-grid">
+        <label class="field" style="max-width:280px; flex:1 1 240px;">
+          <span>Jenis Ujian</span>
+          <input type="text" id="an-jenis-ujian" placeholder="mis. Penilaian Akhir Semester (PAS)">
+        </label>
+        <label class="field" style="max-width:170px; flex:1 1 150px;">
+          <span>Tahun Ajaran</span>
+          <input type="text" id="an-tahun-ajaran" placeholder="2025/2026">
+        </label>
+        <label class="field" style="max-width:230px; flex:1 1 200px;">
+          <span>Jurusan</span>
+          <select id="an-jurusan">
+            <option value="">— tidak dicantumkan —</option>
+            <option value="Animasi">Animasi</option>
+            <option value="Teknik Sepeda Motor">Teknik Sepeda Motor</option>
+          </select>
+        </label>
+      </div>
+    </details>
+
+    <div class="subtabs" id="an-kelas-pills"></div>
+    <div id="an-content"></div>
+  </section>
+
 </div>
 
 <!-- ============ MODAL: PRATINJAU SOAL SEPERTI TAMPILAN SISWA ============ -->
@@ -1271,6 +1350,8 @@ function refreshAll(){
   renderMonitoringGate();
   populateRekapJadwalSelect();
   renderRekap();
+  populateAnalisisJadwalSelect();
+  renderAnalisis();
 }
 
 /* ---------- tab / subtab switching ---------- */
@@ -1291,6 +1372,9 @@ function showPanel(id, el){
     startTokenAutoRefresh();
   } else {
     stopTokenAutoRefresh();
+  }
+  if(id === 'panel-analisis'){
+    refreshAnalisis();
   }
 }
 function showSubtab(id, el){
@@ -3536,6 +3620,709 @@ function exportRekapPDF(){
   const fname = `Rekap Nilai - ${jadwalLabel.replace(/[\\/:*?"<>|]/g,'-')}${kelasLabel !== 'Semua Kelas' ? ' - ' + kelasLabel : ''}.pdf`;
   doc.save(fname);
 }
+
+/* ============================================================
+   ANALISIS BUTIR SOAL & RENCANA TINDAK LANJUT
+   Analisis klasik per kelas: tingkat kesukaran, daya pembeda (kelompok
+   atas/bawah 27%), dan sebaran jawaban/pengecoh. Hasilnya dipakai untuk
+   menyusun rencana tindak lanjut (remedial, pengayaan, penguatan materi,
+   perbaikan butir soal). Memakai data yang sudah ada — tanpa perubahan skema.
+============================================================ */
+const AN_ALL = '__all__';
+const AN_KLASIKAL_MIN = 75;      // ketuntasan klasikal minimal (%)
+const AN_LOW_P = 0.5;            // butir yang dijawab benar < 50% siswa → materi perlu diajarkan ulang
+const AN_DISTRACTOR_MIN = 0.05;  // pengecoh dianggap berfungsi bila dipilih >= 5% peserta
+const AN_MIN_PESERTA_DP = 4;     // minimal peserta agar daya pembeda dihitung
+let anKelas = AN_ALL;
+let anLast = null;               // hasil render terakhir (dipakai ekspor Excel/PDF)
+let anRefreshInFlight = false;
+
+function anMean(arr){ return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null; }
+function anRound(v){ return v === null ? null : Math.round(v * 10000) / 10000; }
+function anFmt(v, d){
+  if(v === null || v === undefined || isNaN(v)) return '—';
+  return Number(v).toFixed(d === undefined ? 2 : d).replace('.', ',');
+}
+function anPctStr(p){ return (p === null || p === undefined) ? '—' : Math.round(p * 100) + '%'; }
+function anShort(str, n){ const t = nl2sp(str); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
+function anNum(v){ return typeof v === 'number' && isFinite(v); }
+
+// Kriteria umum analisis butir: sukar < 0,30 · sedang 0,30–0,70 · mudah > 0,70
+function anKatP(p){
+  if(p === null) return null;
+  return p < 0.30 ? 'Sukar' : (p <= 0.70 ? 'Sedang' : 'Mudah');
+}
+// Daya pembeda: >= 0,40 sangat baik · 0,30–0,39 baik · 0,20–0,29 cukup · 0–0,19 jelek · < 0 sangat jelek
+function anKatD(d){
+  if(d === null) return null;
+  if(d >= 0.40) return 'Sangat baik';
+  if(d >= 0.30) return 'Baik';
+  if(d >= 0.20) return 'Cukup';
+  return d >= 0 ? 'Jelek' : 'Sangat jelek';
+}
+function anBadgeP(k){ return k === 'Sukar' ? 'badge-warn' : (k === 'Sedang' ? 'badge-selesai' : 'badge-mengerjakan'); }
+function anBadgeD(k){ return (k === 'Sangat baik' || k === 'Baik') ? 'badge-selesai' : (k === 'Cukup' ? 'badge-mengerjakan' : 'badge-warn'); }
+function anBadgeKep(k){ return k === 'Diterima' ? 'badge-selesai' : (k === 'Direvisi' ? 'badge-mengerjakan' : (k === 'Diganti' ? 'badge-warn' : 'badge-belum')); }
+
+// Skor satu butir untuk satu peserta (0..1), mengikuti aturan gradeAttempt di siswa.html.
+// null = belum bisa dinilai (esai / soal tanpa kunci yang belum diberi nilai oleh guru).
+function anScoreItem(q, at){
+  const type = q.type || 'pg';
+  const a = (at.jawaban || {})[q.id];
+  const poin = q.poin || 10;
+  if(type === 'bsg' || type === 'rb'){
+    const ps = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const keyed = ps.length > 0 && ps.every(p => type === 'bsg' ? (p.kunci === 0 || p.kunci === 1) : Number.isInteger(p.kunci));
+    if(keyed){
+      const ans = (a && typeof a === 'object') ? a : {};
+      return ps.filter(p => ans[p.id] === p.kunci).length / ps.length;
+    }
+  } else if(type === 'pg' && q.kunciId){
+    return a === q.kunciId ? 1 : 0;
+  } else if(type === 'pgk' && Array.isArray(q.kunciIds) && q.kunciIds.length){
+    if(!Array.isArray(a)) return 0;
+    const sa = [...a].sort(), sk = [...q.kunciIds].sort();
+    return (sa.length === sk.length && sa.every((v, i) => v === sk[i])) ? 1 : 0;
+  } else if(type === 'bs' && (q.kunciKategori === 0 || q.kunciKategori === 1)){
+    return a === q.kunciKategori ? 1 : 0;
+  }
+  const ms = at.penilaian && at.penilaian.manualScores;
+  if(ms && anNum(ms[q.id])) return Math.min(Math.max(ms[q.id] / poin, 0), 1);
+  return null;
+}
+
+// rows: [{ u, at }] — peserta yang sudah selesai.
+function anAnalyzeGroup(qs, rows){
+  const soal = (qs && qs.soal) || [];
+  const students = rows.map(r => {
+    const fr = soal.map(q => anScoreItem(q, r.at));
+    const total = fr.reduce((s, f, i) => s + (f === null ? 0 : f * (soal[i].poin || 10)), 0);
+    const salah = [];
+    fr.forEach((f, i) => { if(f !== null && f < 0.5) salah.push(i); });
+    return { u: r.u, at: r.at, nilai: anNum(r.at.nilai) ? r.at.nilai : 0, fr, total, salah };
+  });
+  const N = students.length;
+  const ranked = students.slice().sort((a, b) => (b.total - a.total) || a.u.nama.localeCompare(b.u.nama, 'id'));
+  const g = Math.max(1, Math.round(N * 0.27));
+  const upper = ranked.slice(0, g);
+  const lower = ranked.slice(Math.max(0, N - g));
+  const canDP = N >= AN_MIN_PESERTA_DP;
+
+  const items = soal.map((q, i) => {
+    const type = q.type || 'pg';
+    const vals = students.map(s => s.fr[i]).filter(f => f !== null);
+    const p = anRound(anMean(vals));
+    let D = null;
+    if(canDP){
+      const uv = upper.map(s => s.fr[i]).filter(f => f !== null);
+      const lv = lower.map(s => s.fr[i]).filter(f => f !== null);
+      if(uv.length && lv.length) D = anRound(anMean(uv) - anMean(lv));
+    }
+    const it = {
+      no: i + 1, q, type, poin: q.poin || 10, n: vals.length, belumDinilai: N - vals.length,
+      p, pKat: anKatP(p), D, dKat: anKatD(D), dist: null, kosong: 0, flags: [], keputusan: null
+    };
+
+    // ---- sebaran jawaban ----
+    const ansOf = s => (s.at.jawaban || {})[q.id];
+    if((type === 'pg' || type === 'pgk') && Array.isArray(q.opsi) && q.opsi.length){
+      const isKey = o => type === 'pg' ? o.id === q.kunciId : (q.kunciIds || []).includes(o.id);
+      const opts = q.opsi.map((o, oi) => ({ label: String.fromCharCode(65 + oi), id: o.id, key: isKey(o), count: 0, up: 0, lo: 0 }));
+      students.forEach(s => {
+        const a = ansOf(s);
+        if(type === 'pg'){
+          const o = opts.find(x => x.id === a);
+          if(o) o.count++; else it.kosong++;
+        } else if(Array.isArray(a) && a.length){
+          a.forEach(id => { const o = opts.find(x => x.id === id); if(o) o.count++; });
+        } else it.kosong++;
+      });
+      if(type === 'pg'){
+        upper.forEach(s => { const o = opts.find(x => x.id === ansOf(s)); if(o) o.up++; });
+        lower.forEach(s => { const o = opts.find(x => x.id === ansOf(s)); if(o) o.lo++; });
+        if(q.kunciId && N > 0){
+          const dead = opts.filter(o => !o.key && o.count / N < AN_DISTRACTOR_MIN);
+          if(dead.length) it.flags.push(`Pengecoh ${dead.map(o => o.label).join(', ')} kurang berfungsi (dipilih < 5% peserta)`);
+          if(canDP){
+            const keyO = opts.find(o => o.key);
+            const topD = opts.filter(o => !o.key).sort((a, b) => b.up - a.up)[0];
+            if(keyO && topD && topD.up > keyO.up) it.flags.push(`Kelompok atas lebih banyak memilih pengecoh ${topD.label} daripada kunci — periksa kunci jawaban`);
+          }
+        }
+      }
+      it.dist = opts;
+    } else if(type === 'bs'){
+      const kat = (Array.isArray(q.kategori) && q.kategori.length === 2) ? q.kategori : ['Benar', 'Salah'];
+      const opts = kat.map((k, ki) => ({ label: k, key: q.kunciKategori === ki, count: 0 }));
+      students.forEach(s => { const a = ansOf(s); if(a === 0 || a === 1) opts[a].count++; else it.kosong++; });
+      it.dist = opts;
+    }
+
+    // ---- keputusan butir ----
+    if(D !== null){
+      it.keputusan = D >= 0.30 ? 'Diterima' : (D >= 0 ? 'Direvisi' : 'Diganti');
+      if(D < 0) it.flags.unshift('Daya pembeda negatif (kelompok bawah lebih banyak benar) — periksa kunci dan redaksi soal');
+    }
+    if(p !== null && p > 0.90) it.flags.push('Terlalu mudah (hampir semua siswa menjawab benar)');
+    if(p !== null && p < 0.20) it.flags.push('Terlalu sukar (sangat sedikit siswa menjawab benar)');
+    if(it.belumDinilai > 0 && N > 0 && it.n > 0) it.flags.push(`${it.belumDinilai} jawaban belum dinilai guru`);
+    return it;
+  });
+  return { N, items, students, upperSize: g, canDP };
+}
+
+function anClassList(j){
+  const ks = (j.peserta || []).map(uid => users.find(x => x.id === uid)).filter(Boolean).map(u => u.kelas).filter(Boolean);
+  return Array.from(new Set(ks)).sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+}
+
+function anBuildView(j, kelasKey, kkm){
+  const qs = questionSets.find(x => x.id === j.questionSetId);
+  if(!qs) return null;
+  const pesertaAll = (j.peserta || []).map(uid => users.find(x => x.id === uid)).filter(Boolean);
+  const scope = kelasKey === AN_ALL ? pesertaAll : pesertaAll.filter(u => u.kelas === kelasKey);
+  const rows = scope.map(u => ({ u, at: findAttempt(j.id, u.id) })).filter(r => r.at && r.at.status === 'selesai');
+  const res = anAnalyzeGroup(qs, rows);
+  const nilai = res.students.map(s => s.nilai);
+  const tuntas = nilai.filter(v => v >= kkm).length;
+  const stat = {
+    peserta: scope.length, selesai: res.N, rata: anMean(nilai),
+    maks: nilai.length ? Math.max(...nilai) : null, min: nilai.length ? Math.min(...nilai) : null,
+    tuntas, remidi: res.N - tuntas, klasikal: res.N ? tuntas / res.N * 100 : null
+  };
+  return { qs, kelas: kelasKey, label: kelasKey === AN_ALL ? 'Semua kelas' : 'Kelas ' + kelasKey, stat, ...res };
+}
+
+function anJadwalLabel(j){
+  const qs = questionSets.find(x => x.id === j.questionSetId);
+  return `${qs ? qs.judul : 'Paket dihapus'} — ${j.tanggal}`;
+}
+
+function anGetKKM(){
+  const v = parseInt(document.getElementById('an-kkm').value, 10);
+  return isNaN(v) ? 75 : v;
+}
+
+/* ---------- pilihan jadwal & kelas ---------- */
+function populateAnalisisJadwalSelect(){
+  const sel = document.getElementById('an-jadwal');
+  if(!sel) return;
+  const current = sel.value;
+  const mySubjIds = mySubjects().map(s => s.id);
+  const mySetIds = questionSets.filter(qs => mySubjIds.includes(qs.subjectId)).map(qs => qs.id);
+  const mine = schedules.filter(s => mySetIds.includes(s.questionSetId));
+  if(mine.length === 0){
+    sel.innerHTML = `<option value="">Belum ada jadwal ujian</option>`;
+    return;
+  }
+  sel.innerHTML = mine.slice().sort((a, b) => (b.tanggal + b.jamMulai).localeCompare(a.tanggal + a.jamMulai)).map(j =>
+    `<option value="${j.id}">${escapeHtml(anJadwalLabel(j))}</option>`
+  ).join('');
+  if(mine.some(j => j.id === current)) sel.value = current;
+}
+
+function anJadwalChanged(){
+  anKelas = AN_ALL;
+  renderAnalisis();
+}
+function anSelectKelas(k){
+  anKelas = k;
+  renderAnalisis();
+}
+
+async function refreshAnalisis(){
+  renderAnalisis();
+  if(anRefreshInFlight) return;
+  anRefreshInFlight = true;
+  try{
+    const { data, error } = await sb.from('exam_attempts').select('*');
+    if(error) return;
+    attempts = (data || []).map(mapAttempt);
+    renderAnalisis();
+  } finally {
+    anRefreshInFlight = false;
+  }
+}
+
+function anCatatanKey(jid, kelas){ return `wima-an-catatan:${jid}:${kelas}`; }
+function anLoadCatatan(jid, kelas){
+  try{ return localStorage.getItem(anCatatanKey(jid, kelas)) || ''; }catch(e){ return ''; }
+}
+function anSaveCatatan(val){
+  if(!anLast) return;
+  anLast.catatan = val;
+  try{ localStorage.setItem(anCatatanKey(anLast.j.id, anLast.view.kelas), val); }catch(e){ /* penyimpanan lokal tidak tersedia — abaikan */ }
+}
+
+/* ---------- rencana tindak lanjut (satu sumber teks untuk layar, Excel, dan PDF) ---------- */
+function anRtlSections(view, kkm){
+  const { stat, items, students } = view;
+  const multi = view.kelas === AN_ALL;
+  const klas = stat.klasikal;
+  const tercapai = klas !== null && klas >= AN_KLASIKAL_MIN;
+  const secs = [];
+
+  // 1. Kesimpulan
+  secs.push({ judul: '1. Kesimpulan hasil ujian', blok: [
+    { t: 'p', v: `${stat.selesai} dari ${stat.peserta} peserta (${view.label}) telah menyelesaikan ujian. Rata-rata nilai ${anFmt(stat.rata, 1)}, tertinggi ${stat.maks}, terendah ${stat.min}.` },
+    { t: 'p', v: `Dengan KKM ${kkm}, ${stat.tuntas} siswa tuntas dan ${stat.remidi} siswa belum tuntas. Ketuntasan klasikal ${anFmt(klas, 0)}% — ${tercapai ? 'sudah' : 'belum'} mencapai batas ${AN_KLASIKAL_MIN}%.` },
+    { t: 'p', v: tercapai
+        ? 'Keputusan: pembelajaran dapat dilanjutkan ke materi berikutnya. Siswa yang belum tuntas mengikuti remedial individual, siswa yang sudah tuntas mengikuti pengayaan.'
+        : 'Keputusan: lakukan pembelajaran ulang secara klasikal pada materi butir yang bermasalah (bagian 4), kemudian adakan remedial tes bagi siswa yang belum tuntas.' }
+  ]});
+
+  // 2. Remedial
+  const rem = students.filter(s => s.nilai < kkm).sort((a, b) => (a.nilai - b.nilai) || a.u.nama.localeCompare(b.u.nama, 'id'));
+  if(rem.length){
+    secs.push({ judul: '2. Remedial', blok: [
+      { t: 'p', v: `${rem.length} siswa belum mencapai KKM ${kkm}. Berikan remedial individual dengan fokus pada butir yang dijawab salah, lalu ulangi penilaian.` },
+      { t: 'tbl',
+        head: multi ? ['No', 'Nama', 'Kelas', 'Nilai', 'Butir yang perlu diremedial'] : ['No', 'Nama', 'Nilai', 'Butir yang perlu diremedial'],
+        rows: rem.map((s, i) => {
+          const butir = s.salah.length ? s.salah.map(x => x + 1).join(', ') : '—';
+          return multi ? [i + 1, s.u.nama, s.u.kelas || '', s.nilai, butir] : [i + 1, s.u.nama, s.nilai, butir];
+        }) }
+    ]});
+  } else {
+    secs.push({ judul: '2. Remedial', blok: [{ t: 'p', v: 'Semua siswa telah mencapai KKM, sehingga remedial tidak diperlukan.' }] });
+  }
+
+  // 3. Pengayaan
+  const eng = students.filter(s => s.nilai >= kkm).sort((a, b) => (b.nilai - a.nilai) || a.u.nama.localeCompare(b.u.nama, 'id'));
+  if(eng.length){
+    secs.push({ judul: '3. Pengayaan', blok: [
+      { t: 'p', v: `${eng.length} siswa telah mencapai KKM. Berikan kegiatan pengayaan (soal tingkat lanjut, penugasan, atau tutor sebaya).` },
+      { t: 'p', v: eng.map(s => `${s.u.nama}${multi && s.u.kelas ? ' (' + s.u.kelas + ')' : ''} — ${s.nilai}`).join('; ') }
+    ]});
+  } else {
+    secs.push({ judul: '3. Pengayaan', blok: [{ t: 'p', v: 'Belum ada siswa yang mencapai KKM.' }] });
+  }
+
+  // 4. Penguatan materi
+  const low = items.filter(it => it.p !== null && it.p < AN_LOW_P).sort((a, b) => a.p - b.p);
+  const blok4 = [];
+  if(low.length){
+    blok4.push({ t: 'p', v: 'Butir berikut dijawab benar oleh kurang dari 50% siswa, sehingga materi yang diukurnya perlu dijelaskan ulang (gunakan metode atau media yang berbeda) sebelum remedial tes:' });
+    blok4.push({ t: 'ul', v: low.map(it => `No. ${it.no} — ${anPctStr(it.p)} siswa menjawab benar${it.q.teks ? ': "' + anShort(it.q.teks, 110) + '"' : ''}`) });
+  } else {
+    blok4.push({ t: 'p', v: 'Seluruh butir dijawab benar oleh minimal 50% siswa, sehingga tidak ada materi yang perlu diajarkan ulang secara klasikal.' });
+  }
+  if(!tercapai){
+    blok4.push({ t: 'p', v: 'Ketuntasan klasikal belum tercapai — tinjau juga kesiapan belajar siswa, alokasi waktu, dan strategi pembelajaran pada materi ini.' });
+  }
+  secs.push({ judul: '4. Penguatan materi (pembelajaran ulang)', blok: blok4 });
+
+  // 5. Tindak lanjut butir soal
+  const grp = k => items.filter(it => it.keputusan === k);
+  const terima = grp('Diterima'), revisi = grp('Direvisi'), ganti = grp('Diganti');
+  const belum = items.filter(it => it.keputusan === null);
+  const alasan = it => `No. ${it.no} — D = ${anFmt(it.D)} (${it.dKat}), ${anPctStr(it.p)} benar${it.flags.length ? '. ' + it.flags.join('; ') : ''}`;
+  const blok5 = [];
+  if(terima.length){
+    blok5.push({ t: 'p', v: `Diterima (${terima.length} butir, D ≥ 0,30) — simpan di bank soal: No. ${terima.map(it => it.no).join(', ')}.` });
+    const catat = terima.filter(it => it.flags.some(f => f.startsWith('Pengecoh')));
+    if(catat.length) blok5.push({ t: 'p', v: `Pengecoh pada butir No. ${catat.map(it => it.no).join(', ')} perlu dilengkapi atau diganti agar lebih berfungsi.` });
+  }
+  if(revisi.length){
+    blok5.push({ t: 'p', v: `Direvisi (${revisi.length} butir, D 0,00–0,29) — perbaiki redaksi, pengecoh, atau tingkat kesulitannya:` });
+    blok5.push({ t: 'ul', v: revisi.map(alasan) });
+  }
+  if(ganti.length){
+    blok5.push({ t: 'p', v: `Diganti / dibuang (${ganti.length} butir, D negatif) — periksa kunci jawaban, lalu ganti dengan butir baru:` });
+    blok5.push({ t: 'ul', v: ganti.map(alasan) });
+  }
+  if(belum.length){
+    blok5.push({ t: 'p', v: `Belum dapat ditentukan (${belum.length} butir): No. ${belum.map(it => it.no).join(', ')} — ${view.canDP ? 'jawaban belum dinilai guru.' : 'jumlah peserta kurang dari ' + AN_MIN_PESERTA_DP + ' sehingga daya pembeda belum dapat dihitung.'}` });
+  }
+  if(!blok5.length) blok5.push({ t: 'p', v: 'Belum ada butir yang dapat dianalisis.' });
+  secs.push({ judul: '5. Tindak lanjut butir soal (bank soal)', blok: blok5 });
+
+  return secs;
+}
+
+/* ---------- tampilan ---------- */
+function anDistChips(it, N){
+  if(!it.dist) return '<span class="cell-muted">—</span>';
+  const chips = it.dist.map(o => {
+    const dead = it.type === 'pg' && it.q.kunciId && !o.key && N > 0 && o.count / N < AN_DISTRACTOR_MIN;
+    const cls = o.key ? 'key' : (dead ? 'dead' : '');
+    const tip = it.type === 'pg' ? `${o.label}: dipilih ${o.count} peserta (${N ? Math.round(o.count / N * 100) : 0}%) · kelompok atas ${o.up} · kelompok bawah ${o.lo}` : `${o.label}: ${o.count} peserta`;
+    return `<span class="an-chip ${cls}" title="${escapeHtml(tip)}">${escapeHtml(o.label)}${o.key ? ' ✓' : ''} · ${o.count}</span>`;
+  });
+  if(it.kosong > 0) chips.push(`<span class="an-chip">Kosong · ${it.kosong}</span>`);
+  return chips.join('');
+}
+function anDistText(it, N){
+  if(!it.dist) return '';
+  const parts = it.dist.map(o => `${o.label}${o.key ? '*' : ''}: ${o.count}`);
+  if(it.kosong > 0) parts.push(`Kosong: ${it.kosong}`);
+  return parts.join(' | ');
+}
+
+function anRenderItemsTable(view){
+  if(view.items.length === 0) return `<div class="empty-state"><strong>Paket soal ini belum berisi butir soal</strong></div>`;
+  const rowsHtml = view.items.map(it => {
+    const teks = nl2sp(it.q.teks || '');
+    const preview = teks ? anShort(teks, 110) : (it.q.gambar ? '(soal bergambar)' : '—');
+    const pCell = it.p === null
+      ? '<span class="cell-muted">Belum dinilai</span>'
+      : `<strong>${anFmt(it.p)}</strong> <span class="badge ${anBadgeP(it.pKat)}">${it.pKat}</span><span class="an-sub">${anPctStr(it.p)} siswa menjawab benar</span>`;
+    const dCell = it.D === null
+      ? `<span class="cell-muted">—</span>${!view.canDP ? `<span class="an-sub">min. ${AN_MIN_PESERTA_DP} peserta</span>` : ''}`
+      : `<strong>${anFmt(it.D)}</strong> <span class="badge ${anBadgeD(it.dKat)}">${it.dKat}</span>`;
+    const kep = it.keputusan || 'Belum ditentukan';
+    return `<tr>
+      <td class="cell-primary">${it.no}</td>
+      <td class="cell-muted">${escapeHtml(TYPE_LABEL[it.type] || it.type)}<span class="an-sub">${it.poin} poin</span></td>
+      <td class="an-soal" title="${escapeHtml(teks)}">${escapeHtml(preview)}${it.q.gambar ? ' 🖼' : ''}</td>
+      <td class="an-wrap">${pCell}</td>
+      <td class="an-wrap">${dCell}</td>
+      <td class="an-wrap">${anDistChips(it, view.N)}</td>
+      <td class="an-wrap"><span class="badge ${anBadgeKep(it.keputusan)}">${kep}</span>${it.flags.length ? `<div class="an-flags">${it.flags.map(f => '• ' + escapeHtml(f)).join('<br>')}</div>` : ''}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="table-scroll"><table class="an-table">
+    <thead><tr><th>No</th><th>Jenis</th><th>Butir soal</th><th>Tingkat kesukaran (p)</th><th>Daya pembeda (D)</th><th>Sebaran jawaban</th><th>Keputusan</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table></div>`;
+}
+
+function anRenderSectionsHtml(secs){
+  return secs.map(sec => `<h3>${escapeHtml(sec.judul)}</h3>` + sec.blok.map(b => {
+    if(b.t === 'p') return `<p>${escapeHtml(b.v)}</p>`;
+    if(b.t === 'ul') return `<ul>${b.v.map(li => `<li>${escapeHtml(li)}</li>`).join('')}</ul>`;
+    if(b.t === 'tbl') return `<div class="table-scroll"><table class="an-mini">
+      <thead><tr>${b.head.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>
+      <tbody>${b.rows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(String(c))}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+    return '';
+  }).join('')).join('');
+}
+
+function anCellClass(p){
+  if(p === null) return 'an-c-na';
+  return p < 0.30 ? 'an-c-lo' : (p <= 0.70 ? 'an-c-mid' : 'an-c-hi');
+}
+
+function anRenderCompare(j, perClass, allView, kkm){
+  const sumRows = perClass.map(v => `<tr>
+      <td class="cell-primary">${escapeHtml(v.kelas)}</td>
+      <td>${v.stat.peserta}</td><td>${v.stat.selesai}</td>
+      <td>${anFmt(v.stat.rata, 1)}</td><td>${v.stat.maks ?? '—'}</td><td>${v.stat.min ?? '—'}</td>
+      <td>${v.stat.tuntas}</td><td>${v.stat.remidi}</td>
+      <td>${v.stat.klasikal === null ? '—' : anFmt(v.stat.klasikal, 0) + '%'}
+        ${v.stat.klasikal === null ? '' : `<span class="badge ${v.stat.klasikal >= AN_KLASIKAL_MIN ? 'badge-selesai' : 'badge-warn'}">${v.stat.klasikal >= AN_KLASIKAL_MIN ? 'Tercapai' : 'Belum'}</span>`}</td>
+    </tr>`).join('');
+  const cols = perClass.map(v => v.kelas);
+  const matrix = allView.items.map((it, i) => {
+    const cells = perClass.map(v => { const p = v.items[i] ? v.items[i].p : null; return `<td class="${anCellClass(p)}">${p === null ? '—' : anPctStr(p)}</td>`; }).join('');
+    return `<tr><td class="cell-primary">${it.no}</td><td class="an-soal">${escapeHtml(it.q.teks ? anShort(it.q.teks, 70) : (it.q.gambar ? '(soal bergambar)' : '—'))}</td>${cells}<td class="${anCellClass(it.p)}">${it.p === null ? '—' : anPctStr(it.p)}</td></tr>`;
+  }).join('');
+  return `<div class="list-card an-card">
+    <div class="list-head"><span class="an-card-title">Perbandingan antar kelas</span></div>
+    <div class="table-scroll"><table class="an-mini">
+      <thead><tr><th>Kelas</th><th>Peserta</th><th>Selesai</th><th>Rata-rata</th><th>Tertinggi</th><th>Terendah</th><th>Tuntas</th><th>Belum tuntas</th><th>Ketuntasan klasikal</th></tr></thead>
+      <tbody>${sumRows}</tbody>
+    </table></div>
+  </div>
+  <div class="list-card an-card">
+    <div class="list-head"><span class="an-card-title">Persentase siswa yang menjawab benar — per butir, tiap kelas</span></div>
+    <div class="an-legend">Warna: <strong>merah</strong> &lt; 30% (sukar) · <strong>kuning</strong> 30–70% (sedang) · <strong>hijau</strong> &gt; 70% (mudah). Pilih kelas di atas untuk melihat analisis lengkap dan rencana tindak lanjutnya.</div>
+    <div class="table-scroll"><table class="an-mini">
+      <thead><tr><th>No</th><th>Butir soal</th>${cols.map(k => `<th style="text-align:center;">${escapeHtml(k)}</th>`).join('')}<th style="text-align:center;">Semua kelas</th></tr></thead>
+      <tbody>${matrix}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function renderAnalisis(){
+  const wrap = document.getElementById('an-content');
+  const pills = document.getElementById('an-kelas-pills');
+  if(!wrap) return;
+  anLast = null;
+  const jid = document.getElementById('an-jadwal').value;
+  const j = jid ? schedules.find(x => x.id === jid) : null;
+  if(!j){
+    pills.innerHTML = '';
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
+    return;
+  }
+  const kkm = anGetKKM();
+  const classes = anClassList(j);
+  if(classes.length === 1) anKelas = classes[0];
+  else if(anKelas !== AN_ALL && !classes.includes(anKelas)) anKelas = AN_ALL;
+
+  const pill = (val, label) => `<button type="button" class="subtab ${anKelas === val ? 'active' : ''}" data-kelas="${escapeHtml(val)}" onclick="anSelectKelas(this.dataset.kelas)">${escapeHtml(label)}</button>`;
+  pills.innerHTML = classes.length > 1 ? pill(AN_ALL, 'Semua kelas') + classes.map(k => pill(k, k)).join('') : '';
+
+  const view = anBuildView(j, anKelas, kkm);
+  if(!view){
+    wrap.innerHTML = `<div class="empty-state"><strong>Paket soal untuk jadwal ini sudah dihapus</strong>Analisis tidak dapat ditampilkan.</div>`;
+    return;
+  }
+  if(view.N === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada peserta yang menyelesaikan ujian</strong>${escapeHtml(view.label)} — analisis akan muncul setelah ada peserta yang mengumpulkan jawaban.</div>`;
+    return;
+  }
+
+  const s = view.stat;
+  const statHtml = `<div class="stat-pills">
+    <div class="stat-pill emerald"><div class="num">${s.selesai}<span style="font-size:13px; color:var(--slate); font-weight:600;"> / ${s.peserta}</span></div><div class="lbl">Selesai / peserta</div></div>
+    <div class="stat-pill amber"><div class="num">${anFmt(s.rata, 1)}</div><div class="lbl">Rata-rata nilai</div></div>
+    <div class="stat-pill slate"><div class="num">${s.maks} / ${s.min}</div><div class="lbl">Tertinggi / terendah</div></div>
+    <div class="stat-pill emerald"><div class="num">${s.tuntas}</div><div class="lbl">Tuntas (KKM ${kkm})</div></div>
+    <div class="stat-pill red"><div class="num">${s.remidi}</div><div class="lbl">Belum tuntas</div></div>
+    <div class="stat-pill indigo"><div class="num">${anFmt(s.klasikal, 0)}%</div><div class="lbl">Ketuntasan klasikal</div></div>
+  </div>`;
+
+  let compareHtml = '';
+  let perClass = [];
+  if(anKelas === AN_ALL && classes.length > 1){
+    perClass = classes.map(k => anBuildView(j, k, kkm));
+    compareHtml = anRenderCompare(j, perClass, view, kkm);
+  }
+
+  const secs = anRtlSections(view, kkm);
+  const catatan = anLoadCatatan(j.id, view.kelas);
+  anLast = { j, view, kkm, secs, perClass, catatan };
+
+  const icoDl = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>`;
+  wrap.innerHTML = `
+    ${statHtml}
+    ${compareHtml}
+    <div class="list-card an-card">
+      <div class="list-head">
+        <span class="an-card-title">Analisis butir soal — ${escapeHtml(view.label)}</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="exportAnalisisExcel()">${icoDl} Unduh Excel</button>
+          <button type="button" class="btn-secondary" onclick="exportAnalisisPDF()">${icoDl} Unduh PDF</button>
+        </div>
+      </div>
+      <div class="an-legend">
+        <strong>Tingkat kesukaran (p)</strong> = proporsi siswa yang menjawab benar: &lt; 0,30 sukar · 0,30–0,70 sedang · &gt; 0,70 mudah.<br>
+        <strong>Daya pembeda (D)</strong> = selisih proporsi benar antara kelompok atas (27% skor tertinggi) dan kelompok bawah (27% terendah), dihitung dalam ${view.kelas === AN_ALL ? 'seluruh peserta' : 'kelas ini'} (${view.upperSize} siswa per kelompok): ≥ 0,40 sangat baik · 0,30–0,39 baik · 0,20–0,29 cukup · &lt; 0,20 jelek.<br>
+        <strong>Keputusan</strong>: D ≥ 0,30 diterima · D 0,00–0,29 direvisi · D negatif diganti. Pada sebaran jawaban, ✓ = kunci; pengecoh berwarna merah dipilih &lt; 5% peserta (kurang berfungsi).
+      </div>
+      ${anRenderItemsTable(view)}
+    </div>
+    <div class="list-card an-card">
+      <div class="list-head"><span class="an-card-title">Rencana tindak lanjut — ${escapeHtml(view.label)}</span></div>
+      <div class="an-rtl">
+        ${anRenderSectionsHtml(secs)}
+        <h3>6. Catatan / rencana tambahan guru</h3>
+        <textarea id="an-catatan" placeholder="Mis. jadwal remedial, materi yang akan diulang, metode pembelajaran… (tersimpan otomatis di perangkat ini dan ikut tercetak di PDF/Excel)" oninput="anSaveCatatan(this.value)">${escapeHtml(catatan)}</textarea>
+      </div>
+    </div>`;
+}
+
+/* ---------- ekspor ---------- */
+function anSecsWithCatatan(){
+  const secs = anLast.secs.slice();
+  const c = (anLast.catatan || '').trim();
+  if(c) secs.push({ judul: '6. Catatan / rencana tambahan guru', blok: c.split(/\n+/).map(v => ({ t: 'p', v })) });
+  return secs;
+}
+function anNamaFile(prefix, ext){
+  const { j, view } = anLast;
+  return `${prefix} - ${anJadwalLabel(j).replace(/[\\/:*?"<>|]/g, '-')}${view.kelas !== AN_ALL ? ' - ' + view.kelas : ''}.${ext}`;
+}
+
+function exportAnalisisExcel(){
+  if(!anLast || anLast.view.N === 0){ alert('Belum ada data untuk diunduh. Pilih jadwal ujian yang sudah dikerjakan peserta.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('Pustaka Excel belum termuat, coba lagi sesaat lagi.'); return; }
+  const { j, view, kkm, perClass } = anLast;
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: analisis butir
+  const head = ['No', 'Jenis', 'Butir soal', 'Peserta dinilai', 'Tingkat kesukaran (p)', 'Kategori p', 'Daya pembeda (D)', 'Kategori D', 'Sebaran jawaban', 'Keputusan', 'Catatan'];
+  const body = view.items.map(it => [
+    it.no, TYPE_LABEL[it.type] || it.type, nl2sp(it.q.teks || '') || (it.q.gambar ? '(soal bergambar)' : ''), it.n,
+    it.p === null ? '-' : Number(it.p.toFixed(2)), it.pKat || '-',
+    it.D === null ? '-' : Number(it.D.toFixed(2)), it.dKat || '-',
+    anDistText(it, view.N), it.keputusan || 'Belum ditentukan', it.flags.join('; ')
+  ]);
+  const ws1 = XLSX.utils.aoa_to_sheet([
+    ['SMK Widya Mandala Tambak'], ['Analisis Butir Soal'], [`Ujian: ${anJadwalLabel(j)}`],
+    [`${view.label}    KKM: ${kkm}    Peserta selesai: ${view.N}    Ketuntasan klasikal: ${anFmt(view.stat.klasikal, 0)}%`],
+    [], head, ...body
+  ]);
+  ws1['!cols'] = [{ wch: 5 }, { wch: 16 }, { wch: 60 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 34 }, { wch: 18 }, { wch: 60 }];
+  ws1['!merges'] = [0, 1, 2, 3].map(r => ({ s: { r, c: 0 }, e: { r, c: 10 } }));
+  XLSX.utils.book_append_sheet(wb, ws1, 'Analisis Butir');
+
+  // Sheet 2: per kelas (hanya saat "Semua kelas")
+  if(perClass.length > 1){
+    const h2 = ['No', 'Butir soal', ...perClass.map(v => v.kelas), 'Semua kelas'];
+    const b2 = view.items.map((it, i) => [
+      it.no, anShort(it.q.teks || '', 80) || (it.q.gambar ? '(soal bergambar)' : ''),
+      ...perClass.map(v => (v.items[i] && v.items[i].p !== null) ? Math.round(v.items[i].p * 100) : '-'),
+      it.p === null ? '-' : Math.round(it.p * 100)
+    ]);
+    const ws2 = XLSX.utils.aoa_to_sheet([['Persentase siswa yang menjawab benar (%) per butir tiap kelas'], [], h2, ...b2]);
+    ws2['!cols'] = [{ wch: 5 }, { wch: 60 }, ...perClass.map(() => ({ wch: 12 })), { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Per Kelas');
+  }
+
+  // Sheet 3: rencana tindak lanjut
+  const aoa = [['Rencana Tindak Lanjut'], [`Ujian: ${anJadwalLabel(j)}`], [view.label], []];
+  anSecsWithCatatan().forEach(sec => {
+    aoa.push([sec.judul]);
+    sec.blok.forEach(b => {
+      if(b.t === 'p') aoa.push([b.v]);
+      else if(b.t === 'ul') b.v.forEach(li => aoa.push(['• ' + li]));
+      else if(b.t === 'tbl'){ aoa.push(b.head); b.rows.forEach(r => aoa.push(r)); }
+    });
+    aoa.push([]);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(aoa);
+  ws3['!cols'] = [{ wch: 8 }, { wch: 34 }, { wch: 14 }, { wch: 10 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Rencana Tindak Lanjut');
+
+  XLSX.writeFile(wb, anNamaFile('Analisis Butir Soal', 'xlsx'));
+}
+
+// Font bawaan jsPDF hanya mendukung karakter Latin (WinAnsi): ganti simbol khusus & buang karakter yang tidak didukung.
+function anPdfTxt(s){
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/≥/g, '>=').replace(/≤/g, '<=').replace(/✓/g, '')
+    .replace(/[^\u0020-\u007E\u00A0-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026]/g, '?');
+}
+
+function exportAnalisisPDF(){
+  if(!anLast || anLast.view.N === 0){ alert('Belum ada data untuk diunduh. Pilih jadwal ujian yang sudah dikerjakan peserta.'); return; }
+  if(typeof window.jspdf === 'undefined'){ alert('Pustaka PDF belum termuat, coba lagi sesaat lagi.'); return; }
+  const { j, view, kkm } = anLast;
+  const jurusan = document.getElementById('an-jurusan').value;
+  const jenisUjian = (document.getElementById('an-jenis-ujian').value || '').trim();
+  const tahunAjaran = (document.getElementById('an-tahun-ajaran').value || '').trim() || '-';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const mx = 40;
+  const green = [14, 159, 110];
+
+  // ---------- Kop ----------
+  const logoSize = 46;
+  const logoDataUri = getLogoDataUri();
+  if(logoDataUri){
+    try{ doc.addImage(logoDataUri, 'JPEG', mx, 26, logoSize, logoSize); }catch(e){ /* abaikan jika gagal memuat logo */ }
+  }
+  const textX = mx + logoSize + 14;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5);
+  doc.text('SMK WIDYA MANDALA TAMBAK', textX, 42);
+  doc.setFontSize(10.5); doc.setFont('helvetica', 'normal');
+  doc.text(anPdfTxt(`Analisis Butir Soal${jenisUjian ? ' ' + jenisUjian : ''}`), textX, 58);
+  doc.text(anPdfTxt(`Tahun Pelajaran ${tahunAjaran}`), textX, 71);
+  doc.setLineWidth(1.1);
+  doc.line(mx, 84, W - mx, 84);
+
+  // ---------- Info ----------
+  doc.setFontSize(9.5);
+  doc.text(anPdfTxt(`Ujian: ${anJadwalLabel(j)}`), mx, 100);
+  doc.text(anPdfTxt(`${view.label}${jurusan ? '    Jurusan: ' + jurusan : ''}`), mx, 114);
+  const st = view.stat;
+  doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, W - mx, 100, { align: 'right' });
+  doc.text(`KKM: ${kkm}    Peserta selesai: ${st.selesai}/${st.peserta}    Rata-rata: ${anFmt(st.rata, 1)}`, W - mx, 114, { align: 'right' });
+  doc.text(`Tuntas: ${st.tuntas}    Belum tuntas: ${st.remidi}    Ketuntasan klasikal: ${anFmt(st.klasikal, 0)}%`, W - mx, 128, { align: 'right' });
+
+  // ---------- A. Analisis butir ----------
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text('A. Analisis Butir Soal', mx, 146);
+  doc.setFont('helvetica', 'normal');
+  const body = view.items.map(it => [
+    it.no, TYPE_LABEL[it.type] || it.type, anShort(it.q.teks || '', 90) || (it.q.gambar ? '(soal bergambar)' : '-'),
+    it.p === null ? '-' : `${anFmt(it.p)} (${it.pKat})`,
+    it.D === null ? '-' : `${anFmt(it.D)} (${it.dKat})`,
+    anDistText(it, view.N) || '-', it.keputusan || 'Belum ditentukan'
+  ].map(c => typeof c === 'string' ? anPdfTxt(c) : c));
+  doc.autoTable({
+    head: [['No', 'Jenis', 'Butir soal', 'Tk. kesukaran (p)', 'Daya pembeda (D)', 'Sebaran jawaban (* = kunci)', 'Keputusan']],
+    body, startY: 152, margin: { left: mx, right: mx },
+    styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 4, lineColor: [220, 222, 230], lineWidth: 0.5, valign: 'top' },
+    headStyles: { fillColor: green, textColor: 255, fontStyle: 'bold', halign: 'center' },
+    columnStyles: { 0: { cellWidth: 28, halign: 'center' }, 1: { cellWidth: 78 }, 2: { cellWidth: 230 }, 3: { cellWidth: 88 }, 4: { cellWidth: 92 }, 6: { cellWidth: 64, halign: 'center' } }
+  });
+  let y = doc.lastAutoTable.finalY + 22;
+  const need = h => { if(y + h > H - 46){ doc.addPage(); y = 50; } };
+
+  doc.setFontSize(8);
+  doc.setTextColor(110);
+  const kriteria = doc.splitTextToSize(anPdfTxt('Kriteria: p < 0,30 sukar, 0,30–0,70 sedang, > 0,70 mudah. D ≥ 0,40 sangat baik, 0,30–0,39 baik, 0,20–0,29 cukup, < 0,20 jelek (kelompok atas/bawah masing-masing 27%). Keputusan: D ≥ 0,30 diterima, 0–0,29 direvisi, negatif diganti.'), W - 2 * mx);
+  need(kriteria.length * 10 + 8);
+  doc.text(kriteria, mx, y - 8);
+  y += kriteria.length * 10 + 6;
+  doc.setTextColor(0);
+
+  // ---------- B. Rencana tindak lanjut ----------
+  need(40);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text('B. Rencana Tindak Lanjut', mx, y); y += 18;
+  anSecsWithCatatan().forEach(sec => {
+    need(44);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.text(anPdfTxt(sec.judul), mx, y); y += 14;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+    sec.blok.forEach(b => {
+      if(b.t === 'p'){
+        const lines = doc.splitTextToSize(anPdfTxt(b.v), W - 2 * mx);
+        need(lines.length * 12 + 4);
+        doc.text(lines, mx, y); y += lines.length * 12 + 4;
+      } else if(b.t === 'ul'){
+        b.v.forEach(li => {
+          const lines = doc.splitTextToSize(anPdfTxt(li), W - 2 * mx - 16);
+          need(lines.length * 12 + 2);
+          doc.text('•', mx + 4, y); doc.text(lines, mx + 16, y); y += lines.length * 12 + 2;
+        });
+        y += 2;
+      } else if(b.t === 'tbl'){
+        doc.autoTable({
+          head: [b.head], body: b.rows.map(r => r.map(c => anPdfTxt(c))), startY: y, margin: { left: mx, right: mx },
+          styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 3, lineColor: [220, 222, 230], lineWidth: 0.5 },
+          headStyles: { fillColor: green, textColor: 255, fontStyle: 'bold' }
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+    });
+    y += 6;
+  });
+
+  // ---------- Tanda tangan ----------
+  const lineH = 16, sigGap = 46;
+  need(lineH * 3 + sigGap + 34);
+  y += 16;
+  const rightX = W - mx - 190;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`Tambak, ${formatTanggalIndo(new Date())}`, rightX, y);
+  doc.text('Mengetahui,', mx, y + lineH);
+  doc.text('Kepala Sekolah', mx, y + lineH * 2);
+  doc.text('Guru Mata Pelajaran,', rightX, y + lineH * 2);
+  const nameY = y + lineH * 2 + sigGap;
+  doc.setFont('helvetica', 'bold');
+  doc.text(KEPSEK_NAMA, mx, nameY, { maxWidth: 190 });
+  doc.text(anPdfTxt(currentGuruNama) || '(.................................)', rightX, nameY, { maxWidth: 190 });
+
+  // ---------- Nomor halaman ----------
+  const pages = doc.internal.getNumberOfPages();
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(120);
+  for(let i = 1; i <= pages; i++){
+    doc.setPage(i);
+    doc.text(`Halaman ${i} dari ${pages}`, W - mx, H - 20, { align: 'right' });
+  }
+  doc.setTextColor(0);
+  doc.save(anNamaFile('Analisis Butir Soal', 'pdf'));
+}
+
+// Isi Tahun Ajaran default berdasarkan tanggal sekarang (bisa diubah manual oleh guru)
+(function setDefaultTahunAjaranAnalisis(){
+  const el = document.getElementById('an-tahun-ajaran');
+  if(!el) return;
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  el.value = (m >= 7) ? `${y}/${y+1}` : `${y-1}/${y}`;
+})();
 
 /* ============================================================
    PENILAIAN MANUAL (esai / soal opini)
