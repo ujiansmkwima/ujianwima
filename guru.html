@@ -421,6 +421,53 @@
   .an-rtl textarea{ width:100%; min-height:96px; font-family:inherit; font-size:13.5px; line-height:1.55; padding:10px 12px; border:1.5px solid var(--line); border-radius:8px; background:var(--cream); resize:vertical; }
   .an-rtl textarea:focus{ border-color:var(--emerald); background:var(--paper); }
 
+  /* ---------- Analisis Kualitatif (telaah butir soal) ---------- */
+  .an-mode-label{ font-size:11.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.03em; margin:0 0 6px; }
+  #an-mode{ margin-bottom:14px; }
+  .an-tl-item{ background:var(--paper); border:1px solid var(--line); border-radius:12px; margin-bottom:10px; overflow:hidden; }
+  .an-tl-item[open]{ border-color:var(--emerald); box-shadow:0 1px 6px rgba(14,159,110,.10); }
+  .an-tl-item > summary{ list-style:none; cursor:pointer; padding:12px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .an-tl-item > summary::-webkit-details-marker{ display:none; }
+  .an-tl-item > summary::before{ content:'▸'; color:var(--slate); font-size:12px; width:10px; }
+  .an-tl-item[open] > summary::before{ content:'▾'; }
+  .an-tl-no{ font-weight:800; font-size:14px; min-width:22px; }
+  .an-tl-jenis{ font-size:12px; color:var(--slate); font-weight:600; white-space:nowrap; }
+  .an-tl-prev{ flex:1 1 220px; font-size:13.5px; min-width:0; }
+  .an-tl-badges{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .an-tl-body{ padding:4px 16px 16px; border-top:1px solid var(--line); }
+  .an-tl-q{ background:var(--cream); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:12px 0; font-size:13.5px; line-height:1.6; }
+  .an-tl-q .an-tl-teks{ white-space:pre-line; }
+  .an-tl-bacaan{ font-style:italic; color:var(--slate); white-space:pre-line; margin-bottom:8px; }
+  .an-tl-img img{ max-width:100%; max-height:180px; border-radius:8px; margin-top:8px; }
+  .an-tl-opsi{ margin:8px 0 0; padding-left:0; list-style:none; }
+  .an-tl-opsi li{ padding:3px 8px; border-radius:6px; }
+  .an-tl-opsi li img{ max-height:70px; vertical-align:middle; }
+  .an-tl-opsi li.key{ background:var(--emerald-soft); color:var(--emerald-dark); font-weight:600; }
+  .an-tl-warn{ background:var(--amber-soft); color:#8A6414; font-size:12.5px; font-weight:600; border-radius:8px; padding:8px 12px; margin-top:12px; }
+  table.an-tl-tbl{ min-width:0; }
+  .an-tl-tbl td{ vertical-align:middle; }
+  .an-tl-tbl tr.an-tl-asp td{ background:var(--mist); font-size:11.5px; font-weight:800; color:var(--slate); letter-spacing:.04em; text-transform:uppercase; padding:7px 12px; }
+  .an-tl-tbl td.an-tl-kode{ font-weight:700; color:var(--slate); width:40px; }
+  .an-tl-tbl td.an-tl-tgcell{ white-space:nowrap; text-align:right; }
+  .an-tl-tbl td.an-tl-tx{ white-space:normal; }
+  .an-auto{ margin-top:2px; }
+  .an-auto.ya{ color:var(--emerald-dark); }
+  .an-auto.tidak{ color:var(--red); }
+  .an-auto.cek{ color:#8A6414; }
+  .an-tg{ display:inline-flex; }
+  .an-tg button{ font-family:inherit; font-size:12px; font-weight:700; padding:6px 12px; border:1.5px solid var(--line); background:var(--paper); color:var(--slate); cursor:pointer; margin-left:-1.5px; }
+  .an-tg button:first-child{ border-radius:8px 0 0 8px; margin-left:0; }
+  .an-tg button:last-child{ border-radius:0 8px 8px 0; }
+  .an-tg button:hover{ background:var(--mist); }
+  .an-tg button.on.ya{ background:var(--emerald); border-color:var(--emerald); color:#fff; position:relative; z-index:1; }
+  .an-tg button.on.tidak{ background:var(--red); border-color:var(--red); color:#fff; position:relative; z-index:1; }
+  .an-tg button.on.na{ background:var(--slate); border-color:var(--slate); color:#fff; position:relative; z-index:1; }
+  .an-tg button.auto-on.ya{ background:var(--emerald-soft); border-color:var(--emerald); color:var(--emerald-dark); position:relative; z-index:1; }
+  .an-tg button.auto-on.tidak{ background:var(--red-soft); border-color:var(--red); color:var(--red); position:relative; z-index:1; }
+  .an-tg button.auto-on.na{ background:var(--mist); border-color:var(--slate); color:var(--slate); position:relative; z-index:1; }
+  .an-tl-foot{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-top:14px; }
+  .an-tl-foot .field textarea{ min-height:56px; }
+
   /* ---------- Mobile ---------- */
   @media (max-width:680px){
     .form-grid{ grid-template-columns:1fr; }
@@ -1078,7 +1125,7 @@ D. Medan
   <section id="panel-analisis" class="panel">
     <div class="section-head">
       <h1>Analisis Butir Soal</h1>
-      <p>Tingkat kesukaran, daya pembeda, dan sebaran jawaban tiap butir soal per kelas, lengkap dengan rencana tindak lanjut.</p>
+      <p>Analisis kuantitatif (tingkat kesukaran, daya pembeda, sebaran jawaban per kelas) dan kualitatif (telaah materi, konstruksi, bahasa) tiap butir soal, lengkap dengan rencana tindak lanjut.</p>
     </div>
 
     <div class="an-toolbar">
@@ -1086,7 +1133,7 @@ D. Medan
         <span>Pilih jadwal ujian</span>
         <select id="an-jadwal" onchange="anJadwalChanged()"></select>
       </label>
-      <label class="field" style="max-width:150px; flex:1 1 130px;">
+      <label class="field" id="an-kkm-wrap" style="max-width:150px; flex:1 1 130px;">
         <span>KKM (batas tuntas)</span>
         <input type="number" id="an-kkm" value="75" min="0" max="100" step="1" onchange="renderAnalisis()">
       </label>
@@ -1113,6 +1160,12 @@ D. Medan
         </label>
       </div>
     </details>
+
+    <div class="an-mode-label">Jenis analisis</div>
+    <div class="subtabs" id="an-mode">
+      <button type="button" class="subtab active" data-mode="kuantitatif" onclick="anSetMode('kuantitatif')">Kuantitatif</button>
+      <button type="button" class="subtab" data-mode="kualitatif" onclick="anSetMode('kualitatif')">Kualitatif (telaah soal)</button>
+    </div>
 
     <div class="subtabs" id="an-kelas-pills"></div>
     <div id="an-content"></div>
@@ -1268,7 +1321,7 @@ function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_
 function mapSupervisor(row){ return { id: row.id, guruId: row.guru_id, ruang: row.ruang }; }
 
 function mapQuestionSet(row){
-  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, tingkat: row.tingkat || null, soal: row.soal || [] };
+  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, tingkat: row.tingkat || null, soal: row.soal || [], telaah: row.telaah || {} };
 }
 function mapSchedule(row){
   return {
@@ -2772,7 +2825,10 @@ async function saveEditor(){
     .eq('id', editingSetId);
   if(error){ alert(error.message); return; }
   const idx = questionSets.findIndex(qs => qs.id === editingSetId);
-  if(idx > -1) questionSets[idx] = editingSet;
+  if(idx > -1){
+    editingSet.telaah = questionSets[idx].telaah || editingSet.telaah || {};   // telaah dikelola di tab Analisis; jangan tertimpa salinan editor yang lama
+    questionSets[idx] = editingSet;
+  }
   renderQuestionBank();
   renderReadyList();
   populateJadwalSetSelect();
@@ -3838,7 +3894,7 @@ async function refreshAnalisis(){
     const { data, error } = await sb.from('exam_attempts').select('*');
     if(error) return;
     attempts = (data || []).map(mapAttempt);
-    renderAnalisis();
+    if(anMode !== 'kualitatif') renderAnalisis();   // telaah tidak memakai data pengerjaan; hindari menutup kartu yang sedang dibuka
   } finally {
     anRefreshInFlight = false;
   }
@@ -3935,6 +3991,15 @@ function anRtlSections(view, kkm){
     blok5.push({ t: 'p', v: `Belum dapat ditentukan (${belum.length} butir): No. ${belum.map(it => it.no).join(', ')} — ${view.canDP ? 'jawaban belum dinilai guru.' : 'jumlah peserta kurang dari ' + AN_MIN_PESERTA_DP + ' sehingga daya pembeda belum dapat dihitung.'}` });
   }
   if(!blok5.length) blok5.push({ t: 'p', v: 'Belum ada butir yang dapat dianalisis.' });
+
+  // Hasil telaah kualitatif (materi, konstruksi, bahasa)
+  const tl = anTelaahSummary(view.qs);
+  if(tl.n > 0){
+    blok5.push({ t: 'p', v: `Telaah kualitatif (materi, konstruksi, bahasa): ${tl.count['Diterima']} butir diterima, ${tl.count['Diperbaiki']} perlu diperbaiki, ${tl.count['Ditolak']} ditolak, ${tl.count['Belum lengkap']} belum lengkap ditelaah.` });
+    const perlu = tl.items.filter(x => x.ev.kesimpulan === 'Diperbaiki' || x.ev.kesimpulan === 'Ditolak');
+    if(perlu.length) blok5.push({ t: 'ul', v: perlu.map(x => `No. ${x.no} (${x.ev.kesimpulan}) — ${anTelaahDetail(x)}`) });
+    if(tl.count['Belum lengkap'] > 0) blok5.push({ t: 'p', v: 'Lengkapi telaah kualitatif pada jenis analisis Kualitatif agar keputusan butir mempertimbangkan aspek materi, konstruksi, dan bahasa.' });
+  }
   secs.push({ judul: '5. Tindak lanjut butir soal (bank soal)', blok: blok5 });
 
   return secs;
@@ -4047,6 +4112,14 @@ function renderAnalisis(){
     wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
     return;
   }
+  const kkmWrap = document.getElementById('an-kkm-wrap');
+  if(kkmWrap) kkmWrap.style.display = anMode === 'kualitatif' ? 'none' : '';
+  if(anMode === 'kualitatif'){
+    pills.innerHTML = '';
+    renderTelaah(j);
+    return;
+  }
+  anTlLast = null;
   const kkm = anGetKKM();
   const classes = anClassList(j);
   if(classes.length === 1) anKelas = classes[0];
@@ -4323,6 +4396,533 @@ function exportAnalisisPDF(){
   const m = now.getMonth() + 1;
   el.value = (m >= 7) ? `${y}/${y+1}` : `${y-1}/${y}`;
 })();
+
+/* ============================================================
+   ANALISIS KUALITATIF (TELAAH BUTIR SOAL)
+   Telaah tiap butir dari aspek MATERI, KONSTRUKSI, dan BAHASA. Sebagian
+   kriteria diperiksa otomatis dari isi soal (kunci, negasi ganda, panjang
+   opsi, "semua jawaban benar", dst.); sisanya ditelaah guru dengan
+   Ya / Tidak / N/A. Hasil telaah disimpan di kolom question_sets.telaah
+   (jsonb, kunci = id butir): { c:{kriteria:'ya'|'tidak'|'na'}, keputusan, catatan, sig }.
+============================================================ */
+const AN_TELAAH = [
+  { id: 'm1', kode: 'M1', asp: 'Materi', tipe: 'semua', pendek: 'kesesuaian dengan indikator', teks: 'Soal sesuai dengan indikator / tujuan pembelajaran' },
+  { id: 'm2', kode: 'M2', asp: 'Materi', tipe: 'opsi', pendek: 'pilihan jawaban tidak homogen/logis', teks: 'Pilihan jawaban homogen dan logis ditinjau dari segi materi' },
+  { id: 'm3', kode: 'M3', asp: 'Materi', tipe: 'semua', pendek: 'kunci jawaban belum tunggal/tersedia', teks: 'Hanya ada satu kunci jawaban yang benar (kunci tersedia dan opsi tidak kembar)' },
+  { id: 'k1', kode: 'K1', asp: 'Konstruksi', tipe: 'semua', pendek: 'pokok soal kurang singkat/jelas/tegas', teks: 'Pokok soal dirumuskan dengan singkat, jelas, dan tegas' },
+  { id: 'k2', kode: 'K2', asp: 'Konstruksi', tipe: 'semua', pendek: 'rumusan memuat hal yang tidak diperlukan', teks: 'Rumusan pokok soal dan pilihan jawaban hanya memuat pernyataan yang diperlukan' },
+  { id: 'k3', kode: 'K3', asp: 'Konstruksi', tipe: 'semua', pendek: 'pokok soal memberi petunjuk ke kunci', teks: 'Pokok soal tidak memberi petunjuk ke kunci jawaban' },
+  { id: 'k4', kode: 'K4', asp: 'Konstruksi', tipe: 'semua', pendek: 'ada pernyataan negatif ganda', teks: 'Pokok soal bebas dari pernyataan yang bersifat negatif ganda' },
+  { id: 'k5', kode: 'K5', asp: 'Konstruksi', tipe: 'opsi', pendek: 'panjang pilihan jawaban tidak seimbang', teks: 'Panjang pilihan jawaban relatif sama' },
+  { id: 'k6', kode: 'K6', asp: 'Konstruksi', tipe: 'opsi', pendek: 'memuat "semua/tidak ada jawaban benar"', teks: 'Pilihan jawaban tidak memuat "semua jawaban benar/salah" atau "tidak ada jawaban yang benar"' },
+  { id: 'k7', kode: 'K7', asp: 'Konstruksi', tipe: 'opsi', pendek: 'angka/waktu tidak berurutan', teks: 'Pilihan jawaban berbentuk angka/waktu disusun berurutan' },
+  { id: 'k8', kode: 'K8', asp: 'Konstruksi', tipe: 'semua', pendek: 'gambar/tabel kurang jelas atau tidak berfungsi', teks: 'Gambar, grafik, tabel, atau diagram jelas dan berfungsi' },
+  { id: 'k9', kode: 'K9', asp: 'Konstruksi', tipe: 'semua', pendek: 'bergantung pada jawaban butir lain', teks: 'Butir soal tidak bergantung pada jawaban butir soal lain' },
+  { id: 'b1', kode: 'B1', asp: 'Bahasa', tipe: 'semua', pendek: 'bahasa belum sesuai kaidah', teks: 'Menggunakan bahasa Indonesia yang baku sesuai kaidah (PUEBI)' },
+  { id: 'b2', kode: 'B2', asp: 'Bahasa', tipe: 'semua', pendek: 'memakai bahasa daerah/setempat', teks: 'Tidak menggunakan bahasa daerah atau ungkapan yang hanya berlaku setempat' },
+  { id: 'b3', kode: 'B3', asp: 'Bahasa', tipe: 'semua', pendek: 'menyinggung perasaan siswa', teks: 'Tidak mengandung kata/ungkapan yang menyinggung perasaan siswa' },
+  { id: 'b4', kode: 'B4', asp: 'Bahasa', tipe: 'opsi', pendek: 'pilihan jawaban mengulang kata yang sama', teks: 'Pilihan jawaban tidak mengulang kata/kelompok kata yang sama (kecuali satu kesatuan pengertian)' }
+];
+const AN_ASPEK = ['Materi', 'Konstruksi', 'Bahasa'];
+const AN_KES = ['Diterima', 'Diperbaiki', 'Ditolak', 'Belum lengkap'];
+let anMode = 'kuantitatif';
+let anTlLast = null;              // { qs, j } — dipakai ekspor telaah
+const anTlOpen = new Set();       // id butir yang kartunya sedang terbuka
+const anTlDirty = new Set();      // id paket soal yang telaahnya belum tersimpan
+let anTlTimer = null;
+
+function anHasOpsi(q){
+  const t = q.type || 'pg';
+  return (t === 'pg' || t === 'pgk') && Array.isArray(q.opsi) && q.opsi.length > 0;
+}
+// Sidik jari isi soal: dipakai untuk memberi tahu bila soal diubah setelah ditelaah.
+function anSig(q){
+  const src = JSON.stringify([q.type || 'pg', q.teks, q.bacaan, (q.opsi || []).map(o => [o.teks, !!o.gambar]), q.kunciId, q.kunciIds,
+    q.kunciKategori, (q.pernyataan || []).map(p => [p.teks, p.kunci]), !!q.gambar, !!q.tabel]);
+  let h = 5381;
+  for(let i = 0; i < src.length; i++) h = ((h << 5) + h + src.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+function anParseNum(t){
+  const m = t.replace(/\s+/g, ' ').match(/^[^\d\-]{0,5}(-?\d[\d.,]*)\s*[^\d]{0,10}$/);
+  if(!m) return NaN;
+  let s = m[1];
+  if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
+  else s = s.replace(',', '.');
+  return parseFloat(s);
+}
+
+// Pemeriksaan otomatis satu kriteria. Mengembalikan { status: 'ya'|'tidak'|'na'|'cek', note } atau null (harus ditelaah guru).
+// 'cek' = ada indikasi masalah tetapi keputusan akhir tetap di tangan guru.
+function anTelaahAuto(id, q){
+  const type = q.type || 'pg';
+  const opsi = anHasOpsi(q) ? q.opsi : [];
+  const tx = opsi.map(o => nl2sp(o.teks || ''));
+  const withText = tx.filter(Boolean);
+  const stem = nl2sp(q.teks || '');
+  const hasVisual = !!(q.gambar || q.tabel || opsi.some(o => o.gambar));
+
+  if(id === 'm3'){
+    const dupe = withText.some((t, i) => withText.findIndex(x => x.toLowerCase() === t.toLowerCase()) !== i);
+    if(type === 'pg' || type === 'pgk'){
+      const keyed = type === 'pg' ? !!q.kunciId : (Array.isArray(q.kunciIds) && q.kunciIds.length > 0);
+      if(!keyed) return { status: 'tidak', note: 'Kunci jawaban belum ditentukan' };
+      if(dupe) return { status: 'tidak', note: 'Ada opsi dengan isi yang sama' };
+      return { status: 'ya', note: 'Kunci tersedia dan tidak ada opsi kembar' };
+    }
+    if(type === 'bs') return (q.kunciKategori === 0 || q.kunciKategori === 1)
+      ? { status: 'ya', note: 'Kunci tersedia' }
+      : { status: 'cek', note: 'Kunci belum ditentukan (dinilai manual oleh guru)' };
+    if(type === 'bsg' || type === 'rb'){
+      const ps = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+      const ok = ps.length > 0 && ps.every(p => type === 'bsg' ? (p.kunci === 0 || p.kunci === 1) : Number.isInteger(p.kunci));
+      return ok ? { status: 'ya', note: 'Semua pernyataan punya kunci' } : { status: 'cek', note: 'Ada pernyataan tanpa kunci (dinilai manual oleh guru)' };
+    }
+    return { status: 'na', note: '' };   // esai: memakai pedoman penskoran
+  }
+  if(id === 'k1') return stem.length > 350 ? { status: 'cek', note: `Pokok soal panjang (${stem.length} karakter)` } : null;
+  if(id === 'k4'){
+    if(!stem) return null;
+    const m = stem.toLowerCase().match(/\b(tidak|bukan|kecuali|tanpa|belum|salah)\b/g) || [];
+    if(m.length >= 2) return { status: 'cek', note: `Terdeteksi ${m.length} kata negasi (${Array.from(new Set(m)).join(', ')})` };
+    return { status: 'ya', note: m.length ? 'Hanya 1 kata negasi' : 'Tidak ada kata negasi' };
+  }
+  if(id === 'k8') return hasVisual ? { status: 'cek', note: 'Ada gambar/tabel — pastikan jelas, terbaca, dan berfungsi' } : { status: 'na', note: '' };
+
+  if(!anHasOpsi(q) && ['k5', 'k6', 'k7', 'b4'].includes(id)) return { status: 'na', note: '' };   // kriteria khusus soal berpilihan
+  if(id === 'k5'){
+    if(withText.length < 2) return null;
+    const lens = tx.map(t => t.length);
+    const mx = Math.max(...lens), mn = Math.min(...withText.map(t => t.length));
+    if(mx >= 30 && mx / Math.max(mn, 1) >= 2.5) return { status: 'cek', note: `Panjang opsi sangat berbeda (${mn}–${mx} karakter)` };
+    if(type === 'pg' && q.kunciId){
+      const ki = opsi.findIndex(o => o.id === q.kunciId);
+      const others = lens.filter((_, i) => i !== ki && tx[i]);
+      if(ki > -1 && others.length && lens[ki] === mx && lens[ki] >= 25 && lens[ki] >= 1.5 * (others.reduce((s, v) => s + v, 0) / others.length))
+        return { status: 'cek', note: 'Kunci paling panjang — siswa dapat menebak dari panjang opsi' };
+    }
+    return { status: 'ya', note: 'Panjang opsi relatif seimbang' };
+  }
+  if(id === 'k6'){
+    const re1 = /^\s*(semua|seluruh)\b[^.]{0,30}\b(benar|salah|betul)\b/i, re2 = /^\s*tidak ada\b[^.]{0,30}\b(benar|salah|betul)\b/i;
+    const hit = tx.findIndex(t => re1.test(t) || re2.test(t));
+    return hit > -1 ? { status: 'tidak', note: `Opsi ${String.fromCharCode(65 + hit)} memuat "${anShort(tx[hit], 40)}"` } : { status: 'ya', note: 'Tidak ada opsi "semua/tidak ada jawaban benar"' };
+  }
+  if(id === 'k7'){
+    if(withText.length < 3 || withText.length !== tx.length) return { status: 'na', note: '' };
+    const nums = tx.map(anParseNum);
+    if(nums.some(n => isNaN(n))) return { status: 'na', note: '' };
+    const asc = nums.every((v, i) => i === 0 || v >= nums[i - 1]), desc = nums.every((v, i) => i === 0 || v <= nums[i - 1]);
+    return (asc || desc) ? { status: 'ya', note: 'Angka/waktu sudah berurutan' } : { status: 'cek', note: 'Opsi berupa angka tetapi urutannya acak' };
+  }
+  if(id === 'b4'){
+    if(withText.length < 3 || withText.length !== tx.length) return null;
+    const ws = tx.map(t => t.toLowerCase().split(/\s+/));
+    let n = 0;
+    while(ws.every(w => w[n] !== undefined && w[n] === ws[0][n])) n++;
+    return n >= 2 ? { status: 'cek', note: `Semua opsi diawali "${ws[0].slice(0, n).join(' ')}" — pindahkan ke pokok soal` } : { status: 'ya', note: 'Tidak ada awal kalimat yang diulang' };
+  }
+  return null;   // m1, m2, k2, k3, k9, b1–b3: telaah manual guru
+}
+
+// ent = entri telaah tersimpan untuk butir ini (atau null).
+function anTelaahEval(q, ent){
+  const man = (ent && ent.c) || {};
+  const rows = AN_TELAAH.map(c => {
+    if(c.tipe === 'opsi' && !anHasOpsi(q)) return { c, eff: 'na', src: 'auto', auto: null, skip: true };
+    const auto = anTelaahAuto(c.id, q);
+    if(man[c.id]) return { c, eff: man[c.id], src: 'manual', auto };
+    if(auto && (auto.status === 'ya' || auto.status === 'tidak' || auto.status === 'na')) return { c, eff: auto.status, src: 'auto', auto };
+    return { c, eff: 'belum', src: 'auto', auto };
+  });
+  const asp = AN_ASPEK.map(a => {
+    const rs = rows.filter(r => r.c.asp === a && r.eff !== 'na');
+    return { asp: a, total: rs.length, ya: rs.filter(r => r.eff === 'ya').length, tidak: rs.filter(r => r.eff === 'tidak').length, belum: rs.filter(r => r.eff === 'belum').length };
+  });
+  const otomatis = rows.some(r => r.eff === 'tidak') ? 'Diperbaiki' : (rows.some(r => r.eff === 'belum') ? 'Belum lengkap' : 'Diterima');
+  const kesimpulan = (ent && ent.keputusan) || otomatis;
+  return { rows, asp, otomatis, kesimpulan, gagal: rows.filter(r => r.eff === 'tidak').map(r => r.c) };
+}
+
+function anTelaahEnt(qs, q, create){
+  if(!qs.telaah) qs.telaah = {};
+  let e = qs.telaah[q.id];
+  if(!e && create) e = qs.telaah[q.id] = { c: {}, keputusan: null, catatan: '' };
+  return e || null;
+}
+function anTelaahAll(qs){
+  return (qs.soal || []).map((q, i) => { const ent = anTelaahEnt(qs, q, false); return { no: i + 1, q, ent, ev: anTelaahEval(q, ent) }; });
+}
+function anTelaahSummary(qs){
+  const items = anTelaahAll(qs);
+  const count = {};
+  AN_KES.forEach(k => { count[k] = items.filter(x => x.ev.kesimpulan === k).length; });
+  return { n: items.length, items, count };
+}
+function anTelaahDetail(x){
+  const parts = [];
+  if(x.ev.gagal.length) parts.push('perbaiki ' + x.ev.gagal.map(c => `${c.kode} ${c.pendek}`).join('; '));
+  else parts.push('keputusan guru');
+  if(x.ent && (x.ent.catatan || '').trim()) parts.push('catatan: ' + x.ent.catatan.trim());
+  return parts.join(' — ');
+}
+function anEffLabel(e){ return e === 'ya' ? 'Ya' : (e === 'tidak' ? 'Tidak' : (e === 'na' ? 'N/A' : 'Belum')); }
+function anBadgeKes(k){ return k === 'Diterima' ? 'badge-selesai' : (k === 'Diperbaiki' ? 'badge-mengerjakan' : (k === 'Ditolak' ? 'badge-warn' : 'badge-belum')); }
+
+/* ---------- ubah data & simpan ---------- */
+function anTelaahLocate(qsId, qid){
+  const qs = questionSets.find(x => x.id === qsId);
+  const q = qs && qs.soal.find(x => x.id === qid);
+  return q ? { qs, q } : null;
+}
+function anTelaahAfterChange(qs, q, e, rerender){
+  e.sig = anSig(q);
+  if(!Object.keys(e.c).length && !e.keputusan && !(e.catatan || '').trim()) delete qs.telaah[q.id];
+  anTelaahTouch(qs);
+  if(rerender){ anTelaahRefreshItem(qs, q); anTelaahRenderStats(qs); }
+}
+function anTelaahSetCrit(qsId, qid, cid, val){
+  const L = anTelaahLocate(qsId, qid); if(!L) return;
+  const e = anTelaahEnt(L.qs, L.q, true);
+  if(e.c[cid] === val) delete e.c[cid]; else e.c[cid] = val;   // klik ulang = kembali ke hasil otomatis
+  anTelaahAfterChange(L.qs, L.q, e, true);
+}
+function anTelaahSetAllYa(qsId, qid){
+  const L = anTelaahLocate(qsId, qid); if(!L) return;
+  const e = anTelaahEnt(L.qs, L.q, true);
+  anTelaahEval(L.q, e).rows.forEach(r => { if(!r.skip && r.eff === 'belum') e.c[r.c.id] = 'ya'; });
+  anTelaahAfterChange(L.qs, L.q, e, true);
+}
+function anTelaahSetKeputusan(qsId, qid, val){
+  const L = anTelaahLocate(qsId, qid); if(!L) return;
+  const e = anTelaahEnt(L.qs, L.q, true);
+  e.keputusan = val || null;
+  anTelaahAfterChange(L.qs, L.q, e, true);
+}
+function anTelaahSetCatatan(qsId, qid, val){
+  const L = anTelaahLocate(qsId, qid); if(!L) return;
+  const e = anTelaahEnt(L.qs, L.q, true);
+  e.catatan = val;
+  anTelaahAfterChange(L.qs, L.q, e, false);
+}
+function anTelaahStatus(msg, isErr){
+  const el = document.getElementById('an-tl-status');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color = isErr ? 'var(--red)' : 'var(--slate)';
+}
+function anTelaahTouch(qs){
+  anTlDirty.add(qs.id);
+  anTelaahStatus('Menyimpan…');
+  clearTimeout(anTlTimer);
+  anTlTimer = setTimeout(anTelaahFlush, 900);
+}
+async function anTelaahFlush(){
+  const ids = Array.from(anTlDirty);
+  anTlDirty.clear();
+  let err = null;
+  for(const id of ids){
+    const qs = questionSets.find(x => x.id === id);
+    if(!qs) continue;
+    const { error } = await sb.from('question_sets').update({ telaah: qs.telaah || {} }).eq('id', id);
+    if(error){ err = error; anTlDirty.add(id); }
+  }
+  if(err) anTelaahStatus(`⚠ Gagal menyimpan ke database: ${err.message}. Pastikan SQL kolom "telaah" sudah dijalankan (lihat panduan bagian 10). Perubahan masih tampil di layar ini.`, true);
+  else anTelaahStatus('✓ Tersimpan');
+}
+
+/* ---------- tampilan ---------- */
+function anItemPreviewHtml(q){
+  const type = q.type || 'pg';
+  let h = '';
+  if(q.bacaan) h += `<div class="an-tl-bacaan">${escapeHtml(q.bacaan)}</div>`;
+  h += `<div class="an-tl-teks">${escapeHtml(q.teks || '')}</div>`;
+  if(q.gambar) h += `<div class="an-tl-img"><img src="${q.gambar}" alt=""></div>`;
+  if(q.tabel) h += renderTabelHtml(q.tabel);
+  if(type === 'pg' || type === 'pgk'){
+    const keys = (type === 'pg' ? [q.kunciId] : (q.kunciIds || [])).filter(Boolean);
+    h += `<ul class="an-tl-opsi">` + (q.opsi || []).map((o, i) =>
+      `<li class="${keys.includes(o.id) ? 'key' : ''}"><strong>${String.fromCharCode(65 + i)}.</strong> ${escapeHtml(o.teks || '')}${o.gambar ? ` <img src="${o.gambar}" alt="">` : ''}${keys.includes(o.id) ? ' ✓' : ''}</li>`
+    ).join('') + `</ul>`;
+    if(!keys.length) h += `<div class="an-sub" style="color:var(--red);">Kunci jawaban belum ditentukan</div>`;
+  } else if(type === 'bs'){
+    const kat = (Array.isArray(q.kategori) && q.kategori.length === 2) ? q.kategori : ['Benar', 'Salah'];
+    h += `<div class="an-sub">Kunci: ${(q.kunciKategori === 0 || q.kunciKategori === 1) ? escapeHtml(kat[q.kunciKategori]) : 'belum ditentukan (dinilai manual)'}</div>`;
+  } else if(type === 'bsg' || type === 'rb'){
+    const kat = Array.isArray(q.kategori) ? q.kategori : [];
+    h += `<ul class="an-tl-opsi">` + (q.pernyataan || []).map(p =>
+      `<li>${escapeHtml(p.teks || '')} — <em>kunci: ${(Number.isInteger(p.kunci) && kat[p.kunci] !== undefined) ? escapeHtml(kat[p.kunci]) : 'belum ada'}</em></li>`
+    ).join('') + `</ul><div class="an-sub">Kolom: ${kat.map(escapeHtml).join(' | ')}</div>`;
+  }
+  return h;
+}
+
+function anTelaahItemHtml(qs, q, idx){
+  const ent = anTelaahEnt(qs, q, false);
+  const ev = anTelaahEval(q, ent);
+  const open = anTlOpen.has(q.id);
+  const teks = nl2sp(q.teks || '');
+  const prev = teks ? anShort(teks, 90) : (q.gambar ? '(soal bergambar)' : '—');
+  const changed = !!(ent && ent.sig && ent.sig !== anSig(q));
+  const badges = ev.asp.map(a =>
+    `<span class="badge ${a.tidak ? 'badge-warn' : (a.belum ? 'badge-belum' : 'badge-selesai')}" title="${a.ya} ya · ${a.tidak} tidak · ${a.belum} belum dari ${a.total} kriteria">${a.asp} ${a.total ? a.ya + '/' + a.total : '—'}</span>`
+  ).join('');
+
+  let body = '';
+  if(open){
+    let lastAsp = '';
+    const rowsHtml = ev.rows.filter(r => !r.skip).map(r => {
+      const man = ent && ent.c && ent.c[r.c.id];
+      const tg = ['ya', 'tidak', 'na'].map(v => {
+        const cls = man === v ? `on ${v}` : ((!man && r.src === 'auto' && r.eff === v) ? `auto-on ${v}` : v);
+        return `<button type="button" class="${cls}" onclick="anTelaahSetCrit('${qs.id}','${q.id}','${r.c.id}','${v}')">${v === 'ya' ? 'Ya' : (v === 'tidak' ? 'Tidak' : 'N/A')}</button>`;
+      }).join('');
+      const icon = r.auto && r.auto.status === 'ya' ? '✔ Otomatis: ' : (r.auto && r.auto.status === 'tidak' ? '✖ Otomatis: ' : '⚠ Perlu dicek: ');
+      const note = (r.auto && r.auto.note) ? `<span class="an-sub an-auto ${r.auto.status}">${icon}${escapeHtml(r.auto.note)}${man && r.auto.status !== man && r.auto.status !== 'cek' ? ' (dikoreksi guru)' : ''}</span>` : '';
+      const head = r.c.asp !== lastAsp ? `<tr class="an-tl-asp"><td colspan="3">${r.c.asp}</td></tr>` : '';
+      lastAsp = r.c.asp;
+      return `${head}<tr><td class="an-tl-kode">${r.c.kode}</td><td class="an-tl-tx">${escapeHtml(r.c.teks)}${note}</td><td class="an-tl-tgcell"><span class="an-tg">${tg}</span></td></tr>`;
+    }).join('');
+    body = `<div class="an-tl-body">
+      ${changed ? `<div class="an-tl-warn">Soal diubah setelah ditelaah — tinjau kembali hasil telaah di bawah.</div>` : ''}
+      <div class="an-tl-q">${anItemPreviewHtml(q)}</div>
+      <div class="table-scroll"><table class="an-mini an-tl-tbl"><tbody>${rowsHtml}</tbody></table></div>
+      <div class="an-tl-foot">
+        <label class="field" style="flex:0 1 230px;"><span>Kesimpulan telaah</span>
+          <select onchange="anTelaahSetKeputusan('${qs.id}','${q.id}', this.value)">
+            <option value="">Otomatis (${ev.otomatis})</option>
+            ${['Diterima', 'Diperbaiki', 'Ditolak'].map(k => `<option value="${k}" ${ent && ent.keputusan === k ? 'selected' : ''}>${k}</option>`).join('')}
+          </select>
+        </label>
+        <label class="field" style="flex:1 1 260px;"><span>Catatan / saran perbaikan</span>
+          <textarea placeholder="Mis. ganti pengecoh C, sederhanakan kalimat pokok soal…" oninput="anTelaahSetCatatan('${qs.id}','${q.id}', this.value)">${escapeHtml((ent && ent.catatan) || '')}</textarea>
+        </label>
+        <button type="button" class="btn-secondary" onclick="anTelaahSetAllYa('${qs.id}','${q.id}')">Tandai semua yang belum = Ya</button>
+      </div>
+    </div>`;
+  }
+  return `<details class="an-tl-item" id="an-tl-${q.id}" ${open ? 'open' : ''} ${open ? 'data-body="1"' : ''} ontoggle="anTlToggled('${qs.id}','${q.id}', this)">
+    <summary>
+      <span class="an-tl-no">${idx + 1}</span>
+      <span class="an-tl-jenis">${escapeHtml(TYPE_LABEL[q.type || 'pg'] || q.type)}</span>
+      <span class="an-tl-prev">${escapeHtml(prev)}${q.gambar ? ' 🖼' : ''}</span>
+      <span class="an-tl-badges">${badges}<span class="badge ${anBadgeKes(ev.kesimpulan)}">${ev.kesimpulan}</span></span>
+    </summary>${body}
+  </details>`;
+}
+
+function anTelaahRefreshItem(qs, q){
+  const el = document.getElementById('an-tl-' + q.id);
+  if(!el) return;
+  const idx = qs.soal.findIndex(x => x.id === q.id);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = anTelaahItemHtml(qs, q, idx);
+  el.replaceWith(tmp.firstElementChild);
+}
+function anTlToggled(qsId, qid, el){
+  if(el.open){
+    anTlOpen.add(qid);
+    if(!el.dataset.body){
+      const L = anTelaahLocate(qsId, qid);
+      if(L) anTelaahRefreshItem(L.qs, L.q);   // isi kartu dibuat saat dibuka (menghemat DOM untuk paket besar)
+    }
+  } else {
+    anTlOpen.delete(qid);
+  }
+}
+
+function anTelaahRenderStats(qs){
+  const el = document.getElementById('an-tl-stats');
+  if(!el) return;
+  const s = anTelaahSummary(qs);
+  const pill = (cls, k, lbl) => `<div class="stat-pill ${cls}"><div class="num">${s.count[k]}</div><div class="lbl">${lbl}</div></div>`;
+  el.innerHTML = `<div class="stat-pills">
+    <div class="stat-pill slate"><div class="num">${s.n}</div><div class="lbl">Butir soal</div></div>
+    ${pill('emerald', 'Diterima', 'Diterima')}${pill('amber', 'Diperbaiki', 'Perlu diperbaiki')}${pill('red', 'Ditolak', 'Ditolak')}${pill('slate', 'Belum lengkap', 'Belum lengkap ditelaah')}
+  </div>`;
+}
+
+function renderTelaah(j){
+  const wrap = document.getElementById('an-content');
+  anTlLast = null;
+  const qs = questionSets.find(x => x.id === j.questionSetId);
+  if(!qs){ wrap.innerHTML = `<div class="empty-state"><strong>Paket soal untuk jadwal ini sudah dihapus</strong>Telaah tidak dapat ditampilkan.</div>`; return; }
+  if(!qs.soal || qs.soal.length === 0){ wrap.innerHTML = `<div class="empty-state"><strong>Paket soal ini belum berisi butir soal</strong></div>`; return; }
+  anTlLast = { qs, j };
+  const icoDl = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>`;
+  wrap.innerHTML = `
+    <div class="list-card an-card">
+      <div class="list-head">
+        <span class="an-card-title">Analisis kualitatif (telaah butir soal) — ${escapeHtml(qs.judul)}</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="exportTelaahExcel()">${icoDl} Unduh Excel</button>
+          <button type="button" class="btn-secondary" onclick="exportTelaahPDF()">${icoDl} Unduh PDF</button>
+        </div>
+      </div>
+      <div class="an-legend">
+        Telaah tiap butir dari aspek <strong>Materi</strong>, <strong>Konstruksi</strong>, dan <strong>Bahasa</strong>. Buka butir untuk melihat kriterianya.
+        Kriteria yang bisa dibaca dari isi soal <strong>diperiksa otomatis</strong> (tombol berwarna muda); kriteria lain ditelaah guru dengan
+        <strong>Ya / Tidak / N/A</strong>. Klik tombol yang sama sekali lagi untuk membatalkan pilihan Anda.<br>
+        <strong>Kesimpulan otomatis</strong>: ada kriteria "Tidak" → Diperbaiki · semua "Ya"/"N/A" → Diterima · masih ada yang belum dinilai → Belum lengkap.
+        Guru dapat menetapkan kesimpulan sendiri (mis. Ditolak). Hasil telaah tersimpan di paket soal dan tidak bergantung pada kelas.
+      </div>
+    </div>
+    <div id="an-tl-stats"></div>
+    <div id="an-tl-status" class="field-hint" style="margin:0 0 12px; min-height:16px;"></div>
+    <div id="an-tl-list">${qs.soal.map((q, i) => anTelaahItemHtml(qs, q, i)).join('')}</div>`;
+  anTelaahRenderStats(qs);
+}
+
+/* ---------- mode ---------- */
+function anSetMode(m){
+  anMode = m;
+  document.querySelectorAll('#an-mode .subtab').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderAnalisis();
+}
+
+/* ---------- ekspor telaah ---------- */
+function anTelaahFileName(ext){
+  return `Analisis Kualitatif - ${anTlLast.qs.judul.replace(/[\\/:*?"<>|]/g, '-')}.${ext}`;
+}
+function exportTelaahExcel(){
+  if(!anTlLast){ alert('Belum ada data untuk diunduh.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('Pustaka Excel belum termuat, coba lagi sesaat lagi.'); return; }
+  const { qs, j } = anTlLast;
+  const items = anTelaahAll(qs);
+  const head = ['No', 'Jenis', 'Butir soal', ...AN_TELAAH.map(c => c.kode), ...AN_ASPEK, 'Kesimpulan', 'Perbaikan / catatan'];
+  const body = items.map(x => [
+    x.no, TYPE_LABEL[x.q.type || 'pg'] || x.q.type, nl2sp(x.q.teks || '') || (x.q.gambar ? '(soal bergambar)' : ''),
+    ...x.ev.rows.map(r => r.skip ? '-' : anEffLabel(r.eff)),
+    ...x.ev.asp.map(a => a.total ? `${a.ya}/${a.total}` : '-'),
+    x.ev.kesimpulan, (x.ev.gagal.length || (x.ent && x.ent.catatan)) ? anTelaahDetail(x) : ''
+  ]);
+  const ncol = head.length;
+  const ws1 = XLSX.utils.aoa_to_sheet([
+    ['SMK Widya Mandala Tambak'], ['Analisis Kualitatif Butir Soal (Telaah Materi, Konstruksi, Bahasa)'],
+    [`Paket soal: ${qs.judul}`], [`Jadwal: ${anJadwalLabel(j)}`], [], head, ...body
+  ]);
+  ws1['!cols'] = [{ wch: 5 }, { wch: 16 }, { wch: 50 }, ...AN_TELAAH.map(() => ({ wch: 6 })), { wch: 9 }, { wch: 11 }, { wch: 9 }, { wch: 14 }, { wch: 60 }];
+  ws1['!merges'] = [0, 1, 2, 3].map(r => ({ s: { r, c: 0 }, e: { r, c: ncol - 1 } }));
+  const ws2 = XLSX.utils.aoa_to_sheet([['Kode', 'Aspek', 'Kriteria telaah'], ...AN_TELAAH.map(c => [c.kode, c.asp, c.teks])]);
+  ws2['!cols'] = [{ wch: 7 }, { wch: 14 }, { wch: 100 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws1, 'Telaah Kualitatif');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Keterangan Kriteria');
+  XLSX.writeFile(wb, anTelaahFileName('xlsx'));
+}
+
+function exportTelaahPDF(){
+  if(!anTlLast){ alert('Belum ada data untuk diunduh.'); return; }
+  if(typeof window.jspdf === 'undefined'){ alert('Pustaka PDF belum termuat, coba lagi sesaat lagi.'); return; }
+  const { qs, j } = anTlLast;
+  const items = anTelaahAll(qs);
+  const jurusan = document.getElementById('an-jurusan').value;
+  const jenisUjian = (document.getElementById('an-jenis-ujian').value || '').trim();
+  const tahunAjaran = (document.getElementById('an-tahun-ajaran').value || '').trim() || '-';
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const mx = 40, green = [14, 159, 110];
+  const T = anPdfTxt;
+
+  // ---------- Kop ----------
+  const logoSize = 46, logoDataUri = getLogoDataUri();
+  if(logoDataUri){ try{ doc.addImage(logoDataUri, 'JPEG', mx, 26, logoSize, logoSize); }catch(e){ /* abaikan */ } }
+  const textX = mx + logoSize + 14;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5);
+  doc.text('SMK WIDYA MANDALA TAMBAK', textX, 42);
+  doc.setFontSize(10.5); doc.setFont('helvetica', 'normal');
+  doc.text(T(`Analisis Kualitatif Butir Soal${jenisUjian ? ' ' + jenisUjian : ''}`), textX, 58);
+  doc.text(T(`Tahun Pelajaran ${tahunAjaran}`), textX, 71);
+  doc.setLineWidth(1.1); doc.line(mx, 84, W - mx, 84);
+  doc.setFontSize(9.5);
+  doc.text(T(`Paket soal: ${qs.judul}${jurusan ? '    Jurusan: ' + jurusan : ''}`), mx, 100);
+  doc.text(T(`Jadwal: ${anJadwalLabel(j)}`), mx, 114);
+  const sm = anTelaahSummary(qs);
+  doc.text(T(`Dicetak: ${new Date().toLocaleString('id-ID')}`), W - mx, 100, { align: 'right' });
+  doc.text(T(`Butir: ${sm.n}   Diterima: ${sm.count['Diterima']}   Diperbaiki: ${sm.count['Diperbaiki']}   Ditolak: ${sm.count['Ditolak']}   Belum lengkap: ${sm.count['Belum lengkap']}`), W - mx, 114, { align: 'right' });
+
+  // ---------- Tabel telaah ----------
+  const codeW = 27;
+  const columnStyles = { 0: { cellWidth: 24, halign: 'center' } };
+  AN_TELAAH.forEach((_, i) => { columnStyles[2 + i] = { cellWidth: codeW, halign: 'center' }; });
+  columnStyles[2 + AN_TELAAH.length] = { cellWidth: 64, halign: 'center' };
+  const head = [['No', 'Butir soal', ...AN_TELAAH.map(c => c.kode), 'Kesimpulan']];
+  const body = items.map(x => [
+    x.no, T(anShort(x.q.teks || '', 70) || (x.q.gambar ? '(soal bergambar)' : '-')),
+    ...x.ev.rows.map(r => r.skip ? '-' : anEffLabel(r.eff)), x.ev.kesimpulan
+  ]);
+  doc.autoTable({
+    head, body, startY: 124, margin: { left: mx, right: mx },
+    styles: { font: 'helvetica', fontSize: 7.5, cellPadding: 3, lineColor: [220, 222, 230], lineWidth: 0.5, valign: 'middle' },
+    headStyles: { fillColor: green, textColor: 255, fontStyle: 'bold', halign: 'center' },
+    columnStyles,
+    didParseCell: function(d){
+      if(d.section !== 'body' || d.column.index < 2) return;
+      if(d.cell.raw === 'Tidak' || d.cell.raw === 'Ditolak'){ d.cell.styles.textColor = [200, 40, 40]; d.cell.styles.fontStyle = 'bold'; }
+      else if(d.cell.raw === 'Ya' || d.cell.raw === 'Diterima'){ d.cell.styles.textColor = [14, 159, 110]; }
+      else if(d.cell.raw === 'Belum' || d.cell.raw === 'Belum lengkap'){ d.cell.styles.textColor = [140, 140, 150]; }
+    }
+  });
+  let y = doc.lastAutoTable.finalY + 22;
+  const need = h => { if(y + h > H - 46){ doc.addPage(); y = 50; } };
+
+  // ---------- Keterangan kriteria ----------
+  need(40);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text('Keterangan kriteria', mx, y); y += 14;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+  AN_ASPEK.forEach(a => {
+    const cs = AN_TELAAH.filter(c => c.asp === a);
+    need(12 + cs.length * 11);
+    doc.setFont('helvetica', 'bold'); doc.text(a, mx, y); y += 11;
+    doc.setFont('helvetica', 'normal');
+    cs.forEach(c => { doc.text(T(`${c.kode}. ${c.teks}`), mx + 10, y); y += 11; });
+    y += 3;
+  });
+  need(14);
+  doc.setTextColor(110);
+  doc.text('Ya = memenuhi kriteria · Tidak = belum memenuhi · N/A = tidak berlaku untuk butir ini · Belum = belum ditelaah', mx, y);
+  doc.setTextColor(0); y += 20;
+
+  // ---------- Tindak lanjut perbaikan ----------
+  const perlu = items.filter(x => x.ev.kesimpulan === 'Diperbaiki' || x.ev.kesimpulan === 'Ditolak');
+  need(40);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
+  doc.text('Tindak lanjut perbaikan butir soal', mx, y); y += 15;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  if(!perlu.length){
+    doc.text('Tidak ada butir yang perlu diperbaiki atau ditolak berdasarkan telaah saat ini.', mx, y); y += 16;
+  } else {
+    perlu.forEach(x => {
+      const lines = doc.splitTextToSize(T(`No. ${x.no} (${x.ev.kesimpulan}) — ${anTelaahDetail(x)}`), W - 2 * mx - 16);
+      need(lines.length * 12 + 2);
+      doc.text('•', mx + 4, y); doc.text(lines, mx + 16, y); y += lines.length * 12 + 2;
+    });
+  }
+
+  // ---------- Tanda tangan ----------
+  const lineH = 16, sigGap = 46;
+  need(lineH * 3 + sigGap + 34);
+  y += 16;
+  const rightX = W - mx - 190;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`Tambak, ${formatTanggalIndo(new Date())}`, rightX, y);
+  doc.text('Mengetahui,', mx, y + lineH);
+  doc.text('Kepala Sekolah', mx, y + lineH * 2);
+  doc.text('Guru Mata Pelajaran,', rightX, y + lineH * 2);
+  const nameY = y + lineH * 2 + sigGap;
+  doc.setFont('helvetica', 'bold');
+  doc.text(KEPSEK_NAMA, mx, nameY, { maxWidth: 190 });
+  doc.text(T(currentGuruNama) || '(.................................)', rightX, nameY, { maxWidth: 190 });
+
+  const pages = doc.internal.getNumberOfPages();
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(120);
+  for(let i = 1; i <= pages; i++){ doc.setPage(i); doc.text(`Halaman ${i} dari ${pages}`, W - mx, H - 20, { align: 'right' }); }
+  doc.setTextColor(0);
+  doc.save(anTelaahFileName('pdf'));
+}
 
 /* ============================================================
    PENILAIAN MANUAL (esai / soal opini)
