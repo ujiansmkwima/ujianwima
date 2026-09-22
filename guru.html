@@ -1158,6 +1158,14 @@ D. Medan
             <option value="Teknik Sepeda Motor">Teknik Sepeda Motor</option>
           </select>
         </label>
+        <label class="field" style="max-width:230px; flex:1 1 200px;">
+          <span>Penyusun (untuk Analisis Kualitatif)</span>
+          <input type="text" id="an-penyusun" placeholder="Nama penyusun soal">
+        </label>
+        <label class="field" style="max-width:230px; flex:1 1 200px;">
+          <span>Penelaah (untuk Analisis Kualitatif)</span>
+          <input type="text" id="an-penelaah" placeholder="Nama penelaah soal">
+        </label>
       </div>
     </details>
 
@@ -1351,6 +1359,8 @@ async function init(){
   selectedGuruId = me.id;
   currentGuruNama = me.nama || '';
   document.getElementById('guruNameLabel').textContent = me.nama;
+  const anPenyusunEl = document.getElementById('an-penyusun');
+  if(anPenyusunEl) anPenyusunEl.value = currentGuruNama;
 
   const [guruRes, subjRes, usersRes, supvRes, qsRes, schRes, atRes, roomsRes] = await Promise.all([
     sb.from('profiles').select('id,nama,username,email').eq('role', 'guru'),
@@ -3547,6 +3557,8 @@ function exportRekapExcel(){
 const KEPSEK_NAMA = 'AGUNG PAMBUDI, S.E., S.Kom., M.M.';
 const BULAN_INDO = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 function formatTanggalIndo(d){ return `${d.getDate()} ${BULAN_INDO[d.getMonth()]} ${d.getFullYear()}`; }
+function formatBulanTahunIndo(d){ return `${BULAN_INDO[d.getMonth()]} ${d.getFullYear()}`; }
+function anMapelNama(qs){ const s = subjects.find(x => x.id === qs.subjectId); return s ? s.nama : '-'; }
 function getLogoDataUri(){
   const img = document.querySelector('header.site-header img.emblem');
   return img ? img.src : null;
@@ -4420,7 +4432,7 @@ const AN_TELAAH = [
   { id: 'k9', kode: 'K9', asp: 'Konstruksi', tipe: 'semua', pendek: 'bergantung pada jawaban butir lain', teks: 'Butir soal tidak bergantung pada jawaban butir soal lain' },
   { id: 'b1', kode: 'B1', asp: 'Bahasa', tipe: 'semua', pendek: 'bahasa belum sesuai kaidah', teks: 'Menggunakan bahasa Indonesia yang baku sesuai kaidah (PUEBI)' },
   { id: 'b2', kode: 'B2', asp: 'Bahasa', tipe: 'semua', pendek: 'memakai bahasa daerah/setempat', teks: 'Tidak menggunakan bahasa daerah atau ungkapan yang hanya berlaku setempat' },
-  { id: 'b3', kode: 'B3', asp: 'Bahasa', tipe: 'semua', pendek: 'menyinggung perasaan siswa', teks: 'Tidak mengandung kata/ungkapan yang menyinggung perasaan siswa' },
+  { id: 'b3', kode: 'B3', asp: 'Bahasa', tipe: 'semua', pendek: 'bahasa kurang komunikatif', teks: 'Menggunakan bahasa yang komunikatif' },
   { id: 'b4', kode: 'B4', asp: 'Bahasa', tipe: 'opsi', pendek: 'pilihan jawaban mengulang kata yang sama', teks: 'Pilihan jawaban tidak mengulang kata/kelompok kata yang sama (kecuali satu kesatuan pengertian)' }
 ];
 const AN_ASPEK = ['Materi', 'Konstruksi', 'Bahasa'];
@@ -4785,30 +4797,80 @@ function anSetMode(m){
 function anTelaahFileName(ext){
   return `Analisis Kualitatif - ${anTlLast.qs.judul.replace(/[\\/:*?"<>|]/g, '-')}.${ext}`;
 }
+// Tanda pada matriks kaidah x nomor soal: 'ya' = terpenuhi, 'na' = kriteria tidak berlaku, selain itu dikosongkan (belum/tidak terpenuhi).
+function anMatrixMark(eff, forPdf){
+  if(eff === 'ya') return forPdf ? 'V' : '✓';
+  if(eff === 'na') return '-';
+  return '';
+}
+function anTelaahInfo(){
+  return {
+    satuan: 'SMK Widya Mandala Tambak',
+    tahunAjaran: (document.getElementById('an-tahun-ajaran').value || '').trim() || '-',
+    jenisUjian: (document.getElementById('an-jenis-ujian').value || '').trim(),
+    penyusun: (document.getElementById('an-penyusun').value || '').trim() || currentGuruNama || '-',
+    penelaah: (document.getElementById('an-penelaah').value || '').trim()
+  };
+}
+
 function exportTelaahExcel(){
   if(!anTlLast){ alert('Belum ada data untuk diunduh.'); return; }
   if(typeof XLSX === 'undefined'){ alert('Pustaka Excel belum termuat, coba lagi sesaat lagi.'); return; }
   const { qs, j } = anTlLast;
   const items = anTelaahAll(qs);
-  const head = ['No', 'Jenis', 'Butir soal', ...AN_TELAAH.map(c => c.kode), ...AN_ASPEK, 'Kesimpulan', 'Perbaikan / catatan'];
-  const body = items.map(x => [
+  const info = anTelaahInfo();
+  const mapel = anMapelNama(qs);
+  const wb = XLSX.utils.book_new();
+
+  // ---------- Sheet 1: format resmi (kaidah x nomor soal), seperti dokumen sekolah ----------
+  const headMatrix = ['No', 'Kaedah Penyusunan Soal', ...items.map(x => String(x.no))];
+  const bodyMatrix = AN_TELAAH.map((c, ci) => [
+    ci + 1, c.teks, ...items.map(x => anMatrixMark(x.ev.rows[ci].skip ? 'na' : x.ev.rows[ci].eff, false))
+  ]);
+  const ncolM = headMatrix.length;
+  const aoaM = [
+    ['ANALISIS KUALITATIF SOAL'],
+    info.jenisUjian ? [info.jenisUjian.toUpperCase()] : [''],
+    [],
+    ['Satuan Pendidikan', ':', info.satuan, '', 'Tahun pelajaran', ':', info.tahunAjaran],
+    ['Mata Pelajaran', ':', mapel, '', 'Penyusun', ':', info.penyusun],
+    [],
+    headMatrix, ...bodyMatrix,
+    [],
+    [`Tambak, ${formatBulanTahunIndo(new Date())}`],
+    ['Penelaah,'],
+    [], [],
+    [info.penelaah || '(.................................)']
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(aoaM);
+  ws1['!cols'] = [{ wch: 5 }, { wch: 55 }, ...items.map(() => ({ wch: 4 }))];
+  ws1['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: ncolM - 1 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: ncolM - 1 } }
+  ];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Analisis Kualitatif');
+
+  // ---------- Sheet 2: detail per butir (kode kriteria, kesimpulan, catatan guru) ----------
+  const head2 = ['No', 'Jenis', 'Butir soal', ...AN_TELAAH.map(c => c.kode), ...AN_ASPEK, 'Kesimpulan', 'Perbaikan / catatan'];
+  const body2 = items.map(x => [
     x.no, TYPE_LABEL[x.q.type || 'pg'] || x.q.type, nl2sp(x.q.teks || '') || (x.q.gambar ? '(soal bergambar)' : ''),
     ...x.ev.rows.map(r => r.skip ? '-' : anEffLabel(r.eff)),
     ...x.ev.asp.map(a => a.total ? `${a.ya}/${a.total}` : '-'),
     x.ev.kesimpulan, (x.ev.gagal.length || (x.ent && x.ent.catatan)) ? anTelaahDetail(x) : ''
   ]);
-  const ncol = head.length;
-  const ws1 = XLSX.utils.aoa_to_sheet([
-    ['SMK Widya Mandala Tambak'], ['Analisis Kualitatif Butir Soal (Telaah Materi, Konstruksi, Bahasa)'],
-    [`Paket soal: ${qs.judul}`], [`Jadwal: ${anJadwalLabel(j)}`], [], head, ...body
+  const ncol2 = head2.length;
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['SMK Widya Mandala Tambak'], ['Analisis Kualitatif Butir Soal — Detail per Kriteria'],
+    [`Paket soal: ${qs.judul}`], [`Jadwal: ${anJadwalLabel(j)}`], [], head2, ...body2
   ]);
-  ws1['!cols'] = [{ wch: 5 }, { wch: 16 }, { wch: 50 }, ...AN_TELAAH.map(() => ({ wch: 6 })), { wch: 9 }, { wch: 11 }, { wch: 9 }, { wch: 14 }, { wch: 60 }];
-  ws1['!merges'] = [0, 1, 2, 3].map(r => ({ s: { r, c: 0 }, e: { r, c: ncol - 1 } }));
-  const ws2 = XLSX.utils.aoa_to_sheet([['Kode', 'Aspek', 'Kriteria telaah'], ...AN_TELAAH.map(c => [c.kode, c.asp, c.teks])]);
-  ws2['!cols'] = [{ wch: 7 }, { wch: 14 }, { wch: 100 }];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws1, 'Telaah Kualitatif');
-  XLSX.utils.book_append_sheet(wb, ws2, 'Keterangan Kriteria');
+  ws2['!cols'] = [{ wch: 5 }, { wch: 16 }, { wch: 50 }, ...AN_TELAAH.map(() => ({ wch: 6 })), { wch: 9 }, { wch: 11 }, { wch: 9 }, { wch: 14 }, { wch: 60 }];
+  ws2['!merges'] = [0, 1, 2, 3].map(r => ({ s: { r, c: 0 }, e: { r, c: ncol2 - 1 } }));
+  XLSX.utils.book_append_sheet(wb, ws2, 'Detail per Butir');
+
+  const ws3 = XLSX.utils.aoa_to_sheet([['No', 'Kode', 'Aspek', 'Kriteria telaah'], ...AN_TELAAH.map((c, i) => [i + 1, c.kode, c.asp, c.teks])]);
+  ws3['!cols'] = [{ wch: 5 }, { wch: 7 }, { wch: 14 }, { wch: 100 }];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Keterangan Kriteria');
+
   XLSX.writeFile(wb, anTelaahFileName('xlsx'));
 }
 
@@ -4818,14 +4880,64 @@ function exportTelaahPDF(){
   const { qs, j } = anTlLast;
   const items = anTelaahAll(qs);
   const jurusan = document.getElementById('an-jurusan').value;
-  const jenisUjian = (document.getElementById('an-jenis-ujian').value || '').trim();
-  const tahunAjaran = (document.getElementById('an-tahun-ajaran').value || '').trim() || '-';
+  const info = anTelaahInfo();
+  const jenisUjian = info.jenisUjian, tahunAjaran = info.tahunAjaran;
+  const mapel = anMapelNama(qs);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
   const mx = 40, green = [14, 159, 110];
   const T = anPdfTxt;
 
+  // ============================================================
+  // Halaman 1 — format resmi (kaidah penyusunan soal x nomor soal),
+  // mengikuti format Analisis Kualitatif Soal sekolah.
+  // ============================================================
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+  doc.text('ANALISIS KUALITATIF SOAL', W / 2, 46, { align: 'center' });
+  if(jenisUjian){
+    doc.setFontSize(11);
+    doc.text(T(jenisUjian.toUpperCase()), W / 2, 62, { align: 'center' });
+  }
+  doc.autoTable({
+    body: [
+      ['Satuan Pendidikan', ':', info.satuan, '', 'Tahun pelajaran', ':', tahunAjaran],
+      ['Mata Pelajaran', ':', T(mapel) + (jurusan ? `  (${T(jurusan)})` : ''), '', 'Penyusun', ':', T(info.penyusun)]
+    ],
+    startY: jenisUjian ? 76 : 60, margin: { left: mx, right: mx }, theme: 'plain',
+    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: { top: 1.5, bottom: 1.5, left: 0, right: 6 } },
+    columnStyles: { 0: { cellWidth: 92, fontStyle: 'bold' }, 1: { cellWidth: 10 }, 2: { cellWidth: 300 }, 3: { cellWidth: 20 }, 4: { cellWidth: 92, fontStyle: 'bold' }, 5: { cellWidth: 10 } }
+  });
+  let y0 = doc.lastAutoTable.finalY + 14;
+
+  const nSoal = items.length;
+  const numColW = Math.max(14, Math.min(22, (W - 2 * mx - 30 - 260) / Math.max(nSoal, 1)));
+  const colStylesM = { 0: { cellWidth: 24, halign: 'center' }, 1: { cellWidth: 260 } };
+  items.forEach((_, i) => { colStylesM[2 + i] = { cellWidth: numColW, halign: 'center' }; });
+  doc.autoTable({
+    head: [['No', 'Kaedah Penyusunan Soal', ...items.map(x => String(x.no))]],
+    body: AN_TELAAH.map((c, ci) => [ci + 1, T(c.teks), ...items.map(x => anMatrixMark(x.ev.rows[ci].skip ? 'na' : x.ev.rows[ci].eff, true))]),
+    startY: y0, margin: { left: mx, right: mx },
+    styles: { font: 'helvetica', fontSize: 7.5, cellPadding: 3, lineColor: [180, 182, 190], lineWidth: 0.6, valign: 'middle' },
+    headStyles: { fillColor: green, textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7 },
+    columnStyles: colStylesM,
+    didParseCell: function(d){
+      if(d.section === 'body' && d.column.index >= 2 && d.cell.raw === 'V'){ d.cell.styles.textColor = [14, 159, 110]; d.cell.styles.fontStyle = 'bold'; }
+    }
+  });
+  let y1 = doc.lastAutoTable.finalY + 34;
+  const need1 = h => { if(y1 + h > H - 30){ doc.addPage(); y1 = 50; } };
+  need1(70);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`Tambak, ${formatBulanTahunIndo(new Date())}`, W - mx - 170, y1);
+  doc.text('Penelaah,', mx, y1 + 16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(T(info.penelaah) || '(.................................)', mx, y1 + 16 + 46, { maxWidth: 200 });
+
+  // ============================================================
+  // Halaman berikutnya — detail per kriteria, keterangan, dan tindak lanjut
+  // ============================================================
+  doc.addPage();
   // ---------- Kop ----------
   const logoSize = 46, logoDataUri = getLogoDataUri();
   if(logoDataUri){ try{ doc.addImage(logoDataUri, 'JPEG', mx, 26, logoSize, logoSize); }catch(e){ /* abaikan */ } }
@@ -4833,11 +4945,11 @@ function exportTelaahPDF(){
   doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5);
   doc.text('SMK WIDYA MANDALA TAMBAK', textX, 42);
   doc.setFontSize(10.5); doc.setFont('helvetica', 'normal');
-  doc.text(T(`Analisis Kualitatif Butir Soal${jenisUjian ? ' ' + jenisUjian : ''}`), textX, 58);
+  doc.text(T(`Analisis Kualitatif Butir Soal — Detail per Kriteria${jenisUjian ? ' — ' + jenisUjian : ''}`), textX, 58);
   doc.text(T(`Tahun Pelajaran ${tahunAjaran}`), textX, 71);
   doc.setLineWidth(1.1); doc.line(mx, 84, W - mx, 84);
   doc.setFontSize(9.5);
-  doc.text(T(`Paket soal: ${qs.judul}${jurusan ? '    Jurusan: ' + jurusan : ''}`), mx, 100);
+  doc.text(T(`Paket soal: ${qs.judul}    Mata Pelajaran: ${mapel}${jurusan ? '    Jurusan: ' + jurusan : ''}`), mx, 100);
   doc.text(T(`Jadwal: ${anJadwalLabel(j)}`), mx, 114);
   const sm = anTelaahSummary(qs);
   doc.text(T(`Dicetak: ${new Date().toLocaleString('id-ID')}`), W - mx, 100, { align: 'right' });
