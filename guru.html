@@ -468,6 +468,19 @@
   .an-tl-foot{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-top:14px; }
   .an-tl-foot .field textarea{ min-height:56px; }
 
+  /* ---------- Pengolahan Nilai ---------- */
+  .nl-range{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+  .nl-range-row{ display:flex; gap:18px; flex-wrap:wrap; align-items:flex-end; }
+  .nl-range-title{ font-size:12.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.03em; margin:0 0 10px; }
+  .nl-src{ display:flex; gap:22px; flex-wrap:wrap; }
+  .nl-src div .num{ font-size:20px; font-weight:800; }
+  .nl-src div .lbl{ font-size:11.5px; color:var(--slate); }
+  .nl-arrow{ display:flex; align-items:center; color:var(--slate); font-size:20px; padding-bottom:10px; }
+  .nl-warn{ background:var(--amber-soft); color:#8A6414; font-size:12.5px; font-weight:600; border-radius:8px; padding:8px 12px; margin-top:12px; }
+  table.nl-table td.nl-delta-up{ color:var(--emerald-dark); font-weight:700; }
+  table.nl-table td.nl-delta-down{ color:var(--red); font-weight:700; }
+  table.nl-table td.nl-delta-zero{ color:var(--slate); }
+
   /* ---------- Mobile ---------- */
   @media (max-width:680px){
     .form-grid{ grid-template-columns:1fr; }
@@ -651,6 +664,10 @@
     <button class="tab" onclick="showPanel('panel-analisis', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
       Analisis
+    </button>
+    <button class="tab" onclick="showPanel('panel-nilai', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg>
+      Nilai
     </button>
   </nav>
 </div>
@@ -1179,6 +1196,24 @@ D. Medan
     <div id="an-content"></div>
   </section>
 
+  <!-- ============================================================ PANEL: PENGOLAHAN NILAI ============================================================ -->
+  <section id="panel-nilai" class="panel">
+    <div class="section-head">
+      <h1>Pengolahan Nilai</h1>
+      <p>Konversi nilai ujian secara proporsional ke rentang yang Anda tentukan, supaya adil ketika nilai tertinggi peserta belum mencapai 100 atau ujian tergolong sulit/mudah.</p>
+    </div>
+
+    <div class="an-toolbar">
+      <label class="field" style="max-width:420px; flex:1 1 260px;">
+        <span>Pilih jadwal ujian</span>
+        <select id="nl-jadwal" onchange="nlJadwalChanged()"></select>
+      </label>
+    </div>
+
+    <div class="subtabs" id="nl-kelas-pills"></div>
+    <div id="nl-content"></div>
+  </section>
+
 </div>
 
 <!-- ============ MODAL: PRATINJAU SOAL SEPERTI TAMPILAN SISWA ============ -->
@@ -1415,6 +1450,8 @@ function refreshAll(){
   renderRekap();
   populateAnalisisJadwalSelect();
   renderAnalisis();
+  populateNilaiJadwalSelect();
+  renderNilai();
 }
 
 /* ---------- tab / subtab switching ---------- */
@@ -1438,6 +1475,9 @@ function showPanel(id, el){
   }
   if(id === 'panel-analisis'){
     refreshAnalisis();
+  }
+  if(id === 'panel-nilai'){
+    refreshNilai();
   }
 }
 function showSubtab(id, el){
@@ -5034,6 +5074,334 @@ function exportTelaahPDF(){
   for(let i = 1; i <= pages; i++){ doc.setPage(i); doc.text(`Halaman ${i} dari ${pages}`, W - mx, H - 20, { align: 'right' }); }
   doc.setTextColor(0);
   doc.save(anTelaahFileName('pdf'));
+}
+
+/* ============================================================
+   PENGOLAHAN NILAI (KONVERSI NILAI LINEAR)
+   Mengonversi nilai ujian peserta (dalam satu kelas atau semua kelas pada
+   satu jadwal) secara proporsional dari rentang nilai asli yang benar-benar
+   dicapai peserta, ke rentang nilai yang ditentukan guru. Peserta dengan
+   nilai asli tertinggi selalu mendapat nilai maksimal hasil, dan peserta
+   dengan nilai asli terendah selalu mendapat nilai minimal hasil — sehingga
+   konversi tetap adil meskipun nilai tertinggi ujian tidak mencapai 100.
+   Pengaturan rentang hasil & pembulatan disimpan per jadwal+kelas di
+   localStorage (tidak memerlukan perubahan skema database).
+============================================================ */
+const NL_ROUND_OPTIONS = [
+  { id: 'bulat', label: 'Bilangan bulat terdekat' },
+  { id: 'atas', label: 'Dibulatkan ke atas' },
+  { id: 'bawah', label: 'Dibulatkan ke bawah' },
+  { id: 'tidak', label: 'Tidak dibulatkan (2 desimal)' }
+];
+let nlKelas = AN_ALL;
+let nlLast = null;
+let nlRefreshInFlight = false;
+
+function nlSettingsKey(jid, kelas){ return `wima-nl-settings:${jid}:${kelas}`; }
+function nlLoadSettings(jid, kelas){
+  try{
+    const raw = localStorage.getItem(nlSettingsKey(jid, kelas));
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    return (o && anNum(o.min) && anNum(o.max)) ? o : null;
+  }catch(e){ return null; }   // penyimpanan lokal tidak tersedia — pakai bawaan
+}
+function nlSaveSettings(jid, kelas, s){
+  try{ localStorage.setItem(nlSettingsKey(jid, kelas), JSON.stringify(s)); }catch(e){ /* penyimpanan lokal tidak tersedia — abaikan */ }
+}
+
+function nlApplyRound(v, mode){
+  if(mode === 'atas') return Math.ceil(v);
+  if(mode === 'bawah') return Math.floor(v);
+  if(mode === 'tidak') return Math.round(v * 100) / 100;
+  return Math.round(v);   // 'bulat' (bawaan)
+}
+// Konversi linear: nilai asli tertinggi -> tgtMax, nilai asli terendah -> tgtMin.
+// Bila seluruh peserta bernilai sama (srcMax === srcMin), tidak ada dasar untuk membedakan,
+// sehingga semua disetel ke titik tengah rentang hasil.
+function nlConvertOne(nilai, srcMin, srcMax, tgtMin, tgtMax){
+  if(srcMax === srcMin) return (tgtMin + tgtMax) / 2;
+  return tgtMin + (nilai - srcMin) / (srcMax - srcMin) * (tgtMax - tgtMin);
+}
+
+function populateNilaiJadwalSelect(){
+  const sel = document.getElementById('nl-jadwal');
+  if(!sel) return;
+  const current = sel.value;
+  const mySubjIds = mySubjects().map(s => s.id);
+  const mySetIds = questionSets.filter(qs => mySubjIds.includes(qs.subjectId)).map(qs => qs.id);
+  const mine = schedules.filter(s => mySetIds.includes(s.questionSetId));
+  if(mine.length === 0){
+    sel.innerHTML = `<option value="">Belum ada jadwal ujian</option>`;
+    return;
+  }
+  sel.innerHTML = mine.slice().sort((a, b) => (b.tanggal + b.jamMulai).localeCompare(a.tanggal + a.jamMulai)).map(j =>
+    `<option value="${j.id}">${escapeHtml(anJadwalLabel(j))}</option>`
+  ).join('');
+  if(mine.some(j => j.id === current)) sel.value = current;
+}
+
+function nlJadwalChanged(){
+  nlKelas = AN_ALL;
+  renderNilai();
+}
+function nlSelectKelas(k){
+  nlKelas = k;
+  renderNilai();
+}
+
+async function refreshNilai(){
+  renderNilai();
+  if(nlRefreshInFlight) return;
+  nlRefreshInFlight = true;
+  try{
+    const { data, error } = await sb.from('exam_attempts').select('*');
+    if(error) return;
+    attempts = (data || []).map(mapAttempt);
+    renderNilai();
+  } finally {
+    nlRefreshInFlight = false;
+  }
+}
+
+function nlBuildView(j, kelasKey){
+  const qs = questionSets.find(x => x.id === j.questionSetId);
+  if(!qs) return { qs: null };
+  const pesertaAll = (j.peserta || []).map(uid => users.find(x => x.id === uid)).filter(Boolean);
+  const scope = kelasKey === AN_ALL ? pesertaAll : pesertaAll.filter(u => u.kelas === kelasKey);
+  const rows = scope.map(u => ({ u, at: findAttempt(j.id, u.id) })).filter(r => r.at && r.at.status === 'selesai' && anNum(r.at.nilai));
+  const nilaiArr = rows.map(r => r.at.nilai);
+  return {
+    qs, kelas: kelasKey, label: kelasKey === AN_ALL ? 'Semua kelas' : 'Kelas ' + kelasKey,
+    rows, N: rows.length, peserta: scope.length,
+    srcMin: nilaiArr.length ? Math.min(...nilaiArr) : null,
+    srcMax: nilaiArr.length ? Math.max(...nilaiArr) : null
+  };
+}
+
+function nlComputedRows(view, tgtMin, tgtMax, roundMode){
+  const lo = Math.min(tgtMin, tgtMax), hi = Math.max(tgtMin, tgtMax);
+  const sorted = view.rows.slice().sort((a, b) => (b.at.nilai - a.at.nilai) || a.u.nama.localeCompare(b.u.nama, 'id'));
+  return sorted.map((r, i) => ({
+    no: i + 1, nama: r.u.nama, kelas: r.u.kelas, asli: r.at.nilai,
+    konversi: nlApplyRound(nlConvertOne(r.at.nilai, view.srcMin, view.srcMax, lo, hi), roundMode)
+  }));
+}
+
+function nlSettingsChanged(){
+  if(!nlLast) return;
+  let min = parseFloat(document.getElementById('nl-min').value);
+  let max = parseFloat(document.getElementById('nl-max').value);
+  if(!anNum(min)) min = 0;
+  if(!anNum(max)) max = 100;
+  const round = document.getElementById('nl-round').value;
+  nlSaveSettings(nlLast.j.id, nlLast.view.kelas, { min, max, round });
+  renderNilai();
+}
+
+function nlContentHtml(view, tgtMin, tgtMax, roundMode){
+  const rows = nlComputedRows(view, tgtMin, tgtMax, roundMode);
+  const dec = roundMode === 'tidak' ? 2 : 0;
+  const flatSrc = view.srcMax === view.srcMin;
+  const flatTgt = !flatSrc && tgtMax === tgtMin;
+  const nilaiKonv = rows.map(r => r.konversi);
+  const rataAsli = anMean(rows.map(r => r.asli)), rataKonv = anMean(nilaiKonv);
+  const minKonv = nilaiKonv.length ? Math.min(...nilaiKonv) : null, maxKonv = nilaiKonv.length ? Math.max(...nilaiKonv) : null;
+  const icoDl = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>`;
+
+  const rowsHtml = rows.map(r => {
+    const delta = r.konversi - r.asli;
+    const dCls = delta > 0.005 ? 'nl-delta-up' : (delta < -0.005 ? 'nl-delta-down' : 'nl-delta-zero');
+    return `<tr>
+      <td class="cell-primary">${r.no}</td>
+      <td>${escapeHtml(r.nama)}</td>
+      ${view.kelas === AN_ALL ? `<td class="cell-muted">${escapeHtml(r.kelas || '-')}</td>` : ''}
+      <td>${anFmt(r.asli, 1)}</td>
+      <td><strong>${anFmt(r.konversi, dec)}</strong></td>
+      <td class="${dCls}">${delta > 0 ? '+' : ''}${anFmt(delta, dec)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="nl-range">
+      <div class="nl-range-title">Rentang nilai</div>
+      <div class="nl-range-row">
+        <div class="nl-src">
+          <div><div class="num">${anFmt(view.srcMin, 1)}</div><div class="lbl">Nilai asli terendah</div></div>
+          <div><div class="num">${anFmt(view.srcMax, 1)}</div><div class="lbl">Nilai asli tertinggi</div></div>
+        </div>
+        <div class="nl-arrow">&rarr;</div>
+        <label class="field" style="max-width:150px;">
+          <span>Nilai minimal (hasil)</span>
+          <input type="number" id="nl-min" value="${tgtMin}" step="0.5" onchange="nlSettingsChanged()">
+        </label>
+        <label class="field" style="max-width:150px;">
+          <span>Nilai maksimal (hasil)</span>
+          <input type="number" id="nl-max" value="${tgtMax}" step="0.5" onchange="nlSettingsChanged()">
+        </label>
+        <label class="field" style="max-width:220px;">
+          <span>Pembulatan</span>
+          <select id="nl-round" onchange="nlSettingsChanged()">
+            ${NL_ROUND_OPTIONS.map(o => `<option value="${o.id}" ${roundMode === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}
+          </select>
+        </label>
+      </div>
+      ${flatSrc ? `<div class="nl-warn">Semua peserta memperoleh nilai asli yang sama (${anFmt(view.srcMin, 1)}), sehingga tidak ada dasar untuk membedakan — semua nilai konversi disetel ke tengah rentang hasil.</div>` : ''}
+      ${flatTgt ? `<div class="nl-warn">Nilai minimal dan maksimal hasil sama, sehingga semua peserta mendapat nilai konversi yang sama.</div>` : ''}
+    </div>
+
+    <div class="stat-pills">
+      <div class="stat-pill slate"><div class="num">${view.N}<span style="font-size:13px; color:var(--slate); font-weight:600;"> / ${view.peserta}</span></div><div class="lbl">Bernilai / peserta</div></div>
+      <div class="stat-pill amber"><div class="num">${anFmt(rataAsli, 1)}</div><div class="lbl">Rata-rata nilai asli</div></div>
+      <div class="stat-pill indigo"><div class="num">${anFmt(rataKonv, dec)}</div><div class="lbl">Rata-rata nilai konversi</div></div>
+      <div class="stat-pill emerald"><div class="num">${anFmt(minKonv, dec)}&ndash;${anFmt(maxKonv, dec)}</div><div class="lbl">Rentang nilai konversi</div></div>
+    </div>
+
+    <div class="list-card an-card">
+      <div class="list-head">
+        <span class="an-card-title">Hasil konversi — ${escapeHtml(view.label)}</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="exportNilaiExcel()">${icoDl} Unduh Excel</button>
+          <button type="button" class="btn-secondary" onclick="exportNilaiPDF()">${icoDl} Unduh PDF</button>
+        </div>
+      </div>
+      <div class="an-legend">
+        Rumus: <strong>Nilai konversi = Nilai minimal + (Nilai asli &minus; ${anFmt(view.srcMin, 1)}) &divide; (${anFmt(view.srcMax, 1)} &minus; ${anFmt(view.srcMin, 1)}) &times; (Nilai maksimal &minus; Nilai minimal)</strong>.
+        Peserta bernilai asli tertinggi (${anFmt(view.srcMax, 1)}) mendapat nilai konversi = nilai maksimal; peserta bernilai asli terendah (${anFmt(view.srcMin, 1)}) mendapat nilai konversi = nilai minimal. Hanya peserta berstatus selesai dan sudah bernilai yang dihitung; pengaturan ini tersimpan otomatis di perangkat ini untuk jadwal dan kelas yang sama.
+      </div>
+      <div class="table-scroll"><table class="an-mini nl-table">
+        <thead><tr><th>No</th><th>Nama</th>${view.kelas === AN_ALL ? '<th>Kelas</th>' : ''}<th>Nilai asli</th><th>Nilai konversi</th><th>Selisih</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderNilai(){
+  const wrap = document.getElementById('nl-content');
+  const pills = document.getElementById('nl-kelas-pills');
+  if(!wrap) return;
+  nlLast = null;
+  const jid = document.getElementById('nl-jadwal').value;
+  const j = jid ? schedules.find(x => x.id === jid) : null;
+  if(!j){
+    pills.innerHTML = '';
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
+    return;
+  }
+  const classes = anClassList(j);
+  if(classes.length === 1) nlKelas = classes[0];
+  else if(nlKelas !== AN_ALL && !classes.includes(nlKelas)) nlKelas = AN_ALL;
+
+  const pill = (val, label) => `<button type="button" class="subtab ${nlKelas === val ? 'active' : ''}" data-kelas="${escapeHtml(val)}" onclick="nlSelectKelas(this.dataset.kelas)">${escapeHtml(label)}</button>`;
+  pills.innerHTML = classes.length > 1 ? pill(AN_ALL, 'Semua kelas') + classes.map(k => pill(k, k)).join('') : '';
+
+  const view = nlBuildView(j, nlKelas);
+  if(!view.qs){
+    wrap.innerHTML = `<div class="empty-state"><strong>Paket soal untuk jadwal ini sudah dihapus</strong>Pengolahan nilai tidak dapat ditampilkan.</div>`;
+    return;
+  }
+  if(view.N === 0){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada peserta yang menyelesaikan ujian dengan nilai</strong>${escapeHtml(view.label)} — pengolahan nilai akan muncul setelah ada peserta yang mengumpulkan jawaban.</div>`;
+    return;
+  }
+
+  const saved = nlLoadSettings(j.id, view.kelas);
+  const tgtMin = saved ? saved.min : 0;
+  const tgtMax = saved ? saved.max : 100;
+  const roundMode = (saved && NL_ROUND_OPTIONS.some(o => o.id === saved.round)) ? saved.round : 'bulat';
+
+  nlLast = { j, view, tgtMin, tgtMax, roundMode };
+  wrap.innerHTML = nlContentHtml(view, tgtMin, tgtMax, roundMode);
+}
+
+/* ---------- ekspor ---------- */
+function nlFileName(ext){
+  const { j, view } = nlLast;
+  return `Pengolahan Nilai - ${anJadwalLabel(j).replace(/[\\/:*?"<>|]/g, '-')}${view.kelas !== AN_ALL ? ' - ' + view.kelas : ''}.${ext}`;
+}
+function exportNilaiExcel(){
+  if(!nlLast){ alert('Belum ada data untuk diunduh. Pilih jadwal ujian yang sudah dikerjakan peserta.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('Pustaka Excel belum termuat, coba lagi sesaat lagi.'); return; }
+  const { j, view, tgtMin, tgtMax, roundMode } = nlLast;
+  const rows = nlComputedRows(view, tgtMin, tgtMax, roundMode);
+  const head = ['No', 'Nama', ...(view.kelas === AN_ALL ? ['Kelas'] : []), 'Nilai Asli', 'Nilai Konversi'];
+  const body = rows.map(r => [r.no, r.nama, ...(view.kelas === AN_ALL ? [r.kelas || '-'] : []), r.asli, r.konversi]);
+  const ncol = head.length;
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['SMK Widya Mandala Tambak'], ['Pengolahan Nilai (Konversi Linear)'],
+    [`Ujian: ${anJadwalLabel(j)}`],
+    [`${view.label}    Nilai asli: ${anFmt(view.srcMin, 1)}-${anFmt(view.srcMax, 1)}    Nilai konversi: ${tgtMin}-${tgtMax}    Pembulatan: ${NL_ROUND_OPTIONS.find(o => o.id === roundMode).label}`],
+    [], head, ...body
+  ]);
+  ws['!cols'] = [{ wch: 5 }, { wch: 28 }, ...(view.kelas === AN_ALL ? [{ wch: 12 }] : []), { wch: 12 }, { wch: 14 }];
+  ws['!merges'] = [0, 1, 2, 3].map(r => ({ s: { r, c: 0 }, e: { r, c: ncol - 1 } }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pengolahan Nilai');
+  XLSX.writeFile(wb, nlFileName('xlsx'));
+}
+
+function exportNilaiPDF(){
+  if(!nlLast){ alert('Belum ada data untuk diunduh. Pilih jadwal ujian yang sudah dikerjakan peserta.'); return; }
+  if(typeof window.jspdf === 'undefined'){ alert('Pustaka PDF belum termuat, coba lagi sesaat lagi.'); return; }
+  const { j, view, tgtMin, tgtMax, roundMode } = nlLast;
+  const rows = nlComputedRows(view, tgtMin, tgtMax, roundMode);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const mx = 40;
+  const T = anPdfTxt;
+
+  // ---------- Kop ----------
+  const logoSize = 46, logoDataUri = getLogoDataUri();
+  if(logoDataUri){ try{ doc.addImage(logoDataUri, 'JPEG', mx, 26, logoSize, logoSize); }catch(e){ /* abaikan */ } }
+  const textX = mx + logoSize + 14;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5);
+  doc.text('SMK WIDYA MANDALA TAMBAK', textX, 42);
+  doc.setFontSize(10.5); doc.setFont('helvetica', 'normal');
+  doc.text('Pengolahan Nilai (Konversi Linear)', textX, 58);
+  doc.setLineWidth(1.1); doc.line(mx, 84, W - mx, 84);
+  doc.setFontSize(9.5);
+  doc.text(T(`Ujian: ${anJadwalLabel(j)}`), mx, 100);
+  doc.text(T(`${view.label}`), mx, 114);
+  doc.text(T(`Dicetak: ${new Date().toLocaleString('id-ID')}`), W - mx, 100, { align: 'right' });
+  doc.text(T(`Nilai asli: ${anFmt(view.srcMin, 1)}-${anFmt(view.srcMax, 1)}   Nilai konversi: ${tgtMin}-${tgtMax}`), W - mx, 114, { align: 'right' });
+
+  const head = [['No', 'Nama', ...(view.kelas === AN_ALL ? ['Kelas'] : []), 'Nilai Asli', 'Nilai Konversi']];
+  const body = rows.map(r => [r.no, T(r.nama), ...(view.kelas === AN_ALL ? [T(r.kelas || '-')] : []), r.asli, r.konversi]);
+  doc.autoTable({
+    head, body, startY: 130, margin: { left: mx, right: mx },
+    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 5, lineColor: [220, 222, 230], lineWidth: 0.5 },
+    headStyles: { fillColor: [14, 159, 110], textColor: 255, fontStyle: 'bold', halign: 'center' },
+    columnStyles: { 0: { halign: 'center' }, [head[0].length - 2]: { halign: 'center' }, [head[0].length - 1]: { halign: 'center' } }
+  });
+  let y = doc.lastAutoTable.finalY + 20;
+  const need = h => { if(y + h > H - 46){ doc.addPage(); y = 50; } };
+  need(28);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(110);
+  const kriteria = doc.splitTextToSize(T(`Rumus: Nilai konversi = Nilai minimal + (Nilai asli - ${anFmt(view.srcMin, 1)}) / (${anFmt(view.srcMax, 1)} - ${anFmt(view.srcMin, 1)}) x (Nilai maksimal - Nilai minimal). Pembulatan: ${NL_ROUND_OPTIONS.find(o => o.id === roundMode).label}.`), W - 2 * mx);
+  doc.text(kriteria, mx, y); y += kriteria.length * 11 + 10;
+  doc.setTextColor(0);
+
+  // ---------- Tanda tangan ----------
+  const lineH = 16, sigGap = 46;
+  const blockHeight = lineH * 3 + sigGap + 20;
+  if(y + blockHeight > H - 40){ doc.addPage(); y = 50; }
+  const rightX = W - mx - 190;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`Tambak, ${formatTanggalIndo(new Date())}`, rightX, y);
+  doc.text('Mengetahui,', mx, y + lineH);
+  doc.text('Kepala Sekolah', mx, y + lineH * 2);
+  doc.text('Guru Mata Pelajaran,', rightX, y + lineH * 2);
+  const nameY = y + lineH * 2 + sigGap;
+  doc.setFont('helvetica', 'bold');
+  doc.text(KEPSEK_NAMA, mx, nameY, { maxWidth: 190 });
+  doc.text(T(currentGuruNama) || '(.................................)', rightX, nameY, { maxWidth: 190 });
+
+  const pages = doc.internal.getNumberOfPages();
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(120);
+  for(let i = 1; i <= pages; i++){ doc.setPage(i); doc.text(`Halaman ${i} dari ${pages}`, W - mx, H - 20, { align: 'right' }); }
+  doc.setTextColor(0);
+  doc.save(nlFileName('pdf'));
 }
 
 /* ============================================================
