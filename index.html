@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Masuk — Asesmen SMK Widya Mandala Tambak</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
   :root{
-    --ink:#161A23;
-    --navy-deep:#0B0E17;
-    --navy:#1C2333;
+    --ink:#0F172A;
+    --navy-deep:#0B0E1F;
+    --navy:#1E1B4B;
     --paper:#FFFFFF;
-    --slate:#68707E;
-    --mist:#F3F4F7;
-    --line:#E7E9EE;
+    --slate:#64748B;
+    --mist:#F1F5F9;
+    --line:#E2E8F0;
 
-    --indigo:#4F46E5;   --indigo-soft:#E9E7FC;
-    --emerald:#0E9F6E;  --emerald-soft:#DCF5EA;
-    --violet:#7C3AED;   --violet-soft:#EEE6FD;
+    --indigo:#6366F1;   --indigo-soft:#E0E7FF;
+    --emerald:#10B981;  --emerald-soft:#D1FAE5;
+    --violet:#A855F7;   --violet-soft:#F3E8FF;
 
     --accent:var(--indigo);
     --accent-soft:var(--indigo-soft);
@@ -28,11 +28,11 @@
   body{
     margin:0;
     min-height:100vh;
-    font-family:'Inter', sans-serif;
+    font-family:'Plus Jakarta Sans', sans-serif;
     color:var(--ink);
     background:
-      radial-gradient(circle at 20% 15%, #1f2740 0%, transparent 50%),
-      radial-gradient(circle at 85% 85%, #171d30 0%, transparent 55%),
+      radial-gradient(circle at 20% 15%, #2d2a6b 0%, transparent 50%),
+      radial-gradient(circle at 85% 85%, #1e1b4b 0%, transparent 55%),
       var(--navy-deep);
     background-attachment:fixed;
     position:relative;
@@ -70,9 +70,9 @@
     width:100%;
     max-width:396px;
     background:var(--paper);
-    border-radius:18px;
+    border-radius:22px;
     padding:36px 32px 32px;
-    box-shadow:0 24px 60px -18px rgba(8,12,26,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    box-shadow:0 24px 60px -18px rgba(8,12,26,0.55), 0 0 0 1px rgba(255,255,255,0.04);
   }
 
   .brand{
@@ -199,13 +199,14 @@
     background:var(--accent);
     color:#fff;
     border:none;
-    border-radius:9px;
+    border-radius:10px;
     padding:13px 16px;
     font-size:14.5px;
-    font-weight:600;
+    font-weight:700;
     letter-spacing:-0.01em;
     cursor:pointer;
-    transition:background-color 0.25s ease, transform 0.1s ease;
+    box-shadow:0 8px 20px -6px color-mix(in srgb, var(--accent) 55%, transparent);
+    transition:background-color 0.25s ease, transform 0.1s ease, box-shadow 0.25s ease;
   }
   .submit-btn:active{ transform:scale(0.98); }
 
@@ -305,9 +306,9 @@
   const pageByRole = { siswa: 'siswa.html', guru: 'guru.html', admin: 'admin.html' };
 
   const roles = {
-    siswa: { label:'Siswa', accent:'#4F46E5', placeholder:'Masukkan username siswa' },
-    guru:  { label:'Guru',  accent:'#0E9F6E', placeholder:'Masukkan username guru' },
-    admin: { label:'Admin', accent:'#7C3AED', placeholder:'Masukkan username admin' }
+    siswa: { label:'Siswa', accent:'#6366F1', placeholder:'Masukkan username siswa' },
+    guru:  { label:'Guru',  accent:'#10B981', placeholder:'Masukkan username guru' },
+    admin: { label:'Admin', accent:'#A855F7', placeholder:'Masukkan username admin' }
   };
 
   let selectedRole = 'siswa';
