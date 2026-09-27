@@ -99,21 +99,39 @@
   .notice-inner svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; }
   .notice-inner.info{ background:var(--indigo-soft); border-color:#C9C4F5; color:#332C8C; }
 
-  /* ---------- Main tabs ---------- */
+  /* ---------- Main tabs (app-grid style, ala menu aplikasi Android) ---------- */
   .tabs-wrap{ background:var(--paper); border-bottom:1px solid var(--line); position:sticky; top:65px; z-index:19; }
-  .tabs{ max-width:1040px; margin:0 auto; display:flex; gap:4px; padding:0 16px; overflow-x:auto; }
+  .tabs{
+    max-width:1040px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(3, 1fr);
+    gap:4px 2px; padding:14px 10px 12px;
+  }
   .tab{
-    position:relative; display:flex; align-items:center; gap:7px;
-    background:none; border:none; padding:14px 8px; font-size:13.5px; font-weight:600;
-    color:var(--slate); cursor:pointer; white-space:nowrap;
+    position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:7px;
+    background:none; border:none; padding:8px 4px 10px; font-size:11.5px; font-weight:600; line-height:1.25;
+    color:var(--slate); cursor:pointer; white-space:normal; text-align:center; border-radius:16px;
+    -webkit-tap-highlight-color:transparent;
   }
-  .tab svg{ width:16px; height:16px; }
+  .tab-icon{
+    width:50px; height:50px; border-radius:15px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--mist); color:var(--slate);
+    transition:background .15s ease, color .15s ease, transform .1s ease;
+  }
+  .tab svg{ width:22px; height:22px; }
+  .tab:active .tab-icon{ transform:scale(0.93); }
   .tab.active{ color:var(--emerald-dark); }
-  .tab::after{
-    content:''; position:absolute; left:0; right:0; bottom:-1px; height:2.5px;
-    background:var(--emerald); border-radius:2px 2px 0 0; transform:scaleX(0); transition:transform 0.2s ease;
+  .tab.active .tab-icon{ background:var(--emerald); color:#fff; }
+
+  @media (min-width:681px){
+    .tabs{
+      grid-template-columns:repeat(auto-fit, minmax(108px, 1fr));
+      gap:8px 4px; padding:18px 16px 16px;
+    }
+    .tab{ font-size:12.5px; }
+    .tab-icon{ width:54px; height:54px; border-radius:16px; }
+    .tab svg{ width:23px; height:23px; }
   }
-  .tab.active::after{ transform:scaleX(1); }
 
   /* ---------- Sub tabs (pill) ---------- */
   .subtabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
@@ -646,28 +664,28 @@
 <div class="tabs-wrap">
   <nav class="tabs">
     <button class="tab active" onclick="showPanel('panel-asesmen', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      Asesmen
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      <span class="tab-label">Asesmen</span>
     </button>
     <button class="tab" onclick="showPanel('panel-monitoring', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      Monitoring
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+      <span class="tab-label">Monitoring</span>
     </button>
     <button class="tab" onclick="showPanel('panel-token', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg>
-      Token Ujian
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg></span>
+      <span class="tab-label">Token Ujian</span>
     </button>
     <button class="tab" onclick="showPanel('panel-rekap', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
-      Rekap
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></span>
+      <span class="tab-label">Rekap</span>
     </button>
     <button class="tab" onclick="showPanel('panel-analisis', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-      Analisis
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span>
+      <span class="tab-label">Analisis</span>
     </button>
     <button class="tab" onclick="showPanel('panel-nilai', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg>
-      Nilai
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg></span>
+      <span class="tab-label">Nilai</span>
     </button>
   </nav>
 </div>
