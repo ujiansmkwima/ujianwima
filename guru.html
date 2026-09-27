@@ -99,39 +99,53 @@
   .notice-inner svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; }
   .notice-inner.info{ background:var(--indigo-soft); border-color:#C9C4F5; color:#332C8C; }
 
-  /* ---------- Main tabs (app-grid style, ala menu aplikasi Android) ---------- */
-  .tabs-wrap{ background:var(--paper); border-bottom:1px solid var(--line); position:sticky; top:65px; z-index:19; }
-  .tabs{
-    max-width:1040px; margin:0 auto;
+  /* ---------- Home screen app grid (ala menu aplikasi Android, bukan top bar) ---------- */
+  .home-panel .section-head{ margin-bottom:22px; }
+  .app-grid{
     display:grid; grid-template-columns:repeat(3, 1fr);
-    gap:4px 2px; padding:14px 10px 12px;
+    gap:22px 8px; padding:4px 2px 10px;
   }
-  .tab{
-    position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:7px;
-    background:none; border:none; padding:8px 4px 10px; font-size:11.5px; font-weight:600; line-height:1.25;
-    color:var(--slate); cursor:pointer; white-space:normal; text-align:center; border-radius:16px;
+  .app-tile{
+    position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:9px;
+    background:none; border:none; padding:4px 2px; font-size:12px; font-weight:600; line-height:1.25;
+    color:var(--ink); cursor:pointer; white-space:normal; text-align:center; border-radius:16px;
     -webkit-tap-highlight-color:transparent;
   }
-  .tab-icon{
-    width:50px; height:50px; border-radius:15px; flex-shrink:0;
+  .app-tile-icon{
+    width:58px; height:58px; border-radius:18px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
-    background:var(--mist); color:var(--slate);
-    transition:background .15s ease, color .15s ease, transform .1s ease;
+    transition:transform .1s ease, box-shadow .15s ease;
+    box-shadow:0 1px 2px rgba(22,26,35,.06);
   }
-  .tab svg{ width:22px; height:22px; }
-  .tab:active .tab-icon{ transform:scale(0.93); }
-  .tab.active{ color:var(--emerald-dark); }
-  .tab.active .tab-icon{ background:var(--emerald); color:#fff; }
+  .app-tile svg{ width:25px; height:25px; }
+  .app-tile:active .app-tile-icon{ transform:scale(0.92); }
+  .app-tile-icon.c-emerald{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .app-tile-icon.c-indigo{ background:var(--indigo-soft); color:var(--indigo); }
+  .app-tile-icon.c-amber{ background:var(--amber-soft); color:var(--amber); }
+  .app-tile-icon.c-red{ background:var(--red-soft); color:var(--red); }
+  .app-tile-icon.c-sky{ background:#E3F1FD; color:#1A73C7; }
+  .app-tile-icon.c-teal{ background:#DEF6F2; color:#0E8272; }
 
   @media (min-width:681px){
-    .tabs{
-      grid-template-columns:repeat(auto-fit, minmax(108px, 1fr));
-      gap:8px 4px; padding:18px 16px 16px;
+    .app-grid{
+      grid-template-columns:repeat(auto-fit, minmax(112px, 1fr));
+      gap:26px 12px; padding:8px 4px 16px;
     }
-    .tab{ font-size:12.5px; }
-    .tab-icon{ width:54px; height:54px; border-radius:16px; }
-    .tab svg{ width:23px; height:23px; }
+    .app-tile{ font-size:13px; }
+    .app-tile-icon{ width:64px; height:64px; border-radius:19px; }
+    .app-tile svg{ width:27px; height:27px; }
   }
+
+  /* ---------- Floating back-to-menu button (muncul saat bukan di layar utama) ---------- */
+  .back-home-btn{
+    display:none; align-items:center; gap:6px;
+    position:sticky; top:75px; z-index:15; margin-bottom:14px;
+    background:var(--paper); border:1px solid var(--line); color:var(--slate);
+    font-size:12.5px; font-weight:700; padding:8px 14px 8px 10px; border-radius:99px;
+    cursor:pointer; box-shadow:0 1px 3px rgba(22,26,35,.08);
+  }
+  .back-home-btn svg{ width:15px; height:15px; }
+  .back-home-btn:hover{ color:var(--emerald-dark); border-color:var(--emerald); }
 
   /* ---------- Sub tabs (pill) ---------- */
   .subtabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
@@ -661,39 +675,49 @@
   </div>
 </div>
 
-<div class="tabs-wrap">
-  <nav class="tabs">
-    <button class="tab active" onclick="showPanel('panel-asesmen', this)">
-      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-      <span class="tab-label">Asesmen</span>
-    </button>
-    <button class="tab" onclick="showPanel('panel-monitoring', this)">
-      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
-      <span class="tab-label">Monitoring</span>
-    </button>
-    <button class="tab" onclick="showPanel('panel-token', this)">
-      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg></span>
-      <span class="tab-label">Token Ujian</span>
-    </button>
-    <button class="tab" onclick="showPanel('panel-rekap', this)">
-      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></span>
-      <span class="tab-label">Rekap</span>
-    </button>
-    <button class="tab" onclick="showPanel('panel-analisis', this)">
-      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span>
-      <span class="tab-label">Analisis</span>
-    </button>
-    <button class="tab" onclick="showPanel('panel-nilai', this)">
-      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg></span>
-      <span class="tab-label">Nilai</span>
-    </button>
-  </nav>
-</div>
-
 <div class="shell">
 
+  <button type="button" class="back-home-btn" id="backHomeBtn" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    Menu
+  </button>
+
+  <!-- ============================================================ HOME: MENU APLIKASI ============================================================ -->
+  <section id="panel-home" class="panel active home-panel">
+    <div class="section-head">
+      <h1>Menu</h1>
+      <p>Pilih menu di bawah untuk mulai.</p>
+    </div>
+    <div class="app-grid">
+      <button class="app-tile" onclick="showPanel('panel-asesmen', this)">
+        <span class="app-tile-icon c-emerald"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        <span class="app-tile-label">Asesmen</span>
+      </button>
+      <button class="app-tile" onclick="showPanel('panel-monitoring', this)">
+        <span class="app-tile-icon c-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+        <span class="app-tile-label">Monitoring</span>
+      </button>
+      <button class="app-tile" onclick="showPanel('panel-token', this)">
+        <span class="app-tile-icon c-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg></span>
+        <span class="app-tile-label">Token Ujian</span>
+      </button>
+      <button class="app-tile" onclick="showPanel('panel-rekap', this)">
+        <span class="app-tile-icon c-sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></span>
+        <span class="app-tile-label">Rekap</span>
+      </button>
+      <button class="app-tile" onclick="showPanel('panel-analisis', this)">
+        <span class="app-tile-icon c-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span>
+        <span class="app-tile-label">Analisis</span>
+      </button>
+      <button class="app-tile" onclick="showPanel('panel-nilai', this)">
+        <span class="app-tile-icon c-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg></span>
+        <span class="app-tile-label">Nilai</span>
+      </button>
+    </div>
+  </section>
+
   <!-- ============================================================ PANEL: ASESMEN ============================================================ -->
-  <section id="panel-asesmen" class="panel active">
+  <section id="panel-asesmen" class="panel">
     <div class="section-head">
       <h1>Asesmen</h1>
       <p>Buat soal dari file Word, sunting secara manual, lalu jadwalkan ujiannya.</p>
@@ -1476,8 +1500,7 @@ function refreshAll(){
 function showPanel(id, el){
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  document.getElementById('backHomeBtn').style.display = (id === 'panel-home') ? 'none' : 'inline-flex';
   window.scrollTo({ top:0, behavior:'smooth' });
   if(id === 'panel-monitoring'){
     refreshMonitoring();
@@ -1497,6 +1520,9 @@ function showPanel(id, el){
   if(id === 'panel-nilai'){
     refreshNilai();
   }
+}
+function goHome(){
+  showPanel('panel-home', null);
 }
 function showSubtab(id, el){
   document.querySelectorAll('.subpanel').forEach(p => p.classList.remove('active'));
