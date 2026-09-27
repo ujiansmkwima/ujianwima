@@ -222,6 +222,15 @@
     .login-card{ padding:28px 22px 24px; border-radius:16px; }
   }
 
+  /* ---- PC / desktop: kartu login sedikit lebih lega & mudah diklik dengan mouse ---- */
+  @media (min-width:1024px){
+    .login-card{ max-width:430px; padding:40px 36px 34px; border-radius:20px; }
+    h1{ font-size:25px; }
+    .field input{ padding:12px 14px; }
+    .submit-btn{ padding:14px 16px; cursor:pointer; }
+    .submit-btn:hover{ filter:brightness(0.92); }
+  }
+
   @media (prefers-reduced-motion:reduce){
     *{ transition:none !important; }
   }

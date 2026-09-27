@@ -567,6 +567,41 @@
     tbody td.cell-action{ justify-content:flex-end; }
     tbody td.cell-action::before{ content:none; }
   }
+
+  /* ================================================================
+     PC / DESKTOP (Windows dkk): kanvas lebih lega, jarak lebih nyaman
+     untuk mouse & layar lebar. Tidak mengubah tampilan HP sama sekali.
+  ================================================================ */
+  @media (min-width:1024px){
+    .site-header{ padding:16px 32px; }
+    .notice{ max-width:1200px; padding:0 32px; }
+    .tabs{ max-width:1200px; padding:0 32px; }
+    .shell{ max-width:1200px; padding:36px 32px 70px; }
+
+    .section-head h1{ font-size:25px; }
+    .section-head p{ font-size:14px; }
+
+    .card{ padding:26px 28px; border-radius:16px; }
+    .list-card{ border-radius:16px; }
+    .list-head{ padding:16px 20px; }
+    .form-grid{ gap:16px 20px; }
+    .field input, .field select, .field textarea{ padding:10px 13px; font-size:14.5px; }
+    .search-wrap input{ width:230px; }
+
+    thead th{ padding:11px 20px; }
+    tbody td{ padding:13px 20px; }
+
+    .btn-primary{ padding:11px 22px; cursor:pointer; }
+    .btn-secondary{ padding:9px 16px; }
+    .card:hover, .list-card:hover{ box-shadow:0 3px 10px rgba(20,20,30,0.06); }
+    .card, .list-card{ transition:box-shadow .15s ease; }
+  }
+
+  @media (min-width:1440px){
+    .notice{ max-width:1320px; }
+    .tabs{ max-width:1320px; }
+    .shell{ max-width:1320px; }
+  }
 </style>
 </head>
 <body>
