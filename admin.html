@@ -680,6 +680,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg>
       Token
     </button>
+    <button class="tab" onclick="showPanel('panel-rapor', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12A9 9 0 0 1 18.5 5.8L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>
+      Sinkron Rapor
+    </button>
   </nav>
 </div>
 
@@ -916,6 +920,25 @@
   </section>
 
   <!-- ============ PANEL: SUBJECTS ============ -->
+  <!-- ============ PANEL: SINKRON RAPOR ============ -->
+  <section id="panel-rapor" class="panel">
+    <div class="section-head">
+      <h1>Sinkron dari Rapor</h1>
+      <p>Tarik siswa (beserta kelasnya), guru, dan mata pelajaran yang diampu dari aplikasi Rapor untuk tahun ajaran aktif. Data yang sudah ada tidak dihapus; siswa dan guru dicocokkan lewat NISN/NIS dan email.</p>
+    </div>
+    <div class="bulk-card">
+      <div class="bulk-card-text">
+        <strong id="rp-sync-ta">Belum dicek</strong>
+        <span id="rp-sync-ringkasan">Klik "Cek data rapor" untuk melihat apa yang akan ditambahkan atau diperbarui. Belum ada yang berubah sampai Anda menjalankan sinkronisasi.</span>
+      </div>
+      <div class="bulk-actions">
+        <button type="button" class="btn-secondary" id="rp-sync-cek" onclick="raporCek()">Cek data rapor</button>
+        <button type="button" class="btn-primary" id="rp-sync-jalan" onclick="raporJalankan()" disabled>Jalankan sinkronisasi</button>
+      </div>
+    </div>
+    <div id="rp-sync-log" class="import-result" style="display:none;"></div>
+  </section>
+
   <section id="panel-subjects" class="panel">
     <div class="section-head">
       <h1>Mata pelajaran</h1>
@@ -3276,6 +3299,93 @@
     renderRuangPesertaList();
     renderRoomsList();
     renderUsers();
+  }
+
+  /* ---------- sinkron dari rapor ---------- */
+  let raporCredentials = [];
+
+  async function callSyncRapor(payload){
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ window.location.href = 'index.html'; return { error: 'Sesi berakhir' }; }
+    const { data, error } = await sb.functions.invoke('sync-rapor', {
+      body: payload,
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    if(error){
+      let msg = error.message || 'Gagal menghubungi server';
+      try{
+        if(error.context && typeof error.context.json === 'function'){
+          const b = await error.context.json();
+          if(b && b.error) msg = b.error;
+        }
+      }catch(_){}
+      return { error: msg };
+    }
+    return data;
+  }
+
+  function raporLog(html){
+    const el = document.getElementById('rp-sync-log');
+    el.style.display = 'block';
+    el.innerHTML = html;
+  }
+
+  async function raporCek(){
+    const btn = document.getElementById('rp-sync-cek');
+    btn.disabled = true;
+    const res = await callSyncRapor({ action: 'plan' });
+    btn.disabled = false;
+    if(res.error){ raporLog(`<div class="import-line import-warn">${escapeHtml(res.error)}</div>`); return; }
+    document.getElementById('rp-sync-ta').textContent = 'Tahun ajaran rapor: ' + res.tahun_ajaran;
+    document.getElementById('rp-sync-ringkasan').textContent =
+      `Siswa ${res.siswa.total} (baru ${res.siswa.baru}, diperbarui ${res.siswa.diperbarui}) · ` +
+      `Guru ${res.guru.total} (baru ${res.guru.baru}, diperbarui ${res.guru.diperbarui}` +
+      (res.guru.tanpa_email ? `, ${res.guru.tanpa_email} tanpa email` : '') + `) · ` +
+      `Mata pelajaran ${res.mapel.total} (baru ${res.mapel.baru})`;
+    const warn = (res.peringatan || []).map(w => `<div class="import-line import-warn">${escapeHtml(w)}</div>`).join('');
+    raporLog(warn || '');
+    if(!warn) document.getElementById('rp-sync-log').style.display = 'none';
+    document.getElementById('rp-sync-jalan').disabled = false;
+  }
+
+  async function raporJalankan(){
+    if(!confirm('Jalankan sinkronisasi dari rapor sekarang? Akun dan mata pelajaran baru akan dibuat, nama/kelas yang berubah akan diperbarui. Tidak ada data yang dihapus.')) return;
+    const btnCek = document.getElementById('rp-sync-cek'), btnRun = document.getElementById('rp-sync-jalan');
+    btnCek.disabled = btnRun.disabled = true;
+    raporCredentials = [];
+    const errors = [];
+    const hasil = { guru: 0, mapel: 0, siswaBaru: 0, siswaUbah: 0 };
+
+    raporLog('<div class="import-line">Menyinkronkan guru…</div>');
+    let r = await callSyncRapor({ action: 'apply', kind: 'guru' });
+    if(r.error){ errors.push('Guru: ' + r.error); } else { hasil.guru = r.dibuat; errors.push(...r.errors); raporCredentials.push(...r.credentials); }
+
+    raporLog('<div class="import-line">Menyinkronkan mata pelajaran…</div>');
+    r = await callSyncRapor({ action: 'apply', kind: 'mapel' });
+    if(r.error){ errors.push('Mapel: ' + r.error); } else { hasil.mapel = r.dibuat; errors.push(...r.errors); }
+
+    let offset = 0;
+    while(true){
+      raporLog(`<div class="import-line">Menyinkronkan siswa… (${offset} diproses)</div>`);
+      r = await callSyncRapor({ action: 'apply', kind: 'siswa', offset, limit: 50 });
+      if(r.error){ errors.push('Siswa: ' + r.error); break; }
+      hasil.siswaBaru += r.dibuat; hasil.siswaUbah += r.diperbarui;
+      errors.push(...r.errors); raporCredentials.push(...r.credentials);
+      if(r.selesai) break;
+      offset = r.next;
+    }
+
+    // muat ulang data agar semua tab langsung terbarui
+    await init();
+
+    let html = `<div class="import-line import-ok">Selesai. Guru baru ${hasil.guru}, mata pelajaran baru ${hasil.mapel}, siswa baru ${hasil.siswaBaru}, siswa diperbarui ${hasil.siswaUbah}.</div>`;
+    if(raporCredentials.length){
+      html += `<div class="import-line import-ok"><strong>${raporCredentials.length} akun baru dibuat.</strong> Kata sandi hanya ditampilkan sekali; unduh sekarang. <button type="button" class="btn-secondary" onclick="downloadCredentials('rapor', raporCredentials)">Unduh kredensial (.xlsx)</button></div>`;
+    }
+    html += errors.slice(0, 50).map(e => `<div class="import-line import-warn">${escapeHtml(e)}</div>`).join('');
+    if(errors.length > 50) html += `<div class="import-line import-warn">…dan ${errors.length - 50} pesan lain.</div>`;
+    raporLog(html);
+    btnCek.disabled = false;
   }
 
   /* ---------- initial load ---------- */
