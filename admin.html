@@ -924,7 +924,7 @@
   <section id="panel-rapor" class="panel">
     <div class="section-head">
       <h1>Sinkron dari Rapor</h1>
-      <p>Tarik siswa (beserta kelasnya), guru, dan mata pelajaran yang diampu dari aplikasi Rapor untuk tahun ajaran aktif. Data yang sudah ada tidak dihapus; siswa dan guru dicocokkan lewat NISN/NIS dan email.</p>
+      <p>Tarik siswa (beserta kelasnya), guru, dan mata pelajaran yang diampu dari aplikasi Rapor untuk tahun ajaran aktif. Data yang sudah ada tidak dihapus; siswa dicocokkan lewat NIS dan guru lewat email. Aturan akun: <strong>username siswa = NIS</strong>, kata sandi awal semua siswa <code>siswa123</code>, semua guru <code>guruku123</code>.</p>
     </div>
     <div class="bulk-card">
       <div class="bulk-card-text">
@@ -936,6 +936,10 @@
         <button type="button" class="btn-primary" id="rp-sync-jalan" onclick="raporJalankan()" disabled>Jalankan sinkronisasi</button>
       </div>
     </div>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin:12px 0;font-size:14px;">
+      <input type="checkbox" id="rp-sync-reset" style="margin-top:3px;">
+      <span>Setel ulang kata sandi akun yang <strong>sudah ada</strong> ke default (siswa <code>siswa123</code>, guru <code>guruku123</code>). Biarkan tidak dicentang agar kata sandi yang sudah diganti pengguna tidak tertimpa.</span>
+    </label>
     <div id="rp-sync-log" class="import-result" style="display:none;"></div>
   </section>
 
@@ -3349,16 +3353,18 @@
   }
 
   async function raporJalankan(){
-    if(!confirm('Jalankan sinkronisasi dari rapor sekarang? Akun dan mata pelajaran baru akan dibuat, nama/kelas yang berubah akan diperbarui. Tidak ada data yang dihapus.')) return;
+    const resetPw = document.getElementById('rp-sync-reset').checked;
+    if(!confirm('Jalankan sinkronisasi dari rapor sekarang? Akun dan mata pelajaran baru akan dibuat, nama/kelas yang berubah akan diperbarui. Tidak ada data yang dihapus.' +
+      (resetPw ? '\n\nPERHATIAN: kata sandi semua akun siswa & guru yang sudah ada akan disetel ulang ke default.' : ''))) return;
     const btnCek = document.getElementById('rp-sync-cek'), btnRun = document.getElementById('rp-sync-jalan');
     btnCek.disabled = btnRun.disabled = true;
     raporCredentials = [];
     const errors = [];
-    const hasil = { guru: 0, mapel: 0, siswaBaru: 0, siswaUbah: 0 };
+    const hasil = { guru: 0, mapel: 0, siswaBaru: 0, siswaUbah: 0, pwReset: 0 };
 
     raporLog('<div class="import-line">Menyinkronkan guru…</div>');
-    let r = await callSyncRapor({ action: 'apply', kind: 'guru' });
-    if(r.error){ errors.push('Guru: ' + r.error); } else { hasil.guru = r.dibuat; errors.push(...r.errors); raporCredentials.push(...r.credentials); }
+    let r = await callSyncRapor({ action: 'apply', kind: 'guru', reset_password: resetPw });
+    if(r.error){ errors.push('Guru: ' + r.error); } else { hasil.guru = r.dibuat; hasil.pwReset += (r.password_direset || 0); errors.push(...r.errors); raporCredentials.push(...r.credentials); }
 
     raporLog('<div class="import-line">Menyinkronkan mata pelajaran…</div>');
     r = await callSyncRapor({ action: 'apply', kind: 'mapel' });
@@ -3367,9 +3373,9 @@
     let offset = 0;
     while(true){
       raporLog(`<div class="import-line">Menyinkronkan siswa… (${offset} diproses)</div>`);
-      r = await callSyncRapor({ action: 'apply', kind: 'siswa', offset, limit: 50 });
+      r = await callSyncRapor({ action: 'apply', kind: 'siswa', offset, limit: 50, reset_password: resetPw });
       if(r.error){ errors.push('Siswa: ' + r.error); break; }
-      hasil.siswaBaru += r.dibuat; hasil.siswaUbah += r.diperbarui;
+      hasil.siswaBaru += r.dibuat; hasil.siswaUbah += r.diperbarui; hasil.pwReset += (r.password_direset || 0);
       errors.push(...r.errors); raporCredentials.push(...r.credentials);
       if(r.selesai) break;
       offset = r.next;
@@ -3378,9 +3384,9 @@
     // muat ulang data agar semua tab langsung terbarui
     await init();
 
-    let html = `<div class="import-line import-ok">Selesai. Guru baru ${hasil.guru}, mata pelajaran baru ${hasil.mapel}, siswa baru ${hasil.siswaBaru}, siswa diperbarui ${hasil.siswaUbah}.</div>`;
+    let html = `<div class="import-line import-ok">Selesai. Guru baru ${hasil.guru}, mata pelajaran baru ${hasil.mapel}, siswa baru ${hasil.siswaBaru}, siswa diperbarui ${hasil.siswaUbah}` + (resetPw ? `, kata sandi disetel ulang ${hasil.pwReset} akun` : '') + `.</div>`;
     if(raporCredentials.length){
-      html += `<div class="import-line import-ok"><strong>${raporCredentials.length} akun baru dibuat.</strong> Kata sandi hanya ditampilkan sekali; unduh sekarang. <button type="button" class="btn-secondary" onclick="downloadCredentials('rapor', raporCredentials)">Unduh kredensial (.xlsx)</button></div>`;
+      html += `<div class="import-line import-ok"><strong>${raporCredentials.length} akun baru dibuat.</strong> Kata sandi awal: siswa <code>siswa123</code>, guru <code>guruku123</code>. Daftar username bisa diunduh di sini. <button type="button" class="btn-secondary" onclick="downloadCredentials('rapor', raporCredentials)">Unduh kredensial (.xlsx)</button></div>`;
     }
     html += errors.slice(0, 50).map(e => `<div class="import-line import-warn">${escapeHtml(e)}</div>`).join('');
     if(errors.length > 50) html += `<div class="import-line import-warn">…dan ${errors.length - 50} pesan lain.</div>`;

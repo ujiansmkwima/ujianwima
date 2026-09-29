@@ -8,11 +8,18 @@
 //   RAPOR_SERVICE_KEY  = service_role key project RAPORWIMA
 //   SISWA_EMAIL_DOMAIN = (opsional) default: siswa.ujianwima.local
 //
+// Aturan akun:
+//   - Username siswa = NIS (wajib; siswa tanpa NIS dilewati, tidak ada cadangan NISN).
+//   - Kata sandi awal semua siswa baru = "siswa123", semua guru baru = "guruku123".
+//   - Akun yang sudah ada TIDAK diubah kata sandinya, kecuali admin mengirim
+//     reset_password: true pada aksi apply.
+//
 // Aksi (POST, hanya admin ujianwima):
 //   { action: "plan" }                                  -> ringkasan tanpa menulis apa pun
 //   { action: "apply", kind: "guru" }                   -> buat/perbarui guru
 //   { action: "apply", kind: "mapel" }                  -> buat mapel (subjects) per guru
 //   { action: "apply", kind: "siswa", offset, limit }   -> siswa, bertahap
+//   (opsional pada apply: reset_password: true -> setel ulang kata sandi akun yang sudah ada ke default)
 // Tidak pernah menghapus data.
 // =========================================================
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -23,6 +30,10 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RAPOR_URL = Deno.env.get("RAPOR_URL") ?? "";
 const RAPOR_SERVICE_KEY = Deno.env.get("RAPOR_SERVICE_KEY") ?? "";
 const SISWA_DOMAIN = Deno.env.get("SISWA_EMAIL_DOMAIN") ?? "siswa.ujianwima.local";
+
+// Kata sandi default (min. 6 karakter sesuai aturan Supabase Auth)
+const DEFAULT_PASSWORD_SISWA = "siswa123";
+const DEFAULT_PASSWORD_GURU = "guruku123";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,9 +48,8 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function randomPassword() {
-  return crypto.randomUUID().replace(/-/g, "").slice(0, 10);
-}
+const defaultPassword = (role: "siswa" | "guru") =>
+  role === "siswa" ? DEFAULT_PASSWORD_SISWA : DEFAULT_PASSWORD_GURU;
 
 // deno-lint-ignore no-explicit-any
 async function fetchAll(build: (from: number, to: number) => any) {
@@ -123,16 +133,18 @@ Deno.serve(async (req: Request) => {
 
     // siswa rapor -> {username, nama, kelas}
     const siswaErrors: string[] = [];
-    const siswaRapor: { username: string; email: string; nama: string; kelas: string }[] = [];
+    const siswaRapor: { username: string; nisn: string; email: string; nama: string; kelas: string }[] = [];
     const seen = new Set<string>();
     for (const r of skRows) {
       const s = r.siswa, k = r.kelas;
-      const username = norm(s?.nisn) || norm(s?.nis);
       if (!s || !k) continue;
-      if (!username) { siswaErrors.push(`${s.nama}: tanpa NISN/NIS, dilewati`); continue; }
-      if (seen.has(username)) { siswaErrors.push(`${s.nama}: NISN/NIS ${username} ganda, dilewati`); continue; }
+      // Batasan: username siswa WAJIB NIS (tanpa cadangan NISN)
+      const username = norm(s.nis);
+      if (!username) { siswaErrors.push(`${s.nama}: NIS kosong, dilewati (username siswa harus NIS)`); continue; }
+      if (/\s/.test(username)) { siswaErrors.push(`${s.nama}: NIS \"${username}\" mengandung spasi, dilewati`); continue; }
+      if (seen.has(username)) { siswaErrors.push(`${s.nama}: NIS ${username} ganda, dilewati`); continue; }
       seen.add(username);
-      siswaRapor.push({ username, email: `${username}@${SISWA_DOMAIN}`, nama: norm(s.nama), kelas: norm(k.nama) });
+      siswaRapor.push({ username, nisn: norm(s.nisn), email: `${username}@${SISWA_DOMAIN}`, nama: norm(s.nama), kelas: norm(k.nama) });
     }
 
     // ---------- data ujianwima ----------
@@ -141,6 +153,17 @@ Deno.serve(async (req: Request) => {
       ujian.from("profiles").select("id,role,nama,username,email,kelas").order("id").range(f, t)
     );
     const siswaByUsername = new Map(profUjian.filter((p) => p.role === "siswa").map((p) => [lower(p.username), p]));
+    // Cari akun siswa yang sudah ada: utama lewat NIS; bila belum ada, cocokkan akun lama yang username-nya NISN
+    // (akan dimigrasikan ke NIS).
+    const cariSiswa = (s: { username: string; nisn: string }) => {
+      const byNis = siswaByUsername.get(lower(s.username));
+      if (byNis) return byNis;
+      if (s.nisn && s.nisn !== s.username) {
+        const byNisn = siswaByUsername.get(lower(s.nisn));
+        if (byNisn && !siswaByUsername.has(lower(s.username))) return byNisn;
+      }
+      return undefined;
+    };
     const guruByEmail = new Map(profUjian.filter((p) => p.role === "guru").map((p) => [lower(p.email), p]));
     const usernames = new Set(profUjian.map((p) => lower(p.username)));
     // deno-lint-ignore no-explicit-any
@@ -151,10 +174,10 @@ Deno.serve(async (req: Request) => {
     const subjSet = new Set(subjUjian.map((s) => subjKey(s.guru_id, s.nama)));
 
     // ---------- rencana ----------
-    const siswaBaru = siswaRapor.filter((s) => !siswaByUsername.has(lower(s.username)));
+    const siswaBaru = siswaRapor.filter((s) => !cariSiswa(s));
     const siswaUbah = siswaRapor.filter((s) => {
-      const p = siswaByUsername.get(lower(s.username));
-      return p && (norm(p.nama) !== s.nama || norm(p.kelas) !== s.kelas);
+      const p = cariSiswa(s);
+      return p && (norm(p.nama) !== s.nama || norm(p.kelas) !== s.kelas || norm(p.username) !== s.username);
     });
     const guruBaru = guruRapor.filter((g) => !guruByEmail.has(g.email));
     const guruUbah = guruRapor.filter((g) => {
@@ -183,18 +206,21 @@ Deno.serve(async (req: Request) => {
         siswa: { total: siswaRapor.length, baru: siswaBaru.length, diperbarui: siswaUbah.length, dilewati: siswaErrors.length },
         guru: { total: guruRapor.length, baru: guruBaru.length, diperbarui: guruUbah.length, tanpa_email: guruTanpaEmail },
         mapel: { total: pasangan.size, baru: mapelBaru.length, penugasan_tanpa_guru: penugasanTanpaGuru },
+        aturan: { username_siswa: "NIS", password_siswa: DEFAULT_PASSWORD_SISWA, password_guru: DEFAULT_PASSWORD_GURU },
         peringatan: siswaErrors.slice(0, 20),
       });
     }
 
     if (action !== "apply") return json({ error: "Action tidak dikenal" }, 400);
 
+    const resetPassword = body.reset_password === true;
+    let passwordDireset = 0;
     const errors: string[] = [];
     const credentials: { nama: string; username: string; password: string }[] = [];
     let dibuat = 0, diperbarui = 0;
 
     async function buatUser(role: "siswa" | "guru", nama: string, username: string, email: string, kelas: string | null) {
-      const password = randomPassword();
+      const password = defaultPassword(role);
       const { data: created, error } = await ujian.auth.admin.createUser({
         email, password, email_confirm: true,
         user_metadata: { nama, username, role, kelas, ruang: null },
@@ -206,6 +232,11 @@ Deno.serve(async (req: Request) => {
       if (pErr) { errors.push(`${nama} (${username}): ${pErr.message}`); return null; }
       credentials.push({ nama, username, password });
       return created.user.id as string;
+    }
+
+    async function resetPw(id: string, role: "siswa" | "guru", label: string) {
+      const { error } = await ujian.auth.admin.updateUserById(id, { password: defaultPassword(role) });
+      if (error) errors.push(`${label}: gagal reset kata sandi (${error.message})`); else passwordDireset++;
     }
 
     // ----- GURU -----
@@ -224,7 +255,13 @@ Deno.serve(async (req: Request) => {
         const { error } = await ujian.from("profiles").update({ nama: g.nama }).eq("id", p.id);
         if (error) errors.push(`${g.nama}: ${error.message}`); else diperbarui++;
       }
-      return json({ kind, dibuat, diperbarui, errors, credentials });
+      if (resetPassword) {
+        for (const g of guruRapor) {
+          const p = guruByEmail.get(g.email);
+          if (p) await resetPw(p.id, "guru", g.nama);
+        }
+      }
+      return json({ kind, dibuat, diperbarui, password_direset: passwordDireset, errors, credentials });
     }
 
     // ----- MAPEL -----
@@ -251,17 +288,26 @@ Deno.serve(async (req: Request) => {
       const semua = siswaRapor;
       const potongan = semua.slice(offset, offset + limit);
       for (const s of potongan) {
-        const p = siswaByUsername.get(lower(s.username));
+        const p = cariSiswa(s);
         if (!p) {
+          if (usernames.has(lower(s.username))) {
+            errors.push(`${s.nama}: username ${s.username} sudah dipakai akun lain (bukan siswa), dilewati`);
+            continue;
+          }
           const id = await buatUser("siswa", s.nama, s.username, s.email, s.kelas);
-          if (id) dibuat++;
-        } else if (norm(p.nama) !== s.nama || norm(p.kelas) !== s.kelas) {
-          const { error } = await ujian.from("profiles").update({ nama: s.nama, kelas: s.kelas }).eq("id", p.id);
-          if (error) errors.push(`${s.nama}: ${error.message}`); else diperbarui++;
+          if (id) { dibuat++; usernames.add(lower(s.username)); }
+        } else {
+          if (norm(p.nama) !== s.nama || norm(p.kelas) !== s.kelas || norm(p.username) !== s.username) {
+            // username akun lama (NISN) dimigrasikan ke NIS; email login lama tetap berlaku
+            const { error } = await ujian.from("profiles")
+              .update({ nama: s.nama, kelas: s.kelas, username: s.username }).eq("id", p.id);
+            if (error) errors.push(`${s.nama}: ${error.message}`); else diperbarui++;
+          }
+          if (resetPassword) await resetPw(p.id, "siswa", s.nama);
         }
       }
       const next = offset + potongan.length;
-      return json({ kind, dibuat, diperbarui, errors, credentials, total: semua.length, next, selesai: next >= semua.length });
+      return json({ kind, dibuat, diperbarui, password_direset: passwordDireset, errors, credentials, total: semua.length, next, selesai: next >= semua.length });
     }
 
     return json({ error: "kind tidak dikenal" }, 400);
