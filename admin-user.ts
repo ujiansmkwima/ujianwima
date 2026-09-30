@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
       if (!nama || !username || !email || !role) {
         return json({ error: "Data belum lengkap" }, 400);
       }
-      if (!["siswa", "guru", "admin"].includes(role)) {
+      if (!["siswa", "guru", "panitia", "admin"].includes(role)) {
         return json({ error: "Role tidak valid" }, 400);
       }
       const password = (body.password && String(body.password).trim()) || randomPassword();

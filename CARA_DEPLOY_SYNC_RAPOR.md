@@ -20,3 +20,14 @@
 - Akun yang sudah ada tidak diubah kata sandinya, kecuali kotak "Setel ulang kata sandi akun yang sudah ada" dicentang di tab Sinkron Rapor.
 - Ganti default lewat konstanta `DEFAULT_PASSWORD_SISWA` / `DEFAULT_PASSWORD_GURU` di `sync-rapor.ts`.
 - Tidak ada data yang dihapus. Aman dijalankan ulang.
+
+---
+
+# Peran Panitia
+
+Akun panitia dibuat admin (tab **Panitia** di `admin.html`), lalu login lewat tab **Panitia** di `index.html`. Panitia diarahkan ke `panitia.html` (hanya lihat: jadwal, token, ruang & peserta).
+
+## Deploy
+1. Supabase → SQL Editor: jalankan `panitia-setup.sql` — **Bagian 1** dulu, lalu **Bagian 2** (dijalankan terpisah).
+2. Edge Functions → deploy ulang `manage-users` (isi dari `manage-users.ts`; `admin-user.ts` identik).
+3. Upload `index.html`, `admin.html`, `panitia.html` yang baru.

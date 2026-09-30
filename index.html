@@ -115,7 +115,7 @@
   .tab-indicator{
     position:absolute;
     top:4px; left:4px;
-    width:calc(33.333% - 4px);
+    width:calc(25% - 2px);
     height:calc(100% - 8px);
     background:var(--accent);
     border-radius:8px;
@@ -127,8 +127,8 @@
     flex:1;
     border:none;
     background:transparent;
-    padding:9px 4px;
-    font-size:13px;
+    padding:9px 2px;
+    font-size:12.5px;
     font-weight:600;
     color:var(--slate);
     border-radius:8px;
@@ -137,9 +137,9 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
+    gap:5px;
   }
-  .tab svg{ width:15px; height:15px; }
+  .tab svg{ width:14px; height:14px; }
   .tab.active{ color:#fff; }
 
   /* ---- form ---- */
@@ -253,28 +253,12 @@
     </div>
 
     <h1>Masuk ke akun kamu</h1>
-    <p class="sub">Pilih peran, lalu masuk dengan username dan kata sandi.</p>
-
-    <div class="tabs">
-      <div class="tab-indicator" id="tabIndicator"></div>
-      <button type="button" class="tab active" data-role="siswa" onclick="selectRole('siswa', 0, this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
-        Siswa
-      </button>
-      <button type="button" class="tab" data-role="guru" onclick="selectRole('guru', 1, this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2Z"/><path d="M4 19.5A2 2 0 0 0 6 21h13"/></svg>
-        Guru
-      </button>
-      <button type="button" class="tab" data-role="admin" onclick="selectRole('admin', 2, this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87 2 2 0 1 1-2.83 2.83 1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.35a1.7 1.7 0 0 0-1.87.34 2 2 0 1 1-2.83-2.83A1.7 1.7 0 0 0 4.65 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.65 9a1.7 1.7 0 0 0-.34-1.87 2 2 0 1 1 2.83-2.83A1.7 1.7 0 0 0 9 4.65a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.65a1.7 1.7 0 0 0 1.87-.34 2 2 0 1 1 2.83 2.83A1.7 1.7 0 0 0 19.35 9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg>
-        Admin
-      </button>
-    </div>
+    <p class="sub">Masukkan username dan kata sandi. Kamu akan diarahkan otomatis sesuai peran akunmu.</p>
 
     <form onsubmit="return handleLogin(event)">
       <label class="field">
         <span>Username</span>
-        <input type="text" id="username" placeholder="Masukkan username siswa" autocomplete="username" required>
+        <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
       </label>
 
       <label class="field">
@@ -292,7 +276,7 @@
         <a class="forgot" href="#">Lupa kata sandi?</a>
       </div>
 
-      <button type="submit" class="submit-btn" id="submitBtn">Masuk sebagai Siswa</button>
+      <button type="submit" class="submit-btn" id="submitBtn">Masuk</button>
       <p class="form-note" id="formNote"></p>
     </form>
   </div>
@@ -303,15 +287,7 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const pageByRole = { siswa: 'siswa.html', guru: 'guru.html', admin: 'admin.html' };
-
-  const roles = {
-    siswa: { label:'Siswa', accent:'#6366F1', placeholder:'Masukkan username siswa' },
-    guru:  { label:'Guru',  accent:'#10B981', placeholder:'Masukkan username guru' },
-    admin: { label:'Admin', accent:'#A855F7', placeholder:'Masukkan username admin' }
-  };
-
-  let selectedRole = 'siswa';
+  const pageByRole = { siswa: 'siswa.html', guru: 'guru.html', panitia: 'panitia.html', admin: 'admin.html' };
 
   /* Jika sudah login & rolenya cocok halaman ini, langsung lempar ke dashboard */
   (async () => {
@@ -320,24 +296,6 @@
     const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
     if(profile && pageByRole[profile.role]) window.location.href = pageByRole[profile.role];
   })();
-
-  function selectRole(role, index, el){
-    selectedRole = role;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tabIndicator').style.transform = `translateX(${index * 100}%)`;
-
-    const r = roles[role];
-    document.documentElement.style.setProperty('--accent', r.accent);
-    document.getElementById('username').placeholder = r.placeholder;
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('submitBtn').textContent = 'Masuk sebagai ' + r.label;
-
-    const note = document.getElementById('formNote');
-    note.textContent = '';
-    note.classList.remove('show');
-  }
 
   function togglePassword(){
     const pw = document.getElementById('password');
@@ -381,8 +339,8 @@
         return false;
       }
 
-      if(profile.role !== selectedRole){
-        note.textContent = `Akun ini terdaftar sebagai ${roles[profile.role]?.label || profile.role}, bukan ${roles[selectedRole].label}.`;
+      if(!pageByRole[profile.role]){
+        note.textContent = 'Peran akun tidak dikenali. Hubungi admin.';
         await sb.auth.signOut();
         return false;
       }
