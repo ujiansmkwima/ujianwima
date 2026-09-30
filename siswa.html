@@ -73,8 +73,11 @@
   .tabs{ max-width:760px; margin:0 auto; display:flex; gap:4px; padding:0 16px; }
   .tab{
     position:relative; display:flex; align-items:center; gap:7px; background:none; border:none;
-    padding:14px 8px; font-size:13.5px; font-weight:700; color:var(--indigo-dark); cursor:default; white-space:nowrap;
+    padding:14px 10px; font-size:13.5px; font-weight:700; color:var(--slate); cursor:pointer; white-space:nowrap;
   }
+  .tab.active{ color:var(--indigo-dark); }
+  .tab:not(.active)::after{ display:none; }
+  .tab:not(.active):hover{ color:var(--indigo-dark); }
   .tab svg{ width:16px; height:16px; }
   .tab::after{ content:''; position:absolute; left:0; right:0; bottom:-1px; height:2.5px; background:linear-gradient(90deg,#6366F1 0%,#4338CA 100%); border-radius:2px 2px 0 0; }
 
@@ -496,9 +499,13 @@
 
 <div class="tabs-wrap">
   <nav class="tabs">
-    <button class="tab">
+    <button class="tab active" id="tab-ujianku" onclick="switchTab('ujianku')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
       Ujianku
+    </button>
+    <button class="tab" id="tab-history" onclick="switchTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+      History
     </button>
   </nav>
 </div>
@@ -508,8 +515,8 @@
   <!-- ============ LIST VIEW ============ -->
   <div id="listView">
     <div class="section-head">
-      <h1>Ujianku</h1>
-      <p>Daftar ujian yang dijadwalkan untukmu.</p>
+      <h1 id="tab-title">Ujianku</h1>
+      <p id="tab-desc">Ujian yang sedang berlangsung dan akan datang.</p>
     </div>
     <div id="exam-list"></div>
   </div>
@@ -773,6 +780,18 @@ let timerInterval = null;
 let saveTimer = null;
 let fontLevel = 3;
 let headerCollapsedShown = false;
+let activeTab = 'ujianku';
+
+function switchTab(name){
+  activeTab = name;
+  document.getElementById('tab-ujianku').classList.toggle('active', name === 'ujianku');
+  document.getElementById('tab-history').classList.toggle('active', name === 'history');
+  document.getElementById('tab-title').textContent = name === 'history' ? 'History' : 'Ujianku';
+  document.getElementById('tab-desc').textContent = name === 'history'
+    ? 'Riwayat ujian yang sudah selesai atau terlewat.'
+    : 'Ujian yang sedang berlangsung dan akan datang.';
+  renderExamList();
+}
 
 async function init(){
   const me = await requireSiswa();
@@ -859,20 +878,27 @@ function renderExamList(){
     return { j, qs, subj, st, at };
   });
 
-  const berlangsung = enriched.filter(e => e.st === 'berlangsung');
-  const terjadwal = enriched.filter(e => e.st === 'terjadwal').sort((a,b)=>(a.j.tanggal+a.j.jamMulai).localeCompare(b.j.tanggal+b.j.jamMulai));
-  const selesai = enriched.filter(e => e.st === 'selesai').sort((a,b)=>(b.j.tanggal+b.j.jamMulai).localeCompare(a.j.tanggal+a.j.jamMulai));
+  const isHist = e => e.st === 'selesai' || (e.at && e.at.status === 'selesai');
+  const berlangsung = enriched.filter(e => !isHist(e) && e.st === 'berlangsung');
+  const terjadwal = enriched.filter(e => !isHist(e) && e.st === 'terjadwal').sort((a,b)=>(a.j.tanggal+a.j.jamMulai).localeCompare(b.j.tanggal+b.j.jamMulai));
+  const riwayat = enriched.filter(isHist).sort((a,b)=>(b.j.tanggal+b.j.jamMulai).localeCompare(a.j.tanggal+a.j.jamMulai));
 
   const wrap = document.getElementById('exam-list');
-  if(enriched.length === 0){
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada ujian dijadwalkan</strong>Ujian yang dijadwalkan gurumu akan muncul di sini.</div>`;
-    return;
-  }
-
   let html = '';
-  if(berlangsung.length){ html += `<div class="exam-group-title">Sedang berlangsung</div>` + berlangsung.map(renderExamCard).join(''); }
-  if(terjadwal.length){ html += `<div class="exam-group-title">Akan datang</div>` + terjadwal.map(renderExamCard).join(''); }
-  if(selesai.length){ html += `<div class="exam-group-title">Riwayat</div>` + selesai.map(renderExamCard).join(''); }
+  if(activeTab === 'history'){
+    if(riwayat.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada riwayat ujian</strong>Ujian yang sudah selesai atau terlewat akan muncul di sini.</div>`;
+      return;
+    }
+    html = riwayat.map(renderExamCard).join('');
+  } else {
+    if(berlangsung.length + terjadwal.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ada ujian aktif</strong>Ujian yang dijadwalkan gurumu akan muncul di sini. Ujian yang sudah selesai ada di tab History.</div>`;
+      return;
+    }
+    if(berlangsung.length){ html += `<div class="exam-group-title">Sedang berlangsung</div>` + berlangsung.map(renderExamCard).join(''); }
+    if(terjadwal.length){ html += `<div class="exam-group-title">Akan datang</div>` + terjadwal.map(renderExamCard).join(''); }
+  }
   wrap.innerHTML = html;
 }
 
