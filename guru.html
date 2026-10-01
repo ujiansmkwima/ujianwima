@@ -558,6 +558,16 @@
     .table-scroll tbody td::before{ content:none; }
     .table-scroll .cell-action{ text-align:right; }
 
+    /* Tabel di dalam soal (draft, edit soal, pratinjau) tetap berbentuk tabel normal di HP —
+       jangan ikut ditumpuk jadi blok vertikal seperti tabel daftar. */
+    .q-table-wrap table.q-table{ display:table; width:100%; min-width:0; }
+    .q-table-wrap table.q-table thead{ display:table-header-group; }
+    .q-table-wrap table.q-table tbody{ display:table-row-group; }
+    .q-table-wrap table.q-table tr{ display:table-row; width:auto; padding:0; border-bottom:none; }
+    .q-table-wrap table.q-table th,
+    .q-table-wrap table.q-table td{ display:table-cell; width:auto; padding:6px 10px; font-size:12.5px; border-bottom:1px solid var(--line); }
+    .q-table-wrap table.q-table td::before{ content:none; }
+
     /* Token ujian: perbesar token & status di tampilan HP supaya mudah dibacakan/ditunjukkan ke siswa. */
     .tkn-row{ flex-direction:column; align-items:flex-start; }
     .tkn-row-token{ width:100%; justify-content:space-between; }

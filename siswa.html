@@ -272,6 +272,10 @@
   #examSuite .question-card.pinned{
     border-color:var(--sn-t1); box-shadow:0 -4px 24px rgba(20,20,30,.14);
     border-radius:16px 16px 0 0; background:var(--sn-card);
+    /* Menempel penuh ke tepi kiri, kanan, dan bawah layar (tanpa celah) */
+    border-left:none; border-right:none; border-bottom:none; margin:0; box-sizing:border-box;
+    padding-left:max(20px, calc((100vw - 760px) / 2 + 22px));
+    padding-right:max(20px, calc((100vw - 760px) / 2 + 22px));
     padding-bottom:calc(22px + env(safe-area-inset-bottom, 0px));
   }
   /* Efek "fade" di atas kartu yang disematkan — mengesankan teks bacaan memudar
@@ -1649,8 +1653,9 @@ function pinQuestionCard(){
 
   card.classList.add('pinned');
   card.style.position = 'fixed';
-  card.style.left = rect.left + 'px';
-  card.style.width = rect.width + 'px';
+  card.style.left = '0px';
+  card.style.right = '0px';
+  card.style.width = '100%';
   card.style.overflowY = 'auto';
   card.style.zIndex = '32';
 
@@ -1668,6 +1673,7 @@ function pinQuestionCard(){
   card.style.top = '';
   card.style.bottom = '';
   card.style.left = '';
+  card.style.right = '';
   card.style.width = '';
   card.style.maxHeight = '';
   card.style.overflowY = '';
@@ -1680,12 +1686,10 @@ function pinQuestionCard(){
 function repositionPinnedCard(){
   const card = document.getElementById('ev-question-card');
   if(!card || !card.classList.contains('pinned')) return;
-  const placeholder = document.getElementById('ev-pin-placeholder');
-  if(placeholder){
-    const prect = placeholder.getBoundingClientRect();
-    card.style.left = prect.left + 'px';
-    card.style.width = prect.width + 'px';
-  }
+  // Kartu disematkan selebar layar (rata kiri-kanan-bawah), bukan mengikuti lebar kolom soal
+  card.style.left = '0px';
+  card.style.right = '0px';
+  card.style.width = '100%';
   // Soal + opsi (termasuk navigasi di bawahnya, karena kini satu kartu yang sama)
   // disematkan mulai dari TENGAH layar dan menempel RATA sampai ke tepi bawah layar
   // (sudut bawah kartu memang siku, bukan melengkung, supaya menyatu dengan tepi) —
