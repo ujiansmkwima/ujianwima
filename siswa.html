@@ -7,6 +7,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Scheherazade+New:wght@400;700&family=Noto+Sans+Javanese:wght@400;700&display=swap');
 
   :root{
     --ink:#0F172A;
@@ -37,7 +38,7 @@
   *{ box-sizing:border-box; }
   body{
     margin:0; background:var(--cream); color:var(--ink);
-    font-family:'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing:antialiased;
+    font-family:'Plus Jakarta Sans','Scheherazade New','Noto Sans Javanese', sans-serif; -webkit-font-smoothing:antialiased;
   }
   h1,h2{ font-weight:700; letter-spacing:-0.02em; margin:0; }
   button,select{ font-family:inherit; }
@@ -549,6 +550,11 @@
   .pending-banner button{ margin-left:auto; background:#E11D48; color:#fff; border:none; border-radius:9px; padding:8px 14px; font-weight:800; font-size:12.5px; cursor:pointer; }
   .pending-banner button:disabled{ opacity:.6; cursor:wait; }
 
+
+  /* ---------- Teks Arab & Aksara Jawa: font khusus + ukuran 3x ---------- */
+  .txt-ar, .txt-jv{ font-size:3em; line-height:1.7; font-weight:400; letter-spacing:normal; text-transform:none; }
+  .txt-ar{ font-family:'Amiri Quran','Scheherazade New','Noto Naskh Arabic','Traditional Arabic',serif; direction:rtl; unicode-bidi:isolate; }
+  .txt-jv{ font-family:'Noto Sans Javanese','Tuladha Jejeg','Noto Serif Javanese',sans-serif; unicode-bidi:isolate; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -2040,5 +2046,81 @@ window.addEventListener('beforeunload', e => {
 init();
 </script>
 
+<script>
+/* ---------- Teks Arab & Aksara Jawa: font khusus (waqaf terbaca) + ukuran 3x ---------- */
+(function(){
+  var AR = '\u0600-\u06FF\u0750-\u077F\u0870-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF';
+  var JV = '\uA980-\uA9DF';
+  var CH = AR + JV;
+  var JOIN = '\\s\u00A0\u200B-\u200F\u202A-\u202E\u2066-\u2069\u0640';
+  var HAS = new RegExp('[' + CH + ']');
+  var HAS_AR = new RegExp('[' + AR + ']');
+  var RUN = new RegExp('[' + CH + '][' + CH + JOIN + ']*', 'g');
+  var SKIP_SEL = 'textarea,input,select,option,script,style,noscript,svg,title,[contenteditable="true"],[contenteditable=""],.txt-ar,.txt-jv';
+
+  // Pecah teks jadi potongan biasa dan potongan Arab/Aksara Jawa
+  function splitRuns(text){
+    var out = [], last = 0, m;
+    RUN.lastIndex = 0;
+    while((m = RUN.exec(text))){
+      var run = m[0].replace(/[\s\u00A0]+$/, '');
+      var start = m.index;
+      if(start > last) out.push({ t: text.slice(last, start), s: null });
+      out.push({ t: run, s: HAS_AR.test(run) ? 'ar' : 'jv' });
+      last = start + run.length;
+      RUN.lastIndex = last;
+    }
+    if(last < text.length) out.push({ t: text.slice(last), s: null });
+    return out;
+  }
+  if(typeof window === 'undefined'){ module.exports = { splitRuns: splitRuns }; return; }
+
+  function wrapTextNode(node){
+    var text = node.nodeValue;
+    if(!text || !HAS.test(text)) return;
+    var parent = node.parentNode;
+    if(!parent || !parent.closest || parent.closest(SKIP_SEL)) return;
+    var frag = document.createDocumentFragment();
+    splitRuns(text).forEach(function(p){
+      if(!p.s){ frag.appendChild(document.createTextNode(p.t)); return; }
+      var span = document.createElement('span');
+      span.className = p.s === 'ar' ? 'txt-ar' : 'txt-jv';
+      span.setAttribute('lang', p.s === 'ar' ? 'ar' : 'jv');
+      if(p.s === 'ar') span.setAttribute('dir', 'rtl');
+      span.textContent = p.t;
+      frag.appendChild(span);
+    });
+    parent.replaceChild(frag, node);
+  }
+
+  function scan(root){
+    if(!root) return;
+    if(root.nodeType === 3){ wrapTextNode(root); return; }
+    if(root.nodeType !== 1 || !HAS.test(root.textContent || '')) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var list = [], n;
+    while((n = walker.nextNode())) list.push(n);
+    list.forEach(wrapTextNode);
+  }
+
+  var queue = [], scheduled = false;
+  function flush(){
+    scheduled = false;
+    var items = queue; queue = [];
+    items.forEach(function(n){ if(n.isConnected) scan(n); });
+  }
+  function start(){
+    scan(document.body);
+    new MutationObserver(function(recs){
+      recs.forEach(function(r){
+        if(r.type === 'characterData') queue.push(r.target);
+        else for(var i = 0; i < r.addedNodes.length; i++) queue.push(r.addedNodes[i]);
+      });
+      if(queue.length && !scheduled){ scheduled = true; requestAnimationFrame(flush); }
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
 </body>
 </html>

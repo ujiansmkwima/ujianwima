@@ -6,6 +6,7 @@
 <title>Guru — Asesmen SMK Widya Mandala Tambak</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Scheherazade+New:wght@400;700&family=Noto+Sans+Javanese:wght@400;700&display=swap');
 
   :root{
     --ink:#0F172A;
@@ -44,7 +45,7 @@
     margin:0;
     background:var(--cream);
     color:var(--ink);
-    font-family:'Plus Jakarta Sans', sans-serif;
+    font-family:'Plus Jakarta Sans','Scheherazade New','Noto Sans Javanese', sans-serif;
     -webkit-font-smoothing:antialiased;
   }
   h1,h2{ font-weight:700; letter-spacing:-0.02em; margin:0; }
@@ -794,22 +795,26 @@
   }
 
   /* ---------- Kartu modul (menu utama) ---------- */
-  .modules-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
+  .modules-grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+  @media (min-width:901px){ .modules-grid{ grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:20px; } }
   .module-tile{
-    background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:24px; cursor:pointer;
-    transition:all .25s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; gap:16px; box-shadow:var(--shadow-sm);
+    background:var(--paper); border:1.5px solid var(--brand-border); border-radius:28px; padding:22px 26px; cursor:pointer;
+    transition:all .25s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:row; align-items:flex-start; gap:22px; box-shadow:var(--shadow-sm);
+    min-height:170px;
   }
-  .module-tile:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:var(--brand-border); }
-  .tile-head{ display:flex; align-items:center; justify-content:space-between; }
-  .tile-icon{ width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 8px 16px -4px rgba(0,0,0,0.15); }
+  .module-tile:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:var(--brand); }
+  .tile-head{ display:flex; flex-direction:column; align-items:center; gap:12px; flex:0 0 112px; width:112px; }
+  .tile-name{ font-size:13px; font-weight:800; color:var(--ink); text-transform:uppercase; letter-spacing:.02em; text-align:center; line-height:1.25; }
+  .tile-icon{ width:96px; height:96px; border-radius:26px; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 8px 18px -8px rgba(15,23,42,.35); }
+  .tile-icon svg{ width:42px; height:42px; }
   .tile-icon.bg-brand{ background:linear-gradient(135deg,#6366F1 0%,#4338CA 100%); }
   .tile-icon.bg-emerald{ background:linear-gradient(135deg,#10B981 0%,#047857 100%); }
   .tile-icon.bg-amber{ background:linear-gradient(135deg,#F59E0B 0%,#B45309 100%); }
   .tile-icon.bg-sky{ background:linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%); }
   .tile-icon.bg-teal{ background:linear-gradient(135deg,#14B8A6 0%,#0F766E 100%); }
   .tile-icon.bg-rose{ background:linear-gradient(135deg,#F43F5E 0%,#BE123C 100%); }
-  .tile-body h3{ font-size:16px; font-weight:700; color:var(--ink); margin:0 0 4px; }
-  .tile-body p{ margin:0; font-size:12.5px; color:var(--slate); line-height:1.4; }
+  .tile-body{ flex:1; min-width:0; padding-top:4px; }
+  .tile-body p{ margin:0; font-size:14px; font-weight:600; color:var(--ink); line-height:1.5; }
   .badge-brand-s{ background:var(--brand-soft); color:var(--brand); border:1px solid var(--brand-border); }
   .badge-emerald-s{ background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; }
   .badge-amber-s{ background:#FFFBEB; color:#D97706; border:1px solid #FDE68A; }
@@ -928,11 +933,13 @@
     .notice{ padding:0 16px; }
     .hero-welcome{ padding:22px 20px; border-radius:16px; }
     .hero-title-group h2{ font-size:21px; }
-    .modules-grid{ grid-template-columns:1fr 1fr; gap:12px; }
-    .module-tile{ padding:16px; gap:12px; border-radius:16px; }
-    .tile-icon{ width:44px; height:44px; border-radius:14px; }
-    .tile-body h3{ font-size:14px; }
-    .tile-body p{ display:none; }
+    .modules-grid{ grid-template-columns:1fr; gap:14px; }
+    .module-tile{ padding:16px 16px; gap:14px; border-radius:22px; min-height:0; }
+    .tile-head{ flex-basis:92px; width:92px; gap:10px; }
+    .tile-icon{ width:80px; height:80px; border-radius:22px; }
+    .tile-icon svg{ width:36px; height:36px; }
+    .tile-name{ font-size:12px; }
+    .tile-body p{ font-size:13px; }
     .card{ padding:18px; border-radius:16px; }
     #guruNameLabel{ max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   }
@@ -945,6 +952,11 @@
     .shell, .notice{ max-width:1280px; }
   }
 
+
+  /* ---------- Teks Arab & Aksara Jawa: font khusus + ukuran 3x ---------- */
+  .txt-ar, .txt-jv{ font-size:3em; line-height:1.7; font-weight:400; letter-spacing:normal; text-transform:none; }
+  .txt-ar{ font-family:'Amiri Quran','Scheherazade New','Noto Naskh Arabic','Traditional Arabic',serif; direction:rtl; unicode-bidi:isolate; }
+  .txt-jv{ font-family:'Noto Sans Javanese','Tuladha Jejeg','Noto Serif Javanese',sans-serif; unicode-bidi:isolate; }
 </style>
 </head>
 <body>
@@ -1030,62 +1042,56 @@
     <div class="modules-grid">
       <div class="module-tile" onclick="showPanel('panel-asesmen', this)">
         <div class="tile-head">
-          <div class="tile-icon bg-emerald"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-          <span class="badge badge-emerald-s">Modul 1</span>
+          <div class="tile-icon bg-emerald"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></div>
+          <div class="tile-name">Penyusunan Soal</div>
         </div>
         <div class="tile-body">
-          <h3>Asesmen</h3>
-          <p>Buat soal dari file Word, sunting manual, lalu jadwalkan ujiannya.</p>
+          <p>Susun paket soal dari file Word atau sunting manual di bank soal, lalu jadwalkan pelaksanaan ujiannya.</p>
         </div>
       </div>
       <div class="module-tile" onclick="showPanel('panel-monitoring', this)">
         <div class="tile-head">
-          <div class="tile-icon bg-brand"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-          <span class="badge badge-brand-s">Modul 2</span>
+          <div class="tile-icon bg-brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M7 10h2l1.5-3 3 6 1.5-3h2"/></svg></div>
+          <div class="tile-name">Monitoring</div>
         </div>
         <div class="tile-body">
-          <h3>Monitoring</h3>
-          <p>Pantau progres siswa di ruang ujian secara langsung.</p>
+          <p>Pantau secara langsung progres pengerjaan dan status peserta didik di ruang ujian yang sedang berlangsung.</p>
         </div>
       </div>
       <div class="module-tile" onclick="showPanel('panel-token', this)">
         <div class="tile-head">
-          <div class="tile-icon bg-amber"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M7 12h.01M11 12h6"/></svg></div>
-          <span class="badge badge-amber-s">Modul 3</span>
+          <div class="tile-icon bg-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 20 3"/><path d="m16 7 3 3"/></svg></div>
+          <div class="tile-name">Token Ujian</div>
         </div>
         <div class="tile-body">
-          <h3>Token Ujian</h3>
-          <p>Lihat dan bagikan token sesi ujian aktif.</p>
+          <p>Lihat dan bagikan token sesi ujian yang sedang aktif agar peserta didik dapat masuk ke ujian.</p>
         </div>
       </div>
       <div class="module-tile" onclick="showPanel('panel-rekap', this)">
         <div class="tile-head">
-          <div class="tile-icon bg-sky"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg></div>
-          <span class="badge badge-sky-s">Modul 4</span>
+          <div class="tile-icon bg-sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="m9 13 2 2 4-4"/></svg></div>
+          <div class="tile-name">Rekap</div>
         </div>
         <div class="tile-body">
-          <h3>Rekap</h3>
-          <p>Rekap jawaban peserta dan penilaian soal uraian.</p>
+          <p>Lihat rekap jawaban peserta didik dan lakukan penilaian untuk soal uraian.</p>
         </div>
       </div>
       <div class="module-tile" onclick="showPanel('panel-analisis', this)">
         <div class="tile-head">
-          <div class="tile-icon bg-rose"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
-          <span class="badge badge-rose-s">Modul 5</span>
+          <div class="tile-icon bg-rose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg></div>
+          <div class="tile-name">Analisis</div>
         </div>
         <div class="tile-body">
-          <h3>Analisis</h3>
-          <p>Analisis butir soal, telaah kualitatif, dan Rencana Tindak Lanjut.</p>
+          <p>Analisis butir soal, telaah kualitatif, dan susun Rencana Tindak Lanjut dari hasil ujian.</p>
         </div>
       </div>
       <div class="module-tile" onclick="showPanel('panel-nilai', this)">
         <div class="tile-head">
-          <div class="tile-icon bg-teal"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg></div>
-          <span class="badge badge-teal-s">Modul 6</span>
+          <div class="tile-icon bg-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 10.9a1 1 0 0 0 0-1.8L12.8 5.2a2 2 0 0 0-1.6 0L2.6 9.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.6 0Z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+          <div class="tile-name">Nilai</div>
         </div>
         <div class="tile-body">
-          <h3>Nilai</h3>
-          <p>Olah nilai akhir peserta didik dan ekspor rekap.</p>
+          <p>Olah nilai akhir peserta didik dan ekspor rekap nilai.</p>
         </div>
       </div>
     </div>
@@ -1094,7 +1100,7 @@
   <!-- ============================================================ PANEL: ASESMEN ============================================================ -->
   <section id="panel-asesmen" class="panel">
     <div class="section-head">
-      <h1>Asesmen</h1>
+      <h1>Penyusunan Soal</h1>
       <p>Buat soal dari file Word, sunting secara manual, lalu jadwalkan ujiannya.</p>
     </div>
 
@@ -3920,7 +3926,7 @@ function renderRekap(){
     document.getElementById('rk-count').textContent = '—';
     document.getElementById('rk-stats').innerHTML = '';
     document.getElementById('rk-kelas').innerHTML = `<option value="">Semua kelas</option>`;
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di menu Penyusunan Soal.</div>`;
     rekapExportState = { rows: [], jadwalLabel: '', kelasLabel: 'Semua Kelas', kkm: getRekapKKM() };
     return;
   }
@@ -4619,7 +4625,7 @@ function renderAnalisis(){
   const j = jid ? schedules.find(x => x.id === jid) : null;
   if(!j){
     pills.innerHTML = '';
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di menu Penyusunan Soal.</div>`;
     return;
   }
   const kkmWrap = document.getElementById('an-kkm-wrap');
@@ -5743,7 +5749,7 @@ function renderNilai(){
   const j = jid ? schedules.find(x => x.id === jid) : null;
   if(!j){
     pills.innerHTML = '';
-    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di tab Asesmen.</div>`;
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal dipilih</strong>Buat jadwal ujian terlebih dahulu di menu Penyusunan Soal.</div>`;
     return;
   }
   const classes = anClassList(j);
@@ -5993,6 +5999,82 @@ init();
   }
   new MutationObserver(sync).observe(lbl, {childList:true, characterData:true, subtree:true});
   sync();
+})();
+</script>
+<script>
+/* ---------- Teks Arab & Aksara Jawa: font khusus (waqaf terbaca) + ukuran 3x ---------- */
+(function(){
+  var AR = '\u0600-\u06FF\u0750-\u077F\u0870-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF';
+  var JV = '\uA980-\uA9DF';
+  var CH = AR + JV;
+  var JOIN = '\\s\u00A0\u200B-\u200F\u202A-\u202E\u2066-\u2069\u0640';
+  var HAS = new RegExp('[' + CH + ']');
+  var HAS_AR = new RegExp('[' + AR + ']');
+  var RUN = new RegExp('[' + CH + '][' + CH + JOIN + ']*', 'g');
+  var SKIP_SEL = 'textarea,input,select,option,script,style,noscript,svg,title,[contenteditable="true"],[contenteditable=""],.txt-ar,.txt-jv';
+
+  // Pecah teks jadi potongan biasa dan potongan Arab/Aksara Jawa
+  function splitRuns(text){
+    var out = [], last = 0, m;
+    RUN.lastIndex = 0;
+    while((m = RUN.exec(text))){
+      var run = m[0].replace(/[\s\u00A0]+$/, '');
+      var start = m.index;
+      if(start > last) out.push({ t: text.slice(last, start), s: null });
+      out.push({ t: run, s: HAS_AR.test(run) ? 'ar' : 'jv' });
+      last = start + run.length;
+      RUN.lastIndex = last;
+    }
+    if(last < text.length) out.push({ t: text.slice(last), s: null });
+    return out;
+  }
+  if(typeof window === 'undefined'){ module.exports = { splitRuns: splitRuns }; return; }
+
+  function wrapTextNode(node){
+    var text = node.nodeValue;
+    if(!text || !HAS.test(text)) return;
+    var parent = node.parentNode;
+    if(!parent || !parent.closest || parent.closest(SKIP_SEL)) return;
+    var frag = document.createDocumentFragment();
+    splitRuns(text).forEach(function(p){
+      if(!p.s){ frag.appendChild(document.createTextNode(p.t)); return; }
+      var span = document.createElement('span');
+      span.className = p.s === 'ar' ? 'txt-ar' : 'txt-jv';
+      span.setAttribute('lang', p.s === 'ar' ? 'ar' : 'jv');
+      if(p.s === 'ar') span.setAttribute('dir', 'rtl');
+      span.textContent = p.t;
+      frag.appendChild(span);
+    });
+    parent.replaceChild(frag, node);
+  }
+
+  function scan(root){
+    if(!root) return;
+    if(root.nodeType === 3){ wrapTextNode(root); return; }
+    if(root.nodeType !== 1 || !HAS.test(root.textContent || '')) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var list = [], n;
+    while((n = walker.nextNode())) list.push(n);
+    list.forEach(wrapTextNode);
+  }
+
+  var queue = [], scheduled = false;
+  function flush(){
+    scheduled = false;
+    var items = queue; queue = [];
+    items.forEach(function(n){ if(n.isConnected) scan(n); });
+  }
+  function start(){
+    scan(document.body);
+    new MutationObserver(function(recs){
+      recs.forEach(function(r){
+        if(r.type === 'characterData') queue.push(r.target);
+        else for(var i = 0; i < r.addedNodes.length; i++) queue.push(r.addedNodes[i]);
+      });
+      if(queue.length && !scheduled){ scheduled = true; requestAnimationFrame(flush); }
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
 </body>
