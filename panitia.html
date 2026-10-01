@@ -475,6 +475,15 @@
   .badge-berlangsung .badge-dot{ animation:jwPulse 1.4s infinite; }
   @keyframes jwPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
 
+  /* ---------- Alokasi waktu ---------- */
+  .jw-flash.err{ background:var(--wine-soft); color:var(--wine-dark); }
+  .field input:disabled{ background:var(--mist); color:var(--slate); cursor:not-allowed; }
+  .at-input{ font-family:inherit; font-size:14px; padding:8px 10px; border:1.5px solid var(--line); border-radius:8px; background:var(--cream); color:var(--ink); }
+  .at-input:focus{ border-color:var(--wine); background:var(--paper); outline:none; }
+  .at-table-wrap{ overflow-x:auto; margin-top:16px; border:1px solid var(--line); border-radius:10px; }
+  .at-toolbar{ display:flex; flex-wrap:wrap; gap:12px 20px; align-items:flex-end; margin-top:16px; }
+  .at-dirty{ display:none; font-size:12.5px; font-weight:600; color:var(--amber-dark); }
+  .at-dirty.show{ display:inline; }
   .chip-grid{ display:flex; flex-wrap:wrap; gap:8px; }
   .chip-check{ position:relative; }
   .chip-check input{ position:absolute; opacity:0; width:1px; height:1px; }
@@ -659,6 +668,10 @@
     <button class="tab" onclick="showPanel('panel-supervisors', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
       Guru Pengawas
+    </button>
+    <button class="tab" onclick="showPanel('panel-alokasi', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Alokasi Waktu
     </button>
     <button class="tab" onclick="showPanel('panel-jadwal', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
@@ -1119,6 +1132,62 @@
     </div>
   </section>
 
+  <!-- ============ PANEL: ALOKASI WAKTU ============ -->
+  <section id="panel-alokasi" class="panel">
+    <div class="section-head">
+      <h1>Alokasi waktu</h1>
+      <p>Susun jam ke beserta waktu mulai dan waktu berakhirnya untuk setiap hari. Di tab <strong>Penjadwalan</strong>, panitia tinggal memilih tanggal dan jam ke — durasi, waktu mulai, dan waktu berakhir terisi otomatis.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <span class="card-title">Susun jam ke per hari</span>
+        <span class="at-dirty" id="at-dirty">Ada perubahan yang belum disimpan</span>
+      </div>
+      <div class="jw-flash" id="at-flash" role="status"></div>
+      <div class="import-result" id="at-missing" style="display:none;"></div>
+
+      <div class="jw-label">Hari</div>
+      <div class="chip-grid" id="at-day-grid"></div>
+
+      <div class="at-toolbar">
+        <div class="field" style="min-width:220px;">
+          <span>Salin dari hari lain</span>
+          <select id="at-copy-from"></select>
+        </div>
+        <button type="button" class="btn-secondary" onclick="atCopyFrom()">Salin ke hari ini</button>
+      </div>
+      <div class="field-hint" style="margin-top:6px;">Hasil salinan tampil dulu di tabel; periksa lalu klik Simpan.</div>
+
+      <div class="at-table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:110px;">Jam ke</th>
+            <th>Waktu mulai</th>
+            <th>Waktu berakhir</th>
+            <th>Durasi</th>
+            <th style="width:56px;"></th>
+          </tr></thead>
+          <tbody id="at-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-secondary" onclick="atAddRow()">+ Tambah jam ke</button>
+        <button type="button" class="btn-primary" id="at-save-btn" onclick="atSave()">
+          <span id="at-save-label">Simpan hari ini</span>
+        </button>
+      </div>
+
+      <div style="margin-top:22px;">
+        <div class="jw-label">Salin hari ini ke hari lain</div>
+        <div class="chip-grid" id="at-to-grid"></div>
+        <div class="field-hint" style="margin:6px 0 10px;">Menyalin jam ke yang sudah tersimpan pada hari terpilih. Hari tujuan yang sudah berisi akan ditimpa.</div>
+        <button type="button" class="btn-secondary" onclick="atCopyTo()">Salin ke hari terpilih</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ PANEL: PENJADWALAN UJIAN ============ -->
   <section id="panel-jadwal" class="panel">
     <div class="section-head">
@@ -1183,7 +1252,18 @@
           <div class="form-grid">
             <div class="field">
               <span>Tanggal ujian</span>
-              <input type="date" id="jw-tanggal">
+              <input type="date" id="jw-tanggal" onchange="jwRefreshJamKe()">
+              <span class="field-hint" id="jw-hari-hint"></span>
+            </div>
+            <div class="field">
+              <span>Jam ke (mulai)</span>
+              <select id="jw-jamke-dari" onchange="onJwJamKeChange()"></select>
+              <span class="field-hint" id="jw-jamke-hint">Pilih tanggal terlebih dahulu.</span>
+            </div>
+            <div class="field">
+              <span>Sampai jam ke</span>
+              <select id="jw-jamke-sampai" onchange="onJwJamKeChange()" disabled></select>
+              <span class="field-hint" id="jw-jamke-info">Jika jam ke dipilih, jam mulai, durasi, dan jadwal selesai terisi otomatis.</span>
             </div>
             <div class="field">
               <span>Jam mulai</span>
@@ -1393,6 +1473,8 @@
   let supervisors = [];
   let questionSets = [];
   let schedules = [];
+  let timeSlots = [];          // alokasi waktu: {id,hari,jamKe,mulai,selesai}
+  let timeSlotsMissing = false;
   let rooms = [];
   let ruangKelasSiswa = [];
   let ruangSelected = new Set();
@@ -1413,6 +1495,7 @@
     el.classList.add('active');
     window.scrollTo({ top:0, behavior:'smooth' });
     if(id === 'panel-jadwal') refreshJwPanel();
+    if(id === 'panel-alokasi') atOpenPanel();
     if(id === 'panel-ruang'){
       populateRuangKelasSelect();
       populateRuangTargetSelect();
@@ -2627,12 +2710,15 @@
   async function refreshJwPanel(){
     populateJwGuruSelect();
     renderJwList();
-    const [qsRes, schRes] = await Promise.all([
+    const [qsRes, schRes, tsRes] = await Promise.all([
       sb.from('question_sets').select('id,subject_id,judul,status,tingkat'),
-      sb.from('schedules').select('*')
+      sb.from('schedules').select('*'),
+      sb.from('time_slots').select('*')
     ]);
     if(!qsRes.error) questionSets = (qsRes.data || []).map(mapQuestionSet);
     if(!schRes.error) schedules = (schRes.data || []).map(mapSchedule);
+    if(!tsRes.error){ timeSlots = (tsRes.data || []).map(mapSlot); timeSlotsMissing = false; }
+    if(!editingJwId) jwRefreshJamKe();
     populateJwGuruSelect();
     refreshScheduleViews();
   }
@@ -3022,6 +3108,7 @@
     document.getElementById('jw-tingkat-hint').textContent = '';
     renderJwKelasGrid();
     renderJwPesertaList();
+    jwRefreshJamKe();
     lockJwStep3();
     renderJwSets();
   }
@@ -3106,6 +3193,7 @@
     document.getElementById('jw-durasi').value = j.durasiMenit || '';
     document.getElementById('jw-tanggal-selesai').value = j.tanggalSelesai || '';
     document.getElementById('jw-jam-selesai').value = jwJam(j.jamSelesai);
+    jwMatchSlotFor(j);
     document.getElementById('jw-token').value = j.token || '';
     document.getElementById('jw-acak-soal').checked = !!j.acakSoal;
     document.getElementById('jw-acak-opsi').checked = !!j.acakOpsi;
@@ -3530,11 +3618,302 @@
     btnCek.disabled = false;
   }
 
+  /* ============================================================
+     ALOKASI WAKTU
+     Panitia menyusun jam ke → waktu mulai & berakhir per hari
+     (tabel `time_slots`). Dipakai di Penjadwalan: pilih tanggal +
+     jam ke, maka jam mulai, durasi, dan jadwal selesai otomatis.
+  ============================================================ */
+  const AT_HARI = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+  const HARI_BY_GETDAY = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  let atDay = 'Senin';
+  let atDraft = [];
+  let atDirty = false;
+  let atFlashTimer = null;
+
+  function mapSlot(r){
+    return { id:r.id, hari:r.hari, jamKe:r.jam_ke, mulai:String(r.mulai || '').slice(0,5), selesai:String(r.selesai || '').slice(0,5) };
+  }
+  function toMin(t){
+    const m = String(t || '').match(/^(\d{1,2}):(\d{2})/);
+    return m ? parseInt(m[1],10) * 60 + parseInt(m[2],10) : NaN;
+  }
+  function slotsOf(hari){ return timeSlots.filter(s => s.hari === hari).sort((a,b) => a.jamKe - b.jamKe); }
+  function slotLabel(s){ return `Jam ke-${s.jamKe} (${s.mulai}–${s.selesai})`; }
+
+  function atFlash(msg, isErr){
+    const el = document.getElementById('at-flash');
+    el.textContent = msg;
+    el.classList.toggle('err', !!isErr);
+    el.classList.add('show');
+    clearTimeout(atFlashTimer);
+    atFlashTimer = setTimeout(() => el.classList.remove('show'), 6000);
+  }
+  function atSetDirty(v){
+    atDirty = v;
+    document.getElementById('at-dirty').classList.toggle('show', v);
+  }
+
+  async function atReload(){
+    const res = await sb.from('time_slots').select('*');
+    if(res.error){
+      timeSlotsMissing = true;
+      return;
+    }
+    timeSlotsMissing = false;
+    timeSlots = (res.data || []).map(mapSlot);
+  }
+
+  async function atOpenPanel(){
+    await atReload();
+    if(!atDirty) atDraft = slotsOf(atDay).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    atRender();
+  }
+
+  function atRender(){
+    const miss = document.getElementById('at-missing');
+    if(timeSlotsMissing){
+      miss.style.display = 'block';
+      miss.innerHTML = '<div class="import-line import-warn">Tabel <code>time_slots</code> belum ada di Supabase. Jalankan <strong>BAGIAN 4</strong> pada <code>panitia-setup.sql</code> di SQL Editor, lalu muat ulang halaman.</div>';
+    } else {
+      miss.style.display = 'none';
+    }
+
+    document.getElementById('at-day-grid').innerHTML = AT_HARI.map(h => {
+      const n = slotsOf(h).length;
+      return `<div class="chip-check"><input type="radio" name="at-day" id="at-day-${h}" ${h === atDay ? 'checked' : ''} onchange="atSelectDay('${h}')"><label for="at-day-${h}">${h}<span class="chip-n">${n ? n + ' jam' : 'kosong'}</span></label></div>`;
+    }).join('');
+
+    const others = AT_HARI.filter(h => h !== atDay);
+    const copyable = others.filter(h => slotsOf(h).length);
+    document.getElementById('at-copy-from').innerHTML = copyable.length
+      ? copyable.map(h => `<option value="${h}">${h} (${slotsOf(h).length} jam ke)</option>`).join('')
+      : '<option value="">Belum ada hari lain yang terisi</option>';
+    document.getElementById('at-copy-from').disabled = !copyable.length;
+
+    document.getElementById('at-to-grid').innerHTML = others.map(h =>
+      `<div class="chip-check"><input type="checkbox" id="at-to-${h}" value="${h}"><label for="at-to-${h}">${h}${slotsOf(h).length ? `<span class="chip-n">terisi</span>` : ''}</label></div>`
+    ).join('');
+
+    document.getElementById('at-save-label').textContent = 'Simpan ' + atDay;
+    atRenderRows();
+  }
+
+  function atDurText(r){
+    const d = toMin(r.selesai) - toMin(r.mulai);
+    return Number.isFinite(d) && d > 0 ? d + ' menit' : '—';
+  }
+
+  function atRenderRows(){
+    const tb = document.getElementById('at-tbody');
+    if(!atDraft.length){
+      tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><strong>Belum ada jam ke untuk hari ${atDay}</strong>Klik "Tambah jam ke", atau salin dari hari lain.</div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = atDraft.map((r, i) => `<tr>
+      <td><input class="at-input" type="number" min="1" step="1" style="width:84px;" value="${r.jamKe ?? ''}" oninput="atEdit(${i},'jamKe',this.value)" aria-label="Jam ke"></td>
+      <td><input class="at-input" type="time" value="${r.mulai || ''}" oninput="atEdit(${i},'mulai',this.value)" aria-label="Waktu mulai"></td>
+      <td><input class="at-input" type="time" value="${r.selesai || ''}" oninput="atEdit(${i},'selesai',this.value)" aria-label="Waktu berakhir"></td>
+      <td class="cell-muted" id="at-dur-${i}">${atDurText(r)}</td>
+      <td><div class="row-actions"><button type="button" class="icon-btn" onclick="atRemoveRow(${i})" aria-label="Hapus jam ke"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></td>
+    </tr>`).join('');
+  }
+
+  function atSelectDay(h){
+    if(h === atDay) return;
+    if(atDirty && !confirm(`Perubahan untuk hari ${atDay} belum disimpan. Buang perubahan dan pindah ke ${h}?`)){
+      atRender();
+      return;
+    }
+    atDay = h;
+    atDraft = slotsOf(h).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    atSetDirty(false);
+    atRender();
+  }
+
+  function atEdit(i, key, val){
+    if(!atDraft[i]) return;
+    atDraft[i][key] = key === 'jamKe' ? (val === '' ? null : parseInt(val, 10)) : val;
+    atSetDirty(true);
+    const d = document.getElementById('at-dur-' + i);
+    if(d) d.textContent = atDurText(atDraft[i]);
+  }
+
+  function atAddRow(){
+    const last = atDraft[atDraft.length - 1];
+    atDraft.push({ jamKe: last && last.jamKe ? last.jamKe + 1 : 1, mulai: last ? last.selesai : '', selesai: '' });
+    atSetDirty(true);
+    atRenderRows();
+  }
+
+  function atRemoveRow(i){
+    atDraft.splice(i, 1);
+    atSetDirty(true);
+    atRenderRows();
+  }
+
+  // Validasi draft → kembalikan {rows} atau {error}
+  function atValidate(rows){
+    const out = [];
+    const seen = new Set();
+    for(const r of rows){
+      if(!r.jamKe || r.jamKe < 1) return { error: 'Nomor jam ke harus berupa angka 1 atau lebih.' };
+      if(seen.has(r.jamKe)) return { error: `Jam ke-${r.jamKe} terisi dua kali.` };
+      seen.add(r.jamKe);
+      if(!r.mulai || !r.selesai) return { error: `Isi waktu mulai dan waktu berakhir untuk jam ke-${r.jamKe}.` };
+      if(toMin(r.selesai) <= toMin(r.mulai)) return { error: `Pada jam ke-${r.jamKe}, waktu berakhir harus setelah waktu mulai.` };
+      out.push({ jamKe: r.jamKe, mulai: r.mulai, selesai: r.selesai });
+    }
+    out.sort((a,b) => a.jamKe - b.jamKe);
+    for(let i = 1; i < out.length; i++){
+      if(toMin(out[i].mulai) < toMin(out[i-1].selesai)){
+        return { error: `Jam ke-${out[i].jamKe} (${out[i].mulai}) bertumpuk dengan jam ke-${out[i-1].jamKe} (berakhir ${out[i-1].selesai}).` };
+      }
+    }
+    return { rows: out };
+  }
+
+  // Tulis ulang seluruh jam ke untuk satu hari (hapus lalu isi ulang)
+  async function atWriteDay(hari, rows){
+    const del = await sb.from('time_slots').delete().eq('hari', hari);
+    if(del.error) return del.error;
+    if(rows.length){
+      const ins = await sb.from('time_slots')
+        .insert(rows.map(r => ({ hari, jam_ke: r.jamKe, mulai: r.mulai, selesai: r.selesai })))
+        .select();
+      if(ins.error){ await atReload(); return ins.error; }
+      timeSlots = timeSlots.filter(s => s.hari !== hari).concat(ins.data.map(mapSlot));
+    } else {
+      timeSlots = timeSlots.filter(s => s.hari !== hari);
+    }
+    return null;
+  }
+
+  async function atSave(){
+    const v = atValidate(atDraft);
+    if(v.error){ atFlash(v.error, true); return; }
+    if(!v.rows.length && !confirm(`Tidak ada jam ke. Semua alokasi waktu hari ${atDay} akan dihapus. Lanjutkan?`)) return;
+    const btn = document.getElementById('at-save-btn');
+    btn.disabled = true;
+    const err = await atWriteDay(atDay, v.rows);
+    btn.disabled = false;
+    if(err){ atFlash('Gagal menyimpan: ' + err.message, true); return; }
+    atDraft = v.rows.map(r => ({ ...r }));
+    atSetDirty(false);
+    atRender();
+    atFlash(`Alokasi waktu hari ${atDay} tersimpan (${v.rows.length} jam ke).`);
+    jwRefreshJamKe();
+  }
+
+  function atCopyFrom(){
+    const from = document.getElementById('at-copy-from').value;
+    if(!from){ atFlash('Belum ada hari lain yang terisi untuk disalin.', true); return; }
+    if(atDraft.length && !confirm(`Isi tabel hari ${atDay} akan diganti dengan jam ke dari hari ${from}. Lanjutkan?`)) return;
+    atDraft = slotsOf(from).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    atSetDirty(true);
+    atRender();
+    atFlash(`Jam ke dari hari ${from} disalin ke tabel ${atDay}. Periksa lalu klik "Simpan ${atDay}".`);
+  }
+
+  async function atCopyTo(){
+    const targets = Array.from(document.querySelectorAll('#at-to-grid input:checked')).map(i => i.value);
+    if(!targets.length){ atFlash('Pilih minimal satu hari tujuan.', true); return; }
+    if(atDirty){ atFlash(`Simpan dulu perubahan hari ${atDay} sebelum menyalinnya ke hari lain.`, true); return; }
+    const rows = slotsOf(atDay).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    if(!rows.length){ atFlash(`Hari ${atDay} belum punya jam ke yang tersimpan.`, true); return; }
+    const filled = targets.filter(h => slotsOf(h).length);
+    if(filled.length && !confirm(`Alokasi waktu hari ${filled.join(', ')} akan ditimpa dengan milik ${atDay}. Lanjutkan?`)) return;
+    for(const h of targets){
+      const err = await atWriteDay(h, rows);
+      if(err){ atFlash(`Gagal menyalin ke ${h}: ${err.message}`, true); atRender(); return; }
+    }
+    atRender();
+    atFlash(`Alokasi waktu ${atDay} disalin ke ${targets.join(', ')}.`);
+    jwRefreshJamKe();
+  }
+
+  /* ---------- integrasi ke Penjadwalan ---------- */
+  function jwHariOf(tanggal){
+    if(!tanggal) return '';
+    const d = new Date(tanggal + 'T00:00');
+    return isNaN(d) ? '' : HARI_BY_GETDAY[d.getDay()];
+  }
+
+  function jwRefreshJamKe(){
+    const dari = document.getElementById('jw-jamke-dari');
+    if(!dari) return;
+    const tanggal = document.getElementById('jw-tanggal').value;
+    const hari = jwHariOf(tanggal);
+    const slots = hari ? slotsOf(hari) : [];
+    const prev = dari.value;
+    dari.innerHTML = `<option value="">Manual (isi waktu sendiri)</option>` +
+      slots.map(s => `<option value="${s.jamKe}">${slotLabel(s)}</option>`).join('');
+    dari.value = slots.some(s => String(s.jamKe) === prev) ? prev : '';
+    dari.disabled = slots.length === 0;
+    document.getElementById('jw-hari-hint').textContent = hari ? 'Hari ' + hari : '';
+    document.getElementById('jw-jamke-hint').textContent =
+      !tanggal ? 'Pilih tanggal terlebih dahulu.' :
+      slots.length ? 'Pilih jam ke, atau biarkan Manual.' :
+      `Alokasi waktu hari ${hari} belum disusun (tab Alokasi Waktu). Isi waktu secara manual.`;
+    onJwJamKeChange();
+  }
+
+  function onJwJamKeChange(){
+    const tanggal = document.getElementById('jw-tanggal').value;
+    const slots = slotsOf(jwHariOf(tanggal));
+    const dari = document.getElementById('jw-jamke-dari');
+    const sampai = document.getElementById('jw-jamke-sampai');
+    const info = document.getElementById('jw-jamke-info');
+    const auto = ['jw-jam','jw-durasi','jw-tanggal-selesai','jw-jam-selesai'].map(id => document.getElementById(id));
+    const fromN = parseInt(dari.value, 10);
+
+    if(!fromN){
+      sampai.innerHTML = '<option value="">—</option>';
+      sampai.disabled = true;
+      auto.forEach(el => { el.disabled = false; });
+      info.textContent = 'Jika jam ke dipilih, jam mulai, durasi, dan jadwal selesai terisi otomatis.';
+      return;
+    }
+    const prevTo = parseInt(sampai.value, 10);
+    const choices = slots.filter(s => s.jamKe >= fromN);
+    sampai.innerHTML = choices.map(s => `<option value="${s.jamKe}">${slotLabel(s)}</option>`).join('');
+    sampai.disabled = false;
+    const toN = choices.some(s => s.jamKe === prevTo) ? prevTo : fromN;
+    sampai.value = String(toN);
+
+    const a = slots.find(s => s.jamKe === fromN);
+    const b = slots.find(s => s.jamKe === toN);
+    const dur = toMin(b.selesai) - toMin(a.mulai);
+    document.getElementById('jw-jam').value = a.mulai;
+    document.getElementById('jw-durasi').value = dur;
+    document.getElementById('jw-tanggal-selesai').value = '';
+    document.getElementById('jw-jam-selesai').value = '';
+    auto.forEach(el => { el.disabled = true; });
+    info.textContent = `Otomatis: ${a.mulai}–${b.selesai} (${dur} menit). Jam mulai, durasi, dan jadwal selesai dinonaktifkan.`;
+  }
+
+  // Saat mengedit jadwal lama: pilih kembali jam ke bila waktunya cocok dengan alokasi waktu
+  function jwMatchSlotFor(j){
+    jwRefreshJamKe();
+    if(j.tanggalSelesai) return;
+    const slots = slotsOf(jwHariOf(j.tanggal));
+    const start = jwJam(j.jamMulai);
+    const a = slots.find(s => s.mulai === start);
+    if(!a) return;
+    const endMin = toMin(start) + (j.durasiMenit || 0);
+    const b = slots.find(s => s.jamKe >= a.jamKe && toMin(s.selesai) === endMin);
+    if(!b) return;
+    document.getElementById('jw-jamke-dari').value = String(a.jamKe);
+    onJwJamKeChange();
+    document.getElementById('jw-jamke-sampai').value = String(b.jamKe);
+    onJwJamKeChange();
+  }
+
   /* ---------- initial load ---------- */
   async function init(){
     if(!(await requireAdmin())) return;
 
-    const [usersRes, guruRes, panitiaRes, subjectsRes, supervisorsRes, questionSetsRes, schedulesRes, roomsRes] = await Promise.all([
+    const [usersRes, guruRes, panitiaRes, subjectsRes, supervisorsRes, questionSetsRes, schedulesRes, roomsRes, slotsRes] = await Promise.all([
       sb.from('profiles').select('id,nama,username,email,kelas,ruang').eq('role', 'siswa').order('nama'),
       sb.from('profiles').select('id,nama,username,email').eq('role', 'guru').order('nama'),
       sb.from('profiles').select('id,nama,username,email').eq('role', 'panitia').order('nama'),
@@ -3542,7 +3921,8 @@
       sb.from('supervisors').select('*'),
       sb.from('question_sets').select('id,subject_id,judul,status,tingkat'),
       sb.from('schedules').select('*'),
-      sb.from('rooms').select('*').order('nama')
+      sb.from('rooms').select('*').order('nama'),
+      sb.from('time_slots').select('*')
     ]);
     users = usersRes.data || [];
     guru = guruRes.data || [];
@@ -3551,6 +3931,12 @@
     supervisors = (supervisorsRes.data || []).map(mapSupervisor);
     questionSets = (questionSetsRes.data || []).map(mapQuestionSet);
     schedules = (schedulesRes.data || []).map(mapSchedule);
+    if(slotsRes.error){
+      console.warn('Tabel "time_slots" belum tersedia di Supabase. Jalankan BAGIAN 4 di panitia-setup.sql.', slotsRes.error);
+      timeSlots = []; timeSlotsMissing = true;
+    } else {
+      timeSlots = (slotsRes.data || []).map(mapSlot);
+    }
     if(roomsRes.error){
       console.warn('Tabel "rooms" belum tersedia di Supabase. Jalankan migrasi SQL dari PANDUAN-INTEGRASI-UJIAN-ONLINE.md.', roomsRes.error);
       rooms = [];

@@ -112,3 +112,32 @@ drop trigger if exists trg_panitia_only_ruang on profiles;
 create trigger trg_panitia_only_ruang
   before update on profiles
   for each row execute function public.panitia_only_ruang();
+
+
+-- ---------------------------------------------------------------------
+-- BAGIAN 4 — tabel ALOKASI WAKTU (menu Alokasi Waktu panitia).
+-- Menyimpan jam ke → waktu mulai & berakhir per hari.
+-- Semua pengguna login boleh membaca; hanya panitia yang boleh menulis.
+-- Jalankan setelah BAGIAN 3. Aman dijalankan ulang.
+-- ---------------------------------------------------------------------
+create table if not exists public.time_slots (
+  id         uuid primary key default gen_random_uuid(),
+  hari       text not null check (hari in ('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu')),
+  jam_ke     integer not null check (jam_ke > 0),
+  mulai      time not null,
+  selesai    time not null,
+  created_at timestamptz not null default now(),
+  unique (hari, jam_ke),
+  check (selesai > mulai)
+);
+
+alter table public.time_slots enable row level security;
+
+drop policy if exists "time_slots_select" on public.time_slots;
+create policy "time_slots_select" on public.time_slots
+  for select to authenticated using (true);
+
+drop policy if exists "panitia_write_time_slots" on public.time_slots;
+create policy "panitia_write_time_slots" on public.time_slots
+  for all to authenticated
+  using (public.is_panitia()) with check (public.is_panitia());
