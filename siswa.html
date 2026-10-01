@@ -588,6 +588,52 @@
   .txt-ar, .txt-jv{ font-size:1.5em; line-height:1.6; font-weight:400; letter-spacing:normal; text-transform:none; }
   .txt-ar{ font-family:'Amiri Quran','Scheherazade New','Noto Naskh Arabic','Traditional Arabic',serif; direction:rtl; unicode-bidi:isolate; }
   .txt-jv{ font-family:'Noto Sans Javanese','Tuladha Jejeg','Noto Serif Javanese',sans-serif; unicode-bidi:isolate; }
+
+  /* ================================================================
+     HEADER UJIAN RINGKAS: penuh selebar layar, menempel di atas,
+     tanpa celah kiri/kanan/atas, tinggi satu baris
+  ================================================================ */
+  body.exam-active{ overflow-x:hidden; }
+  body.exam-active .shell{ padding-top:0; }
+  #examSuite .sn-progress-shell{
+    position:sticky; top:0; z-index:34;
+    margin:0 calc(50% - 50vw);
+    padding:calc(6px + env(safe-area-inset-top, 0px)) max(10px, calc(50vw - 50% - 8px)) 6px;
+    border:0; border-bottom:1px solid var(--sn-line); border-radius:0;
+    box-shadow:0 2px 10px rgba(20,20,30,.07);
+  }
+  #examSuite .sn-progress-inner{ gap:8px; flex-wrap:nowrap; }
+  #examSuite .sn-exam-title-wrap{ flex:1 1 auto; min-width:0; margin-right:4px; }
+  #examSuite .sn-exam-title{ font-size:14px; line-height:1.25; }
+  #examSuite .sn-exam-meta{ display:flex; align-items:center; gap:8px; min-width:0; margin-top:1px; }
+  #examSuite .sn-exam-sub{ margin-top:0; min-width:0; flex:0 1 auto; }
+  #examSuite .save-status{
+    margin-top:0; padding:0 8px; border-radius:99px; font-size:10.5px; line-height:1.7;
+    flex:0 1 auto; flex-wrap:nowrap; min-width:0; gap:6px;
+  }
+  #examSuite #saveStatusText{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  #examSuite .save-status button{ flex-shrink:0; margin-left:2px; padding:1px 9px; }
+  #examSuite .timer{ padding:4px 10px; font-size:13px; }
+  #examSuite .icon-toggle, #examSuite .hide-header-btn{ padding:5px 10px; }
+  /* progres: garis tipis di tepi bawah header */
+  #examSuite .sn-progress-track{
+    position:absolute; left:0; right:0; bottom:0; height:3px; min-width:0; flex:none; order:0;
+    border-radius:0; background:var(--sn-line);
+  }
+  #examSuite .sn-progress-fill{ border-radius:0; }
+  #examSuite .sn-stage-head{ margin-top:14px; }
+  @media (max-width:640px){
+    #examSuite .sn-progress-shell{
+      padding:calc(5px + env(safe-area-inset-top, 0px)) max(8px, calc(50vw - 50% - 8px)) 5px;
+      border-radius:0; margin-bottom:0;
+    }
+    #examSuite .sn-progress-inner{ gap:6px; }
+    #examSuite .sn-exam-title-wrap{ flex:1 1 auto; margin-right:0; }
+    #examSuite .sn-exam-title{ font-size:13px; }
+    #examSuite .sn-exam-sub, #examSuite .sn-progress-label, #examSuite .btn-label{ display:none; }
+    #examSuite .timer{ padding:3px 8px; font-size:12px; }
+    #examSuite .icon-toggle, #examSuite .hide-header-btn{ padding:5px 9px; font-size:12px; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -660,12 +706,15 @@
       <div class="sn-progress-inner">
         <div class="sn-exam-title-wrap">
           <div class="sn-exam-title" id="ev-title">—</div>
-          <div class="sn-exam-sub" id="ev-sub">—</div>
+          <div class="sn-exam-meta">
+            <div class="sn-exam-sub" id="ev-sub">—</div>
+            <div class="save-status ok" id="saveStatus"><span id="saveStatusText">✓ Jawaban tersimpan otomatis</span><button type="button" id="saveRetryBtn" style="display:none;" onclick="manualSaveRetry()">Simpan Ulang</button></div>
+          </div>
         </div>
         <div class="timer" id="ev-timer">--:--</div>
         <div class="sn-progress-track"><div class="sn-progress-fill" id="ev-progress-fill"></div></div>
         <div class="sn-progress-label" id="ev-progress-label">0/0 terjawab</div>
-        <button type="button" class="icon-toggle" id="navToggleBtn">☰ Nomor Soal</button>
+        <button type="button" class="icon-toggle" id="navToggleBtn">☰ <span class="btn-label">Nomor Soal</span></button>
         <div class="fontsize-wrap">
           <button type="button" class="icon-toggle" id="fontSizeBtn" onclick="event.stopPropagation(); toggleFontMenu()" title="Ukuran teks bacaan/referensi">Aa</button>
           <div class="fontsize-menu hidden" id="fontSizeMenu">
@@ -681,7 +730,6 @@
           <span id="hideHeaderLabel">Ciutkan</span>
         </button>
       </div>
-      <div class="save-status ok" id="saveStatus"><span id="saveStatusText">✓ Jawaban tersimpan otomatis</span><button type="button" id="saveRetryBtn" style="display:none;" onclick="manualSaveRetry()">Simpan Ulang</button></div>
       <div id="navpanel">
         <div class="legend">
           <span><span class="dot done"></span>Terjawab</span>
