@@ -577,7 +577,7 @@
 
 
   /* ---------- Teks Arab & Aksara Jawa: font khusus + ukuran 3x ---------- */
-  .txt-ar, .txt-jv{ font-size:3em; line-height:1.7; font-weight:400; letter-spacing:normal; text-transform:none; }
+  .txt-ar, .txt-jv{ font-size:1.5em; line-height:1.6; font-weight:400; letter-spacing:normal; text-transform:none; }
   .txt-ar{ font-family:'Amiri Quran','Scheherazade New','Noto Naskh Arabic','Traditional Arabic',serif; direction:rtl; unicode-bidi:isolate; }
   .txt-jv{ font-family:'Noto Sans Javanese','Tuladha Jejeg','Noto Serif Javanese',sans-serif; unicode-bidi:isolate; }
 </style>
@@ -831,7 +831,25 @@ async function requireSiswa(){
 async function logout(){ await sb.auth.signOut(); window.location.href = 'index.html'; }
 
 function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function escapeHtml(str){ return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+// Ubah entitas HTML yang tertulis apa adanya di teks soal (mis. &quot; &amp; &#39;) menjadi karakter aslinya,
+// supaya tampil sebagai " & ' — bukan sebagai tulisan "&quot;". Hasilnya tetap di-escape aman untuk HTML.
+function decodeEntities(str){
+  let s = String(str);
+  for(let n = 0; n < 2 && s.indexOf('&') !== -1; n++){
+    const t = s.replace(/&(quot|apos|amp|lt|gt|nbsp|#\d{1,7}|#[xX][0-9a-fA-F]{1,6});/g, (m, e) => {
+      switch(e){
+        case 'quot': return '"'; case 'apos': return "'"; case 'amp': return '&';
+        case 'lt': return '<'; case 'gt': return '>'; case 'nbsp': return '\u00A0';
+      }
+      const c = (e.charAt(1) === 'x' || e.charAt(1) === 'X') ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+      return (c > 0 && c <= 0x10FFFF && !(c >= 0xD800 && c <= 0xDFFF)) ? String.fromCodePoint(c) : m;
+    });
+    if(t === s) break;
+    s = t;
+  }
+  return s;
+}
+function escapeHtml(str){ return decodeEntities(str).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m])); }
 function renderTabelHtml(tabel){
   if(!tabel || !tabel.rows || !tabel.rows.length) return '';
   const rows = tabel.rows;
