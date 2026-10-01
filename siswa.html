@@ -335,6 +335,31 @@
     #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ font-size:12.5px; }
   }
 
+  /* ---------- Soal RB (klasifikasi 2-4 kolom): tabel rapi, kolom kategori lega ---------- */
+  #examSuite .rb-table{ margin:0 0 4px 0; border:1px solid var(--sn-line); border-radius:12px; overflow:hidden; background:#fff; }
+  #examSuite .rb-head, #examSuite .rb-row{ display:grid; grid-template-columns:minmax(0,1fr) repeat(var(--rb-n,2), minmax(84px,116px)); align-items:stretch; }
+  #examSuite .rb-cells{ display:contents; }
+  #examSuite .rb-head{ background:#f4f2ea; border-bottom:1px solid var(--sn-line); }
+  #examSuite .rb-head-pern{ padding:12px 16px; font-size:12px; font-weight:700; color:var(--sn-muted); display:flex; align-items:center; }
+  #examSuite .rb-head-kat{ padding:12px 8px; text-align:center; font-size:12.5px; font-weight:700; color:var(--sn-ink); border-left:1px solid var(--sn-line); display:flex; align-items:center; justify-content:center; line-height:1.3; overflow-wrap:anywhere; }
+  #examSuite .rb-row + .rb-row{ border-top:1px solid var(--sn-line); }
+  #examSuite .rb-row:nth-child(odd){ background:#fcfbf7; }
+  #examSuite .rb-pern{ padding:14px 16px; font-size:14px; line-height:1.6; display:flex; gap:8px; min-width:0; overflow-wrap:anywhere; word-break:break-word; }
+  #examSuite .rb-no{ flex-shrink:0; font-weight:700; color:var(--sn-muted); }
+  #examSuite .rb-cell{ border-left:1px solid var(--sn-line); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:10px 6px; transition:background .12s ease; }
+  #examSuite .rb-cell:hover{ background:var(--sn-t1-bg); }
+  #examSuite .rb-cell input{ width:20px; height:20px; accent-color:var(--sn-t1); cursor:pointer; margin:0; }
+  #examSuite .rb-cell-label{ display:none; }
+  @media (max-width:560px){
+    #examSuite .rb-head{ display:none; }
+    #examSuite .rb-row{ display:block; padding:14px 14px 12px; }
+    #examSuite .rb-pern{ padding:0 0 10px; font-size:13.5px; }
+    #examSuite .rb-cells{ display:flex; flex-wrap:wrap; gap:8px; }
+    #examSuite .rb-cell{ flex:1 1 130px; border:1.5px solid var(--sn-line); border-radius:10px; padding:10px 12px; justify-content:flex-start; gap:10px; background:#fff; }
+    #examSuite .rb-cell-label{ display:inline; font-size:13.5px; font-weight:600; color:var(--sn-ink); line-height:1.3; overflow-wrap:anywhere; }
+    #examSuite .rb-cell:has(input:checked){ border-color:var(--sn-t1); background:var(--sn-t1-bg); }
+  }
+
   /* ---------- Esai ---------- */
   #examSuite .essay-box{
     width:100%; margin-left:0; min-height:160px; border:1px solid var(--sn-line); border-radius:9px;
@@ -1358,18 +1383,19 @@ function renderAnswerArea(q, attempt){
     const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
     const ans = (attempt.jawaban[q.id] && typeof attempt.jawaban[q.id] === 'object') ? attempt.jawaban[q.id] : {};
     return `<div class="muted-note" style="margin-bottom:8px;">Tandai satu kategori yang benar untuk setiap pernyataan.</div>
-    <div class="bsg-table">
-      <div class="bsg-head-row">
-        <span class="bsg-head-pernyataan">Pernyataan</span>
-        ${kat.map(label => `<span class="bsg-head-kat">${escapeHtml(label)}</span>`).join('')}
+    <div class="rb-table" style="--rb-n:${kat.length}">
+      <div class="rb-head">
+        <span class="rb-head-pern">Pernyataan</span>
+        ${kat.map(label => `<span class="rb-head-kat">${escapeHtml(label)}</span>`).join('')}
       </div>
       ${pernyataan.map((p, i) => {
         const chosen = ans[p.id];
-        return `<div class="bsg-row">
-          <span class="bsg-pernyataan-text">${i+1}. ${escapeHtml(p.teks)}</span>
-          <span class="bsg-radios">
-            ${kat.map((label, ki) => `<label class="bsg-radio" title="${escapeHtml(label)}">
+        return `<div class="rb-row">
+          <span class="rb-pern"><span class="rb-no">${i + 1}.</span><span>${escapeHtml(p.teks || '')}</span></span>
+          <span class="rb-cells">
+            ${kat.map((label, ki) => `<label class="rb-cell" title="${escapeHtml(label)}">
               <input type="radio" name="bsg-${q.id}-${p.id}" ${chosen === ki ? 'checked' : ''} onchange="setAnswerBSG('${q.id}','${p.id}', ${ki})">
+              <span class="rb-cell-label">${escapeHtml(label)}</span>
             </label>`).join('')}
           </span>
         </div>`;
