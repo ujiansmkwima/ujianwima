@@ -501,7 +501,9 @@
   #examView{ position:relative; }
   #examSuite{ min-width:0; }
   #examSuite .sn-progress-shell{
-    position:static; z-index:auto; top:auto; /* header soal statis: ikut tergulir, tidak melayang */
+    /* header ujian (judul, timer, progres) menempel di atas layar dan tidak ikut tergulir */
+    position:sticky; top:env(safe-area-inset-top, 0px); z-index:34;
+    box-shadow:0 10px 0 0 var(--cream), 0 6px 18px rgba(20,20,30,.08);
   }
   #examSuite .show-header-fab{ z-index:41; }
   #examSuite .fontsize-menu{ z-index:45; }
@@ -523,7 +525,13 @@
   #examSuite .sn-stage-head{ position:relative; }
 
   /* Saat soal disematkan: beri ruang di bawah halaman supaya bacaan tidak tertutup kartu */
-  body.exam-active #examSuite.passage-pinned{ padding-bottom:52vh; }
+  /* Kartu yang disematkan menempati separuh bawah layar (top:50vh). Tempat asli kartu (placeholder)
+     dan keterangan progres di bawahnya dikosongkan, dan ruang bawah dibuat setinggi kartu saja —
+     jadi halaman berhenti menggulir tepat saat bacaan habis (akhir bacaan sejajar tepi atas kartu). */
+  body.exam-active #examSuite.passage-pinned{ padding-bottom:50vh; }
+  #examSuite.passage-pinned .pin-placeholder{ height:0 !important; margin:0 !important; }
+  #examSuite.passage-pinned #ev-progress-wrap{ display:none; }
+  body.passage-pinned-body .shell{ padding-bottom:0; }
 
   @media (max-width:640px){
     #examSuite .sn-progress-shell{ padding:9px 11px; border-radius:12px; margin-bottom:12px; }
@@ -717,7 +725,7 @@
       </div>
     </div>
 
-    <div style="text-align:center; margin:16px 0 4px;">
+    <div id="ev-progress-wrap" style="text-align:center; margin:16px 0 4px;">
       <div class="muted-note" id="ev-progress"></div>
     </div>
   </div>
@@ -1600,8 +1608,10 @@ function pinQuestionCard(){
 
   if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Disematkan'; }
   document.getElementById('examSuite').classList.add('passage-pinned');
+  document.body.classList.add('passage-pinned-body');
   repositionPinnedCard();
 }function unpinQuestionCard(){
+  document.body.classList.remove('passage-pinned-body');
   const card = document.getElementById('ev-question-card');
   const pinBtn = document.getElementById('ev-pin-btn');
   if(!card) return;
