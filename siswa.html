@@ -462,6 +462,94 @@
     .shell{ max-width:960px; }
   }
 
+  /* ================================================================
+     PERBAIKAN TAMPILAN SOAL (anti-overlap) + STATUS SIMPAN/KIRIM
+  ================================================================ */
+  /* Saat ujian berjalan, header/tab "Portal Ujian" disembunyikan total supaya
+     tidak bertumpuk dengan bar ujian (keduanya sebelumnya sticky di top:0). */
+  body.exam-active .site-header,
+  body.exam-active .tabs-wrap,
+  body.exam-active .notice{ display:none !important; }
+  body.exam-active .shell{ padding-top:10px; }
+
+  #examView{ position:relative; }
+  #examSuite{ min-width:0; }
+  #examSuite .sn-progress-shell{
+    z-index:40; top:0; top:env(safe-area-inset-top, 0px);
+    box-shadow:0 6px 16px -10px rgba(15,23,42,.35);
+  }
+  #examSuite .show-header-fab{ z-index:41; }
+  #examSuite .fontsize-menu{ z-index:45; }
+  #examSuite .question-card{ position:relative; min-width:0; }
+  #examSuite .question-card.pinned{ z-index:32; }
+  #navpanel.open{ max-height:min(320px, 45vh); }
+
+  /* Teks panjang tidak boleh keluar kotak / menimpa elemen lain */
+  #examSuite .question-text,
+  #examSuite .bacaan-box,
+  #examSuite .opt-text,
+  #examSuite .bsg-pernyataan-text,
+  #examSuite .bsg-head-pernyataan,
+  #examSuite .sn-exam-title{ overflow-wrap:anywhere; word-break:break-word; }
+  #examSuite .opt-choice{ min-width:0; }
+  #examSuite .opt-choice img, #examSuite img.question-img{ max-width:100%; height:auto; }
+  #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ min-width:0; }
+  #examSuite .bsg-table{ overflow-x:auto; }
+  #examSuite .sn-stage-head{ position:relative; }
+
+  /* Saat soal disematkan: beri ruang di bawah halaman supaya bacaan tidak tertutup kartu */
+  body.exam-active #examSuite.passage-pinned{ padding-bottom:52vh; }
+
+  @media (max-width:640px){
+    #examSuite .sn-progress-shell{ padding:9px 11px; border-radius:12px; margin-bottom:12px; }
+    #examSuite .sn-progress-inner{ gap:7px; }
+    #examSuite .sn-exam-title-wrap{ flex:1 1 100%; margin-right:0; }
+    #examSuite .sn-progress-track{ order:9; flex:1 1 100%; }
+    #examSuite .icon-toggle, #examSuite .hide-header-btn{ padding:6px 10px; font-size:11.5px; }
+    #examSuite #hideHeaderLabel{ display:none; }
+    #examSuite .question-card{ padding:16px 14px 18px; }
+    #examSuite .bacaan-box{ padding:14px 14px; max-height:240px; }
+    #examSuite .sn-navbtn{ padding:10px 8px; font-size:12.5px; }
+  }
+
+  /* ---------- Indikator simpan otomatis ---------- */
+  #examSuite .save-status{
+    display:flex; align-items:center; gap:8px; margin-top:8px; padding:6px 10px; border-radius:8px;
+    font-size:11.5px; font-weight:700; font-family:'JetBrains Mono',monospace; flex-wrap:wrap;
+  }
+  #examSuite .save-status.ok{ background:var(--sn-good-bg); color:#157a50; }
+  #examSuite .save-status.saving{ background:var(--sn-t1-bg); color:var(--sn-t1); }
+  #examSuite .save-status.fail{ background:var(--sn-bad-bg); color:var(--sn-bad); }
+  #examSuite .save-status button{
+    margin-left:auto; border:1.5px solid currentColor; background:#fff; color:inherit; border-radius:99px;
+    padding:3px 11px; font-size:11px; font-weight:800; cursor:pointer; font-family:inherit;
+  }
+  #examSuite .nav-submit-btn{
+    width:100%; margin-top:12px; padding:9px 12px; border-radius:10px; border:1.5px solid var(--sn-good);
+    background:#fff; color:var(--sn-good); font-weight:800; font-size:12.5px; cursor:pointer;
+  }
+
+  /* ---------- Modal status pengiriman ---------- */
+  #examSuite #submitStatusModalBg{ z-index:200; }
+  #examSuite .ss-icon{ width:54px; height:54px; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; font-size:26px; }
+  #examSuite .ss-icon.sending{ background:var(--sn-t1-bg); }
+  #examSuite .ss-icon.fail{ background:var(--sn-bad-bg); }
+  #examSuite .ss-spinner{ width:26px; height:26px; border:3px solid var(--sn-t1-bg); border-top-color:var(--sn-t1); border-radius:50%; animation:ssSpin .8s linear infinite; }
+  @keyframes ssSpin{ to{ transform:rotate(360deg); } }
+  #examSuite #submitStatusModalBg .modal-card{ text-align:center; }
+  #examSuite .ss-detail{ background:var(--sn-bad-bg); border:1px solid #f0b9b4; color:#8c2a20; border-radius:10px; padding:9px 12px; font-size:12px; line-height:1.5; margin:0 0 14px; text-align:left; word-break:break-word; }
+  #examSuite .ss-detail.hidden{ display:none; }
+  #examSuite .receipt{ margin:0 auto 18px; max-width:340px; background:var(--sn-good-bg); color:#157a50; border-radius:10px; padding:9px 12px; font-size:12px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+
+  /* ---------- Banner jawaban tertunda (daftar ujian) ---------- */
+  .pending-banner{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#FFE4E6; border:1px solid #FDA4AF; color:#9F1239;
+    border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:16px; font-weight:600;
+  }
+  .pending-banner.hidden{ display:none; }
+  .pending-banner button{ margin-left:auto; background:#E11D48; color:#fff; border:none; border-radius:9px; padding:8px 14px; font-weight:800; font-size:12.5px; cursor:pointer; }
+  .pending-banner button:disabled{ opacity:.6; cursor:wait; }
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -518,6 +606,10 @@
       <h1 id="tab-title">Ujianku</h1>
       <p id="tab-desc">Ujian yang sedang berlangsung dan akan datang.</p>
     </div>
+    <div class="pending-banner hidden" id="pendingBanner">
+      <span id="pendingBannerText">⚠️ Ada jawaban ujian yang belum terkirim ke server.</span>
+      <button type="button" id="pendingRetryBtn" onclick="retryPendingSubmits(true)">Kirim Sekarang</button>
+    </div>
     <div id="exam-list"></div>
   </div>
 
@@ -551,6 +643,7 @@
           <span id="hideHeaderLabel">Ciutkan</span>
         </button>
       </div>
+      <div class="save-status ok" id="saveStatus"><span id="saveStatusText">✓ Jawaban tersimpan otomatis</span><button type="button" id="saveRetryBtn" style="display:none;" onclick="manualSaveRetry()">Simpan Ulang</button></div>
       <div id="navpanel">
         <div class="legend">
           <span><span class="dot done"></span>Terjawab</span>
@@ -558,6 +651,7 @@
           <span><span class="dot empty"></span>Kosong</span>
         </div>
         <div class="navgrid" id="ev-qnav"></div>
+        <button type="button" class="nav-submit-btn" onclick="openSubmitModal()">Kumpulkan Ujian</button>
       </div>
     </div>
 
@@ -657,6 +751,20 @@
     </div>
   </div>
 
+  <!-- ============ MODAL: STATUS PENGIRIMAN JAWABAN ============ -->
+  <div class="modal-bg hidden" id="submitStatusModalBg">
+    <div class="modal-card">
+      <div class="ss-icon sending" id="ssIcon"><div class="ss-spinner"></div></div>
+      <h2 id="ssTitle">Mengirim jawaban…</h2>
+      <p id="ssText">Mohon tunggu dan jangan tutup halaman ini.</p>
+      <div class="ss-detail hidden" id="ssDetail"></div>
+      <div class="modal-actions stack" id="ssActions" style="display:none;">
+        <button class="btn-primary" id="ssRetryBtn" style="background:var(--sn-bad);" onclick="retrySubmit()">🔄 Kirim Ulang</button>
+        <button class="btn-secondary" id="ssBackBtn" onclick="cancelSubmitStatus()">Kembali ke Soal</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ RESULT VIEW ============ -->
   <div id="resultView">
     <div class="result-circle" id="rv-circle">
@@ -664,7 +772,8 @@
       <div class="lbl">Nilai</div>
     </div>
     <h1 id="rv-title" style="font-size:19px;">Ujian selesai</h1>
-    <p class="muted-note" id="rv-sub" style="margin:8px 0 24px;"></p>
+    <p class="muted-note" id="rv-sub" style="margin:8px 0 14px;"></p>
+    <div class="receipt" id="rv-receipt">✓ Jawaban berhasil diterima server</div>
     <div class="nilai-breakdown" id="rv-breakdown"></div>
     <button class="btn-primary" onclick="backToList()">Kembali ke Ujianku</button>
   </div>
@@ -812,6 +921,8 @@ async function init(){
   attempts = (atRes.data || []).map(mapAttempt);
 
   renderExamList();
+  updatePendingBanner();
+  retryPendingSubmits(false);   // kirim otomatis jawaban tertunda dari sesi sebelumnya
 }
 
 /* ============================================================
@@ -866,7 +977,14 @@ function renderExamList(){
   mine.forEach(j => {
     const at = findAttempt(j.id, selectedSiswaId);
     if(at && at.status === 'mengerjakan' && Date.now() > getAttemptDeadline(j, at)){
-      finalizeAttempt(at, j, true);
+      if(!autoFinalizing.has(at.id) && !(liveExam && liveExam.attempt.id === at.id)){
+        autoFinalizing.add(at.id);
+        submitAttempt(at, j).then(res => {
+          autoFinalizing.delete(at.id);
+          if(res.ok) renderExamList();
+          updatePendingBanner();
+        });
+      }
     }
   });
 
@@ -975,8 +1093,8 @@ function enterExam(scheduleId){
 
   const at = findAttempt(j.id, selectedSiswaId);
   if(at && at.status === 'mengerjakan' && Date.now() > getAttemptDeadline(j, at)){
-    finalizeAttempt(at, j, true).then(() => renderExamList());
-    alert('Waktu pengerjaanmu untuk ujian ini sudah habis. Jawabanmu otomatis dikumpulkan.');
+    alert('Waktu pengerjaanmu untuk ujian ini sudah habis. Jawabanmu akan dikirim otomatis.');
+    submitAttempt(at, j).then(() => { renderExamList(); updatePendingBanner(); });
     return;
   }
   if(!at && j.token){
@@ -1037,7 +1155,19 @@ async function proceedEnterExam(scheduleId){
     attempts.push(at);
   }
 
+  // pulihkan jawaban dari cadangan perangkat bila lebih baru (mis. halaman di-refresh saat offline)
+  const bk = lsGet(BACKUP_PREFIX + at.id);
+  dirty = false; examFinished = false; submitState = 'idle'; submitAttemptNo = 0; submitAuto = false;
+  if(bk && bk.jawaban && typeof bk.jawaban === 'object'){
+    at.jawaban = Object.assign({}, at.jawaban, bk.jawaban);
+    if(bk.ragu && typeof bk.ragu === 'object') at.ragu = Object.assign({}, at.ragu, bk.ragu);
+    dirty = true;
+  }
+
   liveExam = { schedule: j, questionSet: qs, attempt: at, currentIndex: 0 };
+  document.body.classList.add('exam-active');
+  setSaveStatus('ok', '✓ Jawaban tersimpan otomatis');
+  if(dirty) flushAnswers();
   document.getElementById('listView').style.display = 'none';
   document.getElementById('resultView').style.display = 'none';
   document.getElementById('examView').style.display = 'block';
@@ -1257,16 +1387,96 @@ function counts(){
   return { done, doubt, empty };
 }
 
-function persistAnswer(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    const { attempt } = liveExam;
-    const { error } = await sb.from('exam_attempts')
-      .update({ jawaban: attempt.jawaban, ragu: attempt.ragu })
-      .eq('id', attempt.id);
-    if(error) console.error(error);
-  }, 350);
+/* ============================================================
+   SIMPAN OTOMATIS + CADANGAN LOKAL + KIRIM JAWABAN YANG ANDAL
+============================================================ */
+const BACKUP_PREFIX  = 'ujian_backup_';
+const PENDING_PREFIX = 'ujian_pending_';
+const NET_TIMEOUT_MS = 20000;
+let dirty = false, saveChain = Promise.resolve(), saveRetryTimer = null, examFinished = false;
+let submitState = 'idle';          // idle | sending | failed
+let submitAuto = false;            // true bila dipicu waktu habis
+let submitAttemptNo = 0;
+
+function withTimeout(promise, ms){
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('Koneksi terlalu lambat (timeout).')), ms);
+    Promise.resolve(promise).then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
 }
+function friendlyError(e){
+  const msg = (e && (e.message || e.error_description)) ? String(e.message || e.error_description) : String(e || '');
+  if(!navigator.onLine) return 'Perangkat tidak terhubung ke internet.';
+  if(/failed to fetch|networkerror|load failed|network request/i.test(msg)) return 'Tidak dapat menjangkau server (koneksi internet bermasalah).';
+  return msg || 'Terjadi kendala yang tidak diketahui.';
+}
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function lsGet(k){ try{ const r = localStorage.getItem(k); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+function setSaveStatus(state, text){
+  const box = document.getElementById('saveStatus');
+  const txt = document.getElementById('saveStatusText');
+  const btn = document.getElementById('saveRetryBtn');
+  if(!box) return;
+  box.className = 'save-status ' + state;
+  txt.textContent = text;
+  btn.style.display = state === 'fail' ? '' : 'none';
+}
+
+function saveLocalBackup(){
+  if(!liveExam) return;
+  const { attempt } = liveExam;
+  lsSet(BACKUP_PREFIX + attempt.id, { jawaban: attempt.jawaban, ragu: attempt.ragu, t: Date.now() });
+}
+
+function persistAnswer(){
+  if(!liveExam || examFinished) return;
+  dirty = true;
+  saveLocalBackup();                       // cadangan instan di perangkat
+  setSaveStatus('saving', '⏳ Menyimpan…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushAnswers, 350);
+}
+
+function flushAnswers(){
+  saveChain = saveChain.then(doSaveAnswers).catch(() => false);
+  return saveChain;
+}
+async function doSaveAnswers(){
+  if(!liveExam || examFinished || !dirty) return true;
+  const { attempt } = liveExam;
+  const snapshot = { jawaban: JSON.parse(JSON.stringify(attempt.jawaban)), ragu: JSON.parse(JSON.stringify(attempt.ragu)) };
+  dirty = false;
+  try{
+    const { data, error } = await withTimeout(
+      sb.from('exam_attempts').update(snapshot).eq('id', attempt.id).select('id'), NET_TIMEOUT_MS);
+    if(error) throw error;
+    if(!data || !data.length) throw new Error('Server tidak menerima penyimpanan jawaban.');
+    if(!dirty){ setSaveStatus('ok', '✓ Jawaban tersimpan otomatis'); }
+    clearTimeout(saveRetryTimer);
+    return true;
+  }catch(e){
+    dirty = true;                          // tandai belum tersimpan -> dicoba lagi
+    console.error('Autosave gagal:', e);
+    setSaveStatus('fail', '⚠ Belum tersimpan ke server — ' + friendlyError(e) + ' (jawaban aman di perangkat, mencoba lagi…)');
+    clearTimeout(saveRetryTimer);
+    saveRetryTimer = setTimeout(flushAnswers, 5000);
+    return false;
+  }
+}
+function manualSaveRetry(){
+  setSaveStatus('saving', '⏳ Menyimpan…');
+  flushAnswers();
+}
+window.addEventListener('online', () => {
+  if(liveExam && !examFinished && dirty) flushAnswers();
+  if(submitState === 'failed') retrySubmit();
+  retryPendingSubmits(false);
+});
+window.addEventListener('offline', () => {
+  if(liveExam && !examFinished) setSaveStatus('fail', '⚠ Internet terputus — jawaban tetap aman di perangkat dan akan dikirim saat tersambung.');
+});
 
 function setAnswerPG(qid, oid){
   liveExam.attempt.jawaban[qid] = oid;
@@ -1418,11 +1628,8 @@ function updateTimer(){
   if(remain <= 0){
     el.textContent = '00:00';
     clearInterval(timerInterval);
-    unpinQuestionCard();
-    finalizeAttempt(liveExam.attempt, liveExam.schedule, true).then(() => {
-      alert('Waktu ujian habis. Jawabanmu otomatis dikumpulkan.');
-      showResult();
-    });
+    ['submitModalBg','tabLeaveModalBg','exitNoSubmitModalBg'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    runSubmit(true);        // waktu habis -> kirim otomatis (dengan peringatan + tombol kirim ulang bila gagal)
     return;
   }
   const mm = Math.floor(remain / 60000);
@@ -1458,15 +1665,13 @@ function closeSubmitModal(){ document.getElementById('submitModalBg').classList.
 
 function confirmSubmit(){
   closeSubmitModal();
-  unpinQuestionCard();
-  clearInterval(timerInterval);
-  finalizeAttempt(liveExam.attempt, liveExam.schedule, false).then(showResult);
+  runSubmit(false);
 }
 
 /* ---------- deteksi keluar / pindah tab ---------- */
 function examInProgress(){ return !!liveExam; }
 function openTabLeaveModal(){
-  if(!examInProgress()) return;
+  if(!examInProgress() || submitState !== 'idle') return;
   logTabLeaveAttempt();
   document.getElementById('tabLeaveModalBg').classList.remove('hidden');
 }
@@ -1479,10 +1684,12 @@ async function logTabLeaveAttempt(){
   attempt.percobaanKeluar = (attempt.percobaanKeluar || 0) + 1;
   const idx = attempts.findIndex(a => a.id === attempt.id);
   if(idx > -1) attempts[idx].percobaanKeluar = attempt.percobaanKeluar;
-  const { error } = await sb.from('exam_attempts')
-    .update({ percobaan_keluar: attempt.percobaanKeluar })
-    .eq('id', attempt.id);
-  if(error) console.error(error);
+  try{
+    const { error } = await sb.from('exam_attempts')
+      .update({ percobaan_keluar: attempt.percobaanKeluar })
+      .eq('id', attempt.id);
+    if(error) console.error(error);
+  }catch(e){ console.error(e); }
 }
 
 function openExitNoSubmitModal(){
@@ -1501,6 +1708,9 @@ function confirmExitNoSubmit(){
   closeSubmitModal();
   closeTabLeaveModal();
   resetHeaderCompact();
+  document.body.classList.remove('exam-active');
+  unpinQuestionCard();
+  if(dirty) flushAnswers();
   renderExamList();
 }
 
@@ -1595,26 +1805,185 @@ function gradeAttempt(qs, attempt){
   return { totalPoin, autoMax, autoEarned, correctCount, incorrectCount, manualQids, manualScores: {} };
 }
 
-async function finalizeAttempt(attempt, schedule, silent){
+/* Kirim jawaban final. Mengembalikan { ok, message }.
+   - Dianggap BERHASIL hanya jika server mengonfirmasi status 'selesai'.
+   - Payload disimpan di perangkat sampai server mengonfirmasi, jadi tidak hilang
+     walau internet putus / halaman tertutup. */
+async function submitAttempt(attempt, schedule){
   const qs = questionSets.find(x => x.id === schedule.questionSetId);
-  const penilaian = gradeAttempt(qs, attempt);
-  attempt.status = 'selesai';
-  attempt.selesai = Date.now();
-  attempt.penilaian = penilaian;
-  attempt.nilai = penilaian.totalPoin > 0 ? Math.round((penilaian.autoEarned / penilaian.totalPoin) * 100) : 0;
-  const { error } = await sb.from('exam_attempts').update({
-    status: 'selesai', selesai: new Date(attempt.selesai).toISOString(), nilai: attempt.nilai,
-    jawaban: attempt.jawaban, ragu: attempt.ragu, penilaian: attempt.penilaian
-  }).eq('id', attempt.id);
-  if(error) console.error(error);
-  if(!silent) return;
+  const key = PENDING_PREFIX + attempt.id;
+  let pending = lsGet(key);
+  if(!pending){
+    // gabungkan cadangan jawaban di perangkat (bisa lebih baru dari server bila sempat offline)
+    const bk = lsGet(BACKUP_PREFIX + attempt.id);
+    const deadline = getAttemptDeadline(schedule, attempt);
+    if(bk && bk.jawaban && typeof bk.jawaban === 'object' && (!bk.t || bk.t <= deadline + 15000)){
+      attempt.jawaban = Object.assign({}, attempt.jawaban, bk.jawaban);
+      if(bk.ragu && typeof bk.ragu === 'object') attempt.ragu = Object.assign({}, attempt.ragu, bk.ragu);
+    }
+    const penilaian = gradeAttempt(qs, attempt);
+    // waktu selesai dicatat paling lambat = batas waktu (bukan saat kirim ulang)
+    const selesaiMs = Math.min(Date.now(), deadline);
+    const nilai = penilaian.totalPoin > 0 ? Math.round((penilaian.autoEarned / penilaian.totalPoin) * 100) : 0;
+    pending = {
+      attemptId: attempt.id, userId: attempt.userId, scheduleId: schedule.id,
+      payload: {
+        status: 'selesai', selesai: new Date(selesaiMs).toISOString(), nilai,
+        jawaban: attempt.jawaban, ragu: attempt.ragu, penilaian
+      }
+    };
+    lsSet(key, pending);
+  } else {
+    // pakai jawaban terbaru bila ada perubahan
+    pending.payload.jawaban = attempt.jawaban; pending.payload.ragu = attempt.ragu;
+    lsSet(key, pending);
+  }
+  const res = await sendPendingPayload(pending);
+  if(res.ok){
+    const pl = pending.payload;
+    attempt.status = 'selesai';
+    attempt.selesai = new Date(pl.selesai).getTime();
+    attempt.nilai = pl.nilai;
+    attempt.penilaian = pl.penilaian;
+    attempt.receiptAt = res.confirmedAt;
+    lsDel(key); lsDel(BACKUP_PREFIX + attempt.id);
+  }
+  return res;
+}
+
+async function sendPendingPayload(pending){
+  try{
+    const { data, error } = await withTimeout(
+      sb.from('exam_attempts').update(pending.payload).eq('id', pending.attemptId).select('id,status').maybeSingle(),
+      NET_TIMEOUT_MS);
+    if(error) throw error;
+    let confirmed = data && data.status === 'selesai';
+    if(!confirmed){
+      // verifikasi ulang langsung dari server (jaga-jaga policy select/update)
+      const chk = await withTimeout(
+        sb.from('exam_attempts').select('id,status').eq('id', pending.attemptId).maybeSingle(), NET_TIMEOUT_MS);
+      if(chk.error) throw chk.error;
+      confirmed = chk.data && chk.data.status === 'selesai';
+    }
+    if(!confirmed) throw new Error('Server belum mengonfirmasi jawabanmu (data tidak tercatat).');
+    return { ok:true, confirmedAt: Date.now() };
+  }catch(e){
+    console.error('Submit gagal:', e);
+    return { ok:false, message: friendlyError(e) };
+  }
+}
+
+/* ---------- UI status pengiriman ---------- */
+function showSubmitStatus(state, detail){
+  const bg = document.getElementById('submitStatusModalBg');
+  const icon = document.getElementById('ssIcon');
+  const title = document.getElementById('ssTitle');
+  const text = document.getElementById('ssText');
+  const det = document.getElementById('ssDetail');
+  const actions = document.getElementById('ssActions');
+  const back = document.getElementById('ssBackBtn');
+  bg.classList.remove('hidden');
+  if(state === 'sending'){
+    icon.className = 'ss-icon sending'; icon.innerHTML = '<div class="ss-spinner"></div>';
+    title.textContent = 'Mengirim jawaban…';
+    text.textContent = 'Mohon tunggu dan jangan tutup atau muat ulang halaman ini.' + (submitAttemptNo > 1 ? ` (percobaan ke-${submitAttemptNo})` : '');
+    det.classList.add('hidden'); actions.style.display = 'none';
+  } else {
+    icon.className = 'ss-icon fail'; icon.innerHTML = '⚠️';
+    title.textContent = 'Jawaban GAGAL terkirim';
+    text.innerHTML = 'Jawabanmu <strong>belum masuk ke server</strong>, tetapi sudah tersimpan aman di perangkat ini. Pastikan internet menyala lalu tekan <strong>Kirim Ulang</strong>. Jangan tutup halaman ini.';
+    det.textContent = 'Penyebab: ' + (detail || 'tidak diketahui') + (navigator.onLine ? '' : ' — sambungkan internet, pengiriman akan dicoba otomatis.');
+    det.classList.remove('hidden'); actions.style.display = '';
+    back.style.display = submitAuto ? 'none' : '';
+    document.getElementById('ssRetryBtn').disabled = false;
+  }
+}
+function hideSubmitStatus(){ document.getElementById('submitStatusModalBg').classList.add('hidden'); }
+
+async function runSubmit(auto){
+  if(!liveExam || submitState === 'sending') return;
+  submitAuto = !!auto;
+  submitState = 'sending';
+  submitAttemptNo++;
+  examFinished = true;                     // hentikan autosave biasa
+  clearTimeout(saveTimer); clearTimeout(saveRetryTimer);
+  unpinQuestionCard();
+  clearInterval(timerInterval);
+  showSubmitStatus('sending');
+  const res = await submitAttempt(liveExam.attempt, liveExam.schedule);
+  if(res.ok){
+    submitState = 'idle'; submitAttemptNo = 0;
+    hideSubmitStatus();
+    liveExam.autoSubmitted = !!auto;
+    showResult();
+  } else {
+    submitState = 'failed';
+    showSubmitStatus('fail', res.message);
+  }
+}
+function retrySubmit(){
+  if(submitState !== 'failed') return;
+  document.getElementById('ssRetryBtn').disabled = true;
+  runSubmit(submitAuto);
+}
+function cancelSubmitStatus(){
+  // kembali mengerjakan (hanya jika bukan karena waktu habis)
+  if(submitAuto || !liveExam) return;
+  submitState = 'idle'; examFinished = false;
+  hideSubmitStatus();
+  startTimer();
+  if(dirty) flushAnswers();
+}
+
+/* ---------- jawaban tertunda (mis. halaman tertutup saat gagal kirim) ---------- */
+let retryingPending = false;
+const autoFinalizing = new Set();
+function listPendingKeys(){
+  const keys = [];
+  try{ for(let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); if(k && k.startsWith(PENDING_PREFIX)) keys.push(k); } }catch(e){}
+  return keys;
+}
+function updatePendingBanner(){
+  const keys = listPendingKeys().filter(k => { const p = lsGet(k); return p && p.userId === selectedSiswaId; });
+  const el = document.getElementById('pendingBanner');
+  if(!el) return;
+  if(keys.length){
+    document.getElementById('pendingBannerText').textContent = `⚠️ ${keys.length} jawaban ujian BELUM terkirim ke server. Pastikan internet menyala lalu tekan "Kirim Sekarang".`;
+    el.classList.remove('hidden');
+  } else el.classList.add('hidden');
+}
+async function retryPendingSubmits(manual){
+  if(retryingPending || !selectedSiswaId) return;
+  retryingPending = true;
+  const btn = document.getElementById('pendingRetryBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Mengirim…'; }
+  let okCount = 0, failMsg = '';
+  for(const k of listPendingKeys()){
+    const pending = lsGet(k);
+    if(!pending || pending.userId !== selectedSiswaId) continue;
+    const res = await sendPendingPayload(pending);
+    if(res.ok){
+      okCount++; lsDel(k); lsDel(BACKUP_PREFIX + pending.attemptId);
+      const at = attempts.find(a => a.id === pending.attemptId);
+      if(at){ at.status = 'selesai'; at.nilai = pending.payload.nilai; at.penilaian = pending.payload.penilaian; at.selesai = new Date(pending.payload.selesai).getTime(); }
+    } else failMsg = res.message;
+  }
+  retryingPending = false;
+  if(btn){ btn.disabled = false; btn.textContent = 'Kirim Sekarang'; }
+  updatePendingBanner();
+  if(okCount){ renderExamList(); if(manual) alert(`✓ ${okCount} jawaban ujian berhasil terkirim ke server.`); }
+  else if(manual && failMsg) alert('Masih gagal mengirim: ' + failMsg + '\nPeriksa internet lalu coba lagi.');
 }
 
 function showResult(){
   document.getElementById('examView').style.display = 'none';
   document.getElementById('resultView').style.display = 'block';
   resetHeaderCompact();
+  document.body.classList.remove('exam-active');
+  window.scrollTo({ top:0 });
   const { attempt, schedule, questionSet } = liveExam;
+  const jam = new Date(attempt.receiptAt || Date.now()).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('rv-receipt').textContent = `✓ Terkirim & diterima server pukul ${jam} · Kode ${String(attempt.id).slice(0,8).toUpperCase()}`;
   const p = attempt.penilaian || {};
   const needsManual = (p.manualQids || []).length > 0;
 
@@ -1644,6 +2013,9 @@ function showResult(){
     rvBreakdown.style.display = 'none';
     rvBreakdown.innerHTML = '';
   }
+  if(liveExam && liveExam.autoSubmitted){
+    document.getElementById('rv-sub').textContent += ' (Waktu habis, jawaban dikumpulkan otomatis.)';
+  }
   liveExam = null;
   document.getElementById('examView').classList.remove('locked');
 }
@@ -1657,7 +2029,9 @@ function backToList(){
   closeTabLeaveModal();
   closeExitNoSubmitModal();
   resetHeaderCompact();
+  document.body.classList.remove('exam-active');
   renderExamList();
+  updatePendingBanner();
 }
 
 window.addEventListener('beforeunload', e => {
