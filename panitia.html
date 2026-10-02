@@ -1136,7 +1136,7 @@
   <section id="panel-alokasi" class="panel">
     <div class="section-head">
       <h1>Alokasi waktu</h1>
-      <p>Susun jam ke beserta waktu mulai dan waktu berakhirnya untuk setiap hari. Di tab <strong>Penjadwalan</strong>, panitia tinggal memilih tanggal dan jam ke — durasi, waktu mulai, dan waktu berakhir terisi otomatis.</p>
+      <p>Susun jam ke untuk setiap hari: isi waktu mulai lalu waktu berakhir <em>atau</em> durasi (menit) — salah satunya cukup, yang lain terisi otomatis. Di tab <strong>Penjadwalan</strong>, panitia tinggal memilih tanggal dan jam ke — durasi, waktu mulai, dan waktu berakhir terisi otomatis.</p>
     </div>
 
     <div class="card">
@@ -1156,16 +1156,21 @@
           <select id="at-copy-from"></select>
         </div>
         <button type="button" class="btn-secondary" onclick="atCopyFrom()">Salin ke hari ini</button>
+        <div class="field" style="min-width:150px;">
+          <span>Jeda antar jam ke (menit)</span>
+          <input class="at-input" type="number" id="at-jeda" min="0" max="240" step="1" inputmode="numeric" value="15" style="width:110px;" oninput="atJedaChange(this.value)" aria-label="Jeda antar jam ke dalam menit">
+        </div>
       </div>
       <div class="field-hint" style="margin-top:6px;">Hasil salinan tampil dulu di tabel; periksa lalu klik Simpan.</div>
 
+      <div class="field-hint" style="margin-top:14px;">Ubah <strong>waktu berakhir</strong> → durasi dihitung ulang. Ubah <strong>durasi</strong> → waktu berakhir menyesuaikan. Saat <strong>+ Tambah jam ke</strong> diklik, waktu mulainya otomatis = waktu berakhir jam ke sebelumnya + <strong>Jeda</strong> (atur di kolom Jeda; bisa 0 bila tanpa istirahat).</div>
       <div class="at-table-wrap">
         <table>
           <thead><tr>
             <th style="width:110px;">Jam ke</th>
             <th>Waktu mulai</th>
             <th>Waktu berakhir</th>
-            <th>Durasi</th>
+            <th>Durasi (menit)</th>
             <th style="width:56px;"></th>
           </tr></thead>
           <tbody id="at-tbody"></tbody>
@@ -3630,6 +3635,33 @@
   let atDraft = [];
   let atDirty = false;
   let atFlashTimer = null;
+  const AT_JEDA_DEFAULT = 15; // menit: nilai awal jeda antar jam ke
+  let atJeda = AT_JEDA_DEFAULT;
+  try{
+    const sv = parseInt(localStorage.getItem('at_jeda'), 10);
+    if(Number.isFinite(sv) && sv >= 0 && sv <= 240) atJeda = sv;
+  }catch(e){}
+  function atJedaChange(v){
+    const n = parseInt(v, 10);
+    atJeda = Number.isFinite(n) && n >= 0 ? Math.min(n, 240) : 0;
+    try{ localStorage.setItem('at_jeda', String(atJeda)); }catch(e){}
+  }
+
+  function fromMin(m){
+    if(!Number.isFinite(m) || m < 0 || m > 1439) return '';
+    return String(Math.floor(m / 60)).padStart(2,'0') + ':' + String(m % 60).padStart(2,'0');
+  }
+  function atDur(r){
+    const d = toMin(r.selesai) - toMin(r.mulai);
+    return Number.isFinite(d) && d > 0 ? d : null;
+  }
+  // Baris draft: `by` = kolom yang terakhir diatur panitia ('selesai' atau 'durasi'),
+  // dipakai untuk menentukan apa yang dipertahankan saat waktu mulai diubah.
+  function atMakeDraft(s){
+    const r = { jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai, by:'selesai' };
+    r.durasi = atDur(r);
+    return r;
+  }
 
   function mapSlot(r){
     return { id:r.id, hari:r.hari, jamKe:r.jam_ke, mulai:String(r.mulai || '').slice(0,5), selesai:String(r.selesai || '').slice(0,5) };
@@ -3666,7 +3698,7 @@
 
   async function atOpenPanel(){
     await atReload();
-    if(!atDirty) atDraft = slotsOf(atDay).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    if(!atDirty) atDraft = slotsOf(atDay).map(atMakeDraft);
     atRender();
   }
 
@@ -3696,12 +3728,15 @@
     ).join('');
 
     document.getElementById('at-save-label').textContent = 'Simpan ' + atDay;
+    const jIn = document.getElementById('at-jeda');
+    if(jIn && document.activeElement !== jIn) jIn.value = atJeda;
     atRenderRows();
   }
 
-  function atDurText(r){
-    const d = toMin(r.selesai) - toMin(r.mulai);
-    return Number.isFinite(d) && d > 0 ? d + ' menit' : '—';
+  function atWarnText(r){
+    if(r.durasi > 0 && r.mulai && !r.selesai) return 'Melewati pukul 23:59';
+    if(r.mulai && r.selesai && toMin(r.selesai) <= toMin(r.mulai)) return 'Berakhir harus setelah mulai';
+    return '';
   }
 
   function atRenderRows(){
@@ -3712,9 +3747,10 @@
     }
     tb.innerHTML = atDraft.map((r, i) => `<tr>
       <td><input class="at-input" type="number" min="1" step="1" style="width:84px;" value="${r.jamKe ?? ''}" oninput="atEdit(${i},'jamKe',this.value)" aria-label="Jam ke"></td>
-      <td><input class="at-input" type="time" value="${r.mulai || ''}" oninput="atEdit(${i},'mulai',this.value)" aria-label="Waktu mulai"></td>
-      <td><input class="at-input" type="time" value="${r.selesai || ''}" oninput="atEdit(${i},'selesai',this.value)" aria-label="Waktu berakhir"></td>
-      <td class="cell-muted" id="at-dur-${i}">${atDurText(r)}</td>
+      <td><input class="at-input" type="time" id="at-mulai-${i}" value="${r.mulai || ''}" oninput="atEdit(${i},'mulai',this.value)" aria-label="Waktu mulai"></td>
+      <td><input class="at-input" type="time" id="at-selesai-${i}" value="${r.selesai || ''}" oninput="atEdit(${i},'selesai',this.value)" aria-label="Waktu berakhir"></td>
+      <td><input class="at-input" type="number" min="1" step="1" inputmode="numeric" placeholder="menit" id="at-durasi-${i}" style="width:96px;" value="${r.durasi ?? ''}" oninput="atEdit(${i},'durasi',this.value)" aria-label="Durasi dalam menit">
+        <div class="field-hint" id="at-warn-${i}" style="color:var(--amber-dark); margin-top:4px;">${atWarnText(r)}</div></td>
       <td><div class="row-actions"><button type="button" class="icon-btn" onclick="atRemoveRow(${i})" aria-label="Hapus jam ke"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></td>
     </tr>`).join('');
   }
@@ -3726,24 +3762,54 @@
       return;
     }
     atDay = h;
-    atDraft = slotsOf(h).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    atDraft = slotsOf(h).map(atMakeDraft);
     atSetDirty(false);
     atRender();
   }
 
   function atEdit(i, key, val){
-    if(!atDraft[i]) return;
-    atDraft[i][key] = key === 'jamKe' ? (val === '' ? null : parseInt(val, 10)) : val;
+    const r = atDraft[i];
+    if(!r) return;
+    if(key === 'jamKe'){
+      r.jamKe = val === '' ? null : parseInt(val, 10);
+    } else if(key === 'mulai'){
+      r.mulai = val;
+      if(r.by === 'durasi' && r.durasi > 0) r.selesai = fromMin(toMin(val) + r.durasi); // geser, durasi tetap
+      else r.durasi = atDur(r);                                                         // selesai tetap, durasi dihitung
+    } else if(key === 'selesai'){
+      r.selesai = val;
+      r.by = 'selesai';
+      r.durasi = atDur(r);
+    } else if(key === 'durasi'){
+      const d = parseInt(val, 10);
+      r.durasi = d > 0 ? d : null;
+      r.by = 'durasi';
+      r.selesai = r.durasi && r.mulai ? fromMin(toMin(r.mulai) + r.durasi) : '';
+    }
     atSetDirty(true);
-    const d = document.getElementById('at-dur-' + i);
-    if(d) d.textContent = atDurText(atDraft[i]);
+    atSyncRow(i, key);
+  }
+
+  // Perbarui kolom turunan tanpa merender ulang (supaya kursor tidak lompat)
+  function atSyncRow(i, editedKey){
+    const r = atDraft[i];
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v ?? ''; };
+    if(editedKey !== 'mulai') set('at-mulai-' + i, r.mulai);
+    if(editedKey !== 'selesai') set('at-selesai-' + i, r.selesai);
+    if(editedKey !== 'durasi') set('at-durasi-' + i, r.durasi);
+    const w = document.getElementById('at-warn-' + i);
+    if(w) w.textContent = atWarnText(r);
   }
 
   function atAddRow(){
     const last = atDraft[atDraft.length - 1];
-    atDraft.push({ jamKe: last && last.jamKe ? last.jamKe + 1 : 1, mulai: last ? last.selesai : '', selesai: '' });
+    // default: mulai = selesai jam ke sebelumnya + 15 menit
+    const mulai = last ? fromMin(toMin(last.selesai) + atJeda) : '';
+    atDraft.push({ jamKe: last && last.jamKe ? last.jamKe + 1 : 1, mulai, selesai:'', durasi:null, by:'durasi' });
     atSetDirty(true);
     atRenderRows();
+    const el = document.getElementById('at-durasi-' + (atDraft.length - 1));
+    if(el) el.focus();
   }
 
   function atRemoveRow(i){
@@ -3760,7 +3826,7 @@
       if(!r.jamKe || r.jamKe < 1) return { error: 'Nomor jam ke harus berupa angka 1 atau lebih.' };
       if(seen.has(r.jamKe)) return { error: `Jam ke-${r.jamKe} terisi dua kali.` };
       seen.add(r.jamKe);
-      if(!r.mulai || !r.selesai) return { error: `Isi waktu mulai dan waktu berakhir untuk jam ke-${r.jamKe}.` };
+      if(!r.mulai || !r.selesai) return { error: `Isi waktu mulai dan waktu berakhir (atau durasi) untuk jam ke-${r.jamKe}.` };
       if(toMin(r.selesai) <= toMin(r.mulai)) return { error: `Pada jam ke-${r.jamKe}, waktu berakhir harus setelah waktu mulai.` };
       out.push({ jamKe: r.jamKe, mulai: r.mulai, selesai: r.selesai });
     }
@@ -3798,7 +3864,7 @@
     const err = await atWriteDay(atDay, v.rows);
     btn.disabled = false;
     if(err){ atFlash('Gagal menyimpan: ' + err.message, true); return; }
-    atDraft = v.rows.map(r => ({ ...r }));
+    atDraft = v.rows.map(atMakeDraft);
     atSetDirty(false);
     atRender();
     atFlash(`Alokasi waktu hari ${atDay} tersimpan (${v.rows.length} jam ke).`);
@@ -3809,7 +3875,7 @@
     const from = document.getElementById('at-copy-from').value;
     if(!from){ atFlash('Belum ada hari lain yang terisi untuk disalin.', true); return; }
     if(atDraft.length && !confirm(`Isi tabel hari ${atDay} akan diganti dengan jam ke dari hari ${from}. Lanjutkan?`)) return;
-    atDraft = slotsOf(from).map(s => ({ jamKe:s.jamKe, mulai:s.mulai, selesai:s.selesai }));
+    atDraft = slotsOf(from).map(atMakeDraft);
     atSetDirty(true);
     atRender();
     atFlash(`Jam ke dari hari ${from} disalin ke tabel ${atDay}. Periksa lalu klik "Simpan ${atDay}".`);
