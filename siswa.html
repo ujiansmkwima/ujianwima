@@ -88,31 +88,27 @@
   .section-head p{ margin:5px 0 0; font-size:13.5px; color:var(--slate); }
 
   /* ---------- Exam list cards ---------- */
+  /* ---------- Jadwal tulis (informasi) ---------- */
+  .jt-note{ font-size:12.5px; color:var(--slate); margin:0 0 14px; }
+  .jt-day{ background:var(--paper); border:1px solid var(--line); border-radius:16px; margin-bottom:12px; overflow:hidden; box-shadow:var(--shadow-sm); }
+  .jt-day.is-today{ border-color:var(--indigo); box-shadow:0 0 0 1px var(--indigo) inset; }
+  .jt-day-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:var(--mist); border-bottom:1px solid var(--line); }
+  .jt-day.is-today .jt-day-head{ background:var(--indigo-soft); }
+  .jt-day-name{ font-weight:700; font-size:14px; margin-right:8px; }
+  .jt-day-date{ font-size:13px; color:var(--slate); }
+  .jt-today-badge{ font-size:11px; font-weight:700; color:var(--indigo-dark); background:#fff; border-radius:999px; padding:3px 9px; }
+  .jt-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 16px; }
+  .jt-row + .jt-row{ border-top:1px solid var(--line); }
+  .jt-mapel{ font-weight:600; font-size:14.5px; }
+  .jt-meta{ font-size:12.5px; color:var(--slate); margin-top:2px; }
+  .jt-time{ text-align:right; font-size:13.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .jt-time .jt-dash{ color:var(--slate); font-weight:500; }
+  .jt-past{ margin-top:18px; }
+  .jt-past > summary{ cursor:pointer; font-size:12.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; padding:6px 0 12px; }
+  .jt-past .jt-day{ opacity:0.78; }
+
   .exam-group-title{ font-size:12px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; margin:22px 0 10px; }
   .exam-group-title:first-child{ margin-top:0; }
-
-  /* ---------- Navigasi hari (Ujianku) ---------- */
-  .day-nav{ background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:14px; margin-bottom:16px; box-shadow:var(--shadow-sm); }
-  .dn-bar{ display:flex; align-items:center; gap:10px; }
-  .dn-arrow{ flex-shrink:0; width:40px; height:40px; border-radius:12px; border:1.5px solid var(--line); background:var(--paper); color:var(--ink); font-size:20px; line-height:1; cursor:pointer; transition:all .2s ease; }
-  .dn-arrow:hover{ border-color:var(--indigo); color:var(--indigo-dark); background:var(--indigo-soft); }
-  .dn-center{ flex:1; text-align:center; min-width:0; }
-  .dn-label{ font-size:15.5px; font-weight:700; letter-spacing:-0.01em; }
-  .dn-sub{ font-size:12px; color:var(--slate); margin-top:2px; }
-  .dn-tools{ display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:12px; }
-  .dn-date{ font-family:inherit; font-size:13px; font-weight:600; padding:8px 10px; border:1.5px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); }
-  .dn-date:focus{ border-color:var(--indigo); outline:none; }
-  .dn-week{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:12px; }
-  .dn-day{ position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 0 10px; border:1.5px solid var(--line); border-radius:12px; background:var(--paper); color:var(--ink); cursor:pointer; font-family:inherit; transition:all .2s ease; }
-  .dn-day:hover{ border-color:var(--indigo); }
-  .dn-day .dn-dn{ font-size:11px; font-weight:600; color:var(--slate); }
-  .dn-day .dn-dd{ font-size:15px; font-weight:700; }
-  .dn-day.is-today .dn-dd{ color:var(--indigo-dark); }
-  .dn-day.is-sel{ background:var(--indigo); border-color:var(--indigo); color:#fff; }
-  .dn-day.is-sel .dn-dn, .dn-day.is-sel .dn-dd{ color:#fff; }
-  .dn-day .dn-dot{ position:absolute; bottom:4px; width:5px; height:5px; border-radius:50%; background:var(--indigo); }
-  .dn-day.is-sel .dn-dot{ background:#fff; }
-  .dn-empty-btn{ margin-top:12px; }
   .exam-card{
     background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:18px;
     margin-bottom:12px; box-shadow:var(--shadow-sm); transition:box-shadow .2s ease;
@@ -706,6 +702,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
       History
     </button>
+    <button class="tab" id="tab-jadwal" onclick="switchTab('jadwal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Jadwal
+    </button>
   </nav>
 </div>
 
@@ -721,7 +721,6 @@
       <span id="pendingBannerText">⚠️ Ada jawaban ujian yang belum terkirim ke server.</span>
       <button type="button" id="pendingRetryBtn" onclick="retryPendingSubmits(true)">Kirim Sekarang</button>
     </div>
-    <div class="day-nav" id="day-nav" style="display:none;"></div>
     <div id="exam-list"></div>
   </div>
 
@@ -1014,6 +1013,9 @@ let subjects = [];
 let questionSets = [];
 let schedules = [];
 let attempts = [];
+let jadwalTulis = [];   // jadwal ujian tulis yang diterbitkan panitia (informasi)
+let timeSlots = [];     // alokasi waktu panitia: {hari,jamKe,mulai,selesai}
+let myKelas = '';
 
 let selectedSiswaId = null;   // = siswa yang sedang login
 let liveExam = null;       // { schedule, questionSet, attempt, questionOrder, currentIndex }
@@ -1023,14 +1025,105 @@ let fontLevel = 3;
 let headerCollapsedShown = false;
 let activeTab = 'ujianku';
 
+  /* ---------- Jadwal Tulis: pembantu bersama (waktu diambil dari Alokasi Waktu) ---------- */
+  const JT_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  function jtSlotsOf(hari){ return timeSlots.filter(s => s.hari === hari).sort((a,b) => a.jamKe - b.jamKe); }
+  // Tingkat dari nama kelas (aturan sama dengan menu Penjadwalan Soal): X-1 → X, XI TKJ 2 → XI
+  function jtTingkatOf(kelas){
+    if(!kelas) return '';
+    const m = String(kelas).trim().match(/^(XII|XI|X)(?=[-\s]|$)/i);
+    if(m) return m[1].toUpperCase();
+    return String(kelas).trim().split(/[-\s]/)[0].toUpperCase();
+  }
+  function jtHariOf(ymd){ return JT_HARI[new Date(ymd + 'T00:00').getDay()]; }
+  const JT_NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  function jtDateLabel(ymd){ const [y, m, d] = String(ymd).split('-').map(Number); return d + ' ' + JT_NAMA_BULAN[m - 1] + ' ' + y; }
+  function jtRuns(list){
+    const out = []; let cur = null;
+    list.slice().sort((a,b) => a - b).forEach(n => {
+      if(cur && n === cur[1] + 1) cur[1] = n; else { cur = [n, n]; out.push(cur); }
+    });
+    return out;
+  }
+  function jtRunLabel(r){ return r[0] === r[1] ? String(r[0]) : r[0] + '–' + r[1]; }
+  function jtJamLabel(e){
+    if(e.semuaJam) return 'Semua jam ke';
+    return 'Jam ke-' + jtRuns(e.jamKe).map(jtRunLabel).join(', ');
+  }
+  function jtJamSort(e){ return e.semuaJam || !e.jamKe.length ? 0 : Math.min.apply(null, e.jamKe); }
+  // Waktu mulai–selesai dari alokasi waktu panitia; "-" bila alokasi hari itu belum ada.
+  function jtWaktuLines(e){
+    const slots = jtSlotsOf(jtHariOf(e.tanggal));
+    if(!slots.length) return ['-'];
+    if(e.semuaJam) return [slots[0].mulai + ' – ' + slots[slots.length - 1].selesai];
+    const runs = jtRuns(e.jamKe);
+    return runs.map(r => {
+      const inRun = slots.filter(s => s.jamKe >= r[0] && s.jamKe <= r[1]);
+      const t = inRun.length ? inRun[0].mulai + ' – ' + inRun[inRun.length - 1].selesai : '-';
+      return runs.length > 1 ? 'Jam ke-' + jtRunLabel(r) + ': ' + t : t;
+    });
+  }
+
+function jtNormKey(s){ return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function jtMap(r){
+  return { id:r.id, tanggal:String(r.tanggal).slice(0,10), mapel:r.mapel, kelas:r.kelas || [],
+           tingkat:r.tingkat || [], semuaKelas:!!r.semua_kelas, jamKe:(r.jam_ke || []).map(Number), semuaJam:!!r.semua_jam };
+}
+function jtTodayYmd(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function jtDayHtml(date, items, today){
+  const rows = items.sort((a, b) => jtJamSort(a) - jtJamSort(b) || String(a.mapel).localeCompare(String(b.mapel), 'id')).map(e => {
+    const waktu = jtWaktuLines(e).map(l => l === '-' ? '<div class="jt-dash">-</div>' : '<div>' + escapeHtml(l) + '</div>').join('');
+    return `<div class="jt-row">
+      <div><div class="jt-mapel">${escapeHtml(e.mapel)}</div><div class="jt-meta">${escapeHtml(jtJamLabel(e))}</div></div>
+      <div class="jt-time">${waktu}</div>
+    </div>`;
+  }).join('');
+  const isToday = date === today;
+  return `<div class="jt-day${isToday ? ' is-today' : ''}">
+    <div class="jt-day-head">
+      <div><span class="jt-day-name">${escapeHtml(jtHariOf(date))}</span><span class="jt-day-date">${escapeHtml(jtDateLabel(date))}</span></div>
+      ${isToday ? '<span class="jt-today-badge">Hari ini</span>' : ''}
+    </div>${rows}</div>`;
+}
+function jtGroup(list){
+  const g = {};
+  list.forEach(e => { (g[e.tanggal] = g[e.tanggal] || []).push(e); });
+  return g;
+}
+function renderJadwalTulis(){
+  const wrap = document.getElementById('exam-list');
+  const kNorm = jtNormKey(myKelas);
+  const myTingkat = jtTingkatOf(myKelas);
+  const mine = jadwalTulis.filter(e =>
+    (e.semuaKelas || e.kelas.some(k => jtNormKey(k) === kNorm)) &&
+    (!e.tingkat.length || e.tingkat.map(t => String(t).toUpperCase()).includes(myTingkat)));
+  if(!mine.length){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal</strong>Jadwal ujian tulis untuk kelasmu akan muncul di sini setelah diterbitkan panitia.</div>`;
+    return;
+  }
+  // Tampilkan SEMUA jadwal yang diterbitkan panitia untuk kelas ini, urut tanggal
+  // (tanpa memisahkan jadwal mendatang / yang sudah lewat).
+  const today = jtTodayYmd();
+  const g = jtGroup(mine);
+  const dates = Object.keys(g).sort();
+  let html = `<p class="jt-note">Waktu mengikuti alokasi waktu dari panitia. Tanda “-” berarti waktunya belum ditetapkan.</p>`;
+  html += dates.map(d => jtDayHtml(d, g[d], today)).join('');
+  wrap.innerHTML = html;
+}
+
 function switchTab(name){
   activeTab = name;
-  document.getElementById('tab-ujianku').classList.toggle('active', name === 'ujianku');
-  document.getElementById('tab-history').classList.toggle('active', name === 'history');
-  document.getElementById('tab-title').textContent = name === 'history' ? 'History' : 'Ujianku';
-  document.getElementById('tab-desc').textContent = name === 'history'
-    ? 'Riwayat ujian yang sudah selesai atau terlewat.'
-    : 'Ujian yang sedang berlangsung dan akan datang pada hari yang dipilih. Yang sudah selesai ada di History.';
+  ['ujianku','history','jadwal'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === name));
+  const T = {
+    ujianku: ['Ujianku', 'Ujian yang sedang berlangsung dan akan datang.'],
+    history: ['History', 'Riwayat ujian yang sudah selesai atau terlewat.'],
+    jadwal:  ['Jadwal', 'Jadwal ujian tulis untuk kelasmu yang diterbitkan panitia.']
+  };
+  document.getElementById('tab-title').textContent = T[name][0];
+  document.getElementById('tab-desc').textContent = T[name][1];
   renderExamList();
 }
 
@@ -1040,17 +1133,24 @@ async function init(){
   selectedSiswaId = me.id;
   document.getElementById('siswaNameLabel').textContent = me.nama + ' — ' + (me.kelas || '');
   users = [me];
+  myKelas = me.kelas || '';
 
-  const [subjRes, qsRes, schRes, atRes] = await Promise.all([
+  const [subjRes, qsRes, schRes, atRes, jtRes, slotRes] = await Promise.all([
     sb.from('subjects').select('*'),
     sb.from('question_sets').select('*'),
     sb.from('schedules').select('*'),
-    sb.from('exam_attempts').select('*').eq('user_id', me.id)
+    sb.from('exam_attempts').select('*').eq('user_id', me.id),
+    sb.from('jadwal_tulis').select('*'),
+    sb.from('time_slots').select('*')
   ]);
   subjects = (subjRes.data || []).map(mapSubject);
   questionSets = (qsRes.data || []).map(mapQuestionSet);
   schedules = (schRes.data || []).map(mapSchedule);
   attempts = (atRes.data || []).map(mapAttempt);
+  jadwalTulis = jtRes.error ? [] : (jtRes.data || []).map(jtMap);
+  timeSlots = slotRes.error ? [] : (slotRes.data || []).map(r => ({
+    hari:r.hari, jamKe:r.jam_ke, mulai:String(r.mulai || '').slice(0,5), selesai:String(r.selesai || '').slice(0,5)
+  }));
 
   renderExamList();
   updatePendingBanner();
@@ -1098,87 +1198,9 @@ function findAttempt(scheduleId, userId){
 /* ============================================================
    EXAM LIST
 ============================================================ */
-/* ---------- navigasi hari ---------- */
-function ymdOf(d){
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-function dateOfYmd(ymd){ return new Date(ymd + 'T00:00'); }
-function addDaysYmd(ymd, n){
-  const d = dateOfYmd(ymd);
-  d.setDate(d.getDate() + n);
-  return ymdOf(d);
-}
-let selectedDate = ymdOf(new Date());   // hari yang sedang ditampilkan di Ujianku
-
-// Ujian jatuh pada hari tertentu: dari tanggal mulai sampai tanggal jadwal selesai (jika ada)
-function examOnDate(j, ymd){
-  const akhir = j.tanggalSelesai && j.tanggalSelesai > j.tanggal ? j.tanggalSelesai : j.tanggal;
-  return j.tanggal <= ymd && ymd <= akhir;
-}
-// Aktif = belum selesai dikerjakan dan belum terlewat. Yang selesai/terlewat hanya tampil di History.
-function isJadwalAktif(j){
-  const at = findAttempt(j.id, selectedSiswaId);
-  return !(getJadwalStatus(j) === 'selesai' || (at && at.status === 'selesai'));
-}
-function selectDay(ymd){
-  if(!ymd) return;
-  selectedDate = ymd;
-  renderExamList();
-}
-function shiftDay(n){ selectDay(addDaysYmd(selectedDate, n)); }
-function goToday(){ selectDay(ymdOf(new Date())); }
-// Lompat ke hari terdekat yang punya ujian (utamakan hari ini/ke depan, bila tidak ada → yang terakhir)
-function goNearestExam(){
-  const days = [];
-  schedules.filter(j => j.peserta.includes(selectedSiswaId) && isJadwalAktif(j)).forEach(j => {
-    const akhir = j.tanggalSelesai && j.tanggalSelesai > j.tanggal ? j.tanggalSelesai : j.tanggal;
-    days.push(j.tanggal);
-    days.push(akhir);
-  });
-  if(!days.length) return;
-  const today = ymdOf(new Date());
-  const ahead = days.filter(d => d >= today).sort()[0];
-  selectDay(ahead || days.sort().pop());   // semua yang aktif pasti belum lewat; fallback hanya pengaman
-}
-
-function renderDayNav(mine, countToday){
-  const box = document.getElementById('day-nav');
-  const todayYmd = ymdOf(new Date());
-  const sel = dateOfYmd(selectedDate);
-  const label = sel.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  const rel = selectedDate === todayYmd ? 'Hari ini'
-    : selectedDate === addDaysYmd(todayYmd, 1) ? 'Besok'
-    : selectedDate === addDaysYmd(todayYmd, -1) ? 'Kemarin' : '';
-  const sub = (rel ? rel + ' · ' : '') + (countToday ? countToday + ' ujian' : 'Tidak ada ujian');
-
-  const dow = (sel.getDay() + 6) % 7;   // Senin = 0
-  const monday = addDaysYmd(selectedDate, -dow);
-  const NAMA = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
-  let week = '';
-  for(let i = 0; i < 7; i++){
-    const ymd = addDaysYmd(monday, i);
-    const has = mine.some(j => examOnDate(j, ymd));
-    week += `<button type="button" class="dn-day${ymd === selectedDate ? ' is-sel' : ''}${ymd === todayYmd ? ' is-today' : ''}" onclick="selectDay('${ymd}')" aria-label="${dateOfYmd(ymd).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}${has ? ', ada ujian' : ''}">
-      <span class="dn-dn">${NAMA[i]}</span><span class="dn-dd">${dateOfYmd(ymd).getDate()}</span>${has ? '<span class="dn-dot"></span>' : ''}
-    </button>`;
-  }
-
-  box.innerHTML = `
-    <div class="dn-bar">
-      <button type="button" class="dn-arrow" onclick="shiftDay(-1)" aria-label="Hari sebelumnya">‹</button>
-      <div class="dn-center"><div class="dn-label">${label}</div><div class="dn-sub">${sub}</div></div>
-      <button type="button" class="dn-arrow" onclick="shiftDay(1)" aria-label="Hari berikutnya">›</button>
-    </div>
-    <div class="dn-tools">
-      <input type="date" class="dn-date" value="${selectedDate}" onchange="selectDay(this.value)" aria-label="Pilih tanggal">
-      <button type="button" class="btn-secondary" onclick="goToday()" ${selectedDate === todayYmd ? 'disabled' : ''}>Hari ini</button>
-    </div>
-    <div class="dn-week">${week}</div>`;
-  box.style.display = 'block';
-}
-
 function renderExamList(){
   if(!selectedSiswaId){ document.getElementById('exam-list').innerHTML = ''; return; }
+  if(activeTab === 'jadwal'){ renderJadwalTulis(); return; }
 
   const mine = schedules.filter(j => j.peserta.includes(selectedSiswaId));
 
@@ -1213,28 +1235,20 @@ function renderExamList(){
   const riwayat = enriched.filter(isHist).sort((a,b)=>(b.j.tanggal+b.j.jamMulai).localeCompare(a.j.tanggal+a.j.jamMulai));
 
   const wrap = document.getElementById('exam-list');
-  const nav = document.getElementById('day-nav');
   let html = '';
   if(activeTab === 'history'){
-    nav.style.display = 'none';
     if(riwayat.length === 0){
       wrap.innerHTML = `<div class="empty-state"><strong>Belum ada riwayat ujian</strong>Ujian yang sudah selesai atau terlewat akan muncul di sini.</div>`;
       return;
     }
     html = riwayat.map(renderExamCard).join('');
   } else {
-    // Ujianku: hanya ujian aktif (berlangsung / akan datang) pada hari terpilih, urut jam mulai.
-    // Ujian yang sudah selesai atau terlewat hanya ada di History.
-    const aktif = enriched.filter(e => !isHist(e));
-    const hariIni = aktif
-      .filter(e => examOnDate(e.j, selectedDate))
-      .sort((a,b) => (a.j.jamMulai || '').localeCompare(b.j.jamMulai || ''));
-    renderDayNav(aktif.map(e => e.j), hariIni.length);
-    if(hariIni.length === 0){
-      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ada ujian pada hari ini</strong>Tidak ada ujian aktif untuk tanggal ini. Ujian yang sudah selesai ada di tab History.${aktif.length ? `<div class="dn-empty-btn"><button type="button" class="btn-secondary" onclick="goNearestExam()">Lihat ujian terdekat</button></div>` : ''}</div>`;
+    if(berlangsung.length + terjadwal.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ada ujian aktif</strong>Ujian yang dijadwalkan gurumu akan muncul di sini. Ujian yang sudah selesai ada di tab History.</div>`;
       return;
     }
-    html = hariIni.map(renderExamCard).join('');
+    if(berlangsung.length){ html += `<div class="exam-group-title">Sedang berlangsung</div>` + berlangsung.map(renderExamCard).join(''); }
+    if(terjadwal.length){ html += `<div class="exam-group-title">Akan datang</div>` + terjadwal.map(renderExamCard).join(''); }
   }
   wrap.innerHTML = html;
 }

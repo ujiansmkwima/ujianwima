@@ -141,3 +141,43 @@ drop policy if exists "panitia_write_time_slots" on public.time_slots;
 create policy "panitia_write_time_slots" on public.time_slots
   for all to authenticated
   using (public.is_panitia()) with check (public.is_panitia());
+
+
+-- ---------------------------------------------------------------------
+-- BAGIAN 5 — tabel JADWAL TULIS (menu Jadwal Tulis panitia).
+-- Jadwal ujian tulis yang diterbitkan panitia (hasil unggah Excel) sebagai
+-- INFORMASI untuk siswa — terpisah dari tabel schedules (penjadwalan soal).
+-- Waktu mulai/selesai tidak disimpan di sini: diambil dari time_slots
+-- (Alokasi Waktu) berdasarkan hari dari tanggal dan jam ke.
+-- Semua pengguna login boleh membaca; hanya panitia yang boleh menulis.
+-- Jalankan setelah BAGIAN 4. Aman dijalankan ulang.
+-- ---------------------------------------------------------------------
+create table if not exists public.jadwal_tulis (
+  id           uuid primary key default gen_random_uuid(),
+  tanggal      date not null,
+  mapel        text not null,
+  tingkat      text[] not null default '{}',   -- kosong = semua tingkat
+  kelas        text[] not null default '{}',
+  semua_kelas  boolean not null default false,
+  jam_ke       integer[] not null default '{}',
+  semua_jam    boolean not null default false,
+  created_at   timestamptz not null default now(),
+  check (semua_kelas or cardinality(kelas) > 0),
+  check (semua_jam or cardinality(jam_ke) > 0)
+);
+
+-- Untuk yang sudah menjalankan BAGIAN 5 sebelumnya: tambahkan kolom tingkat.
+alter table public.jadwal_tulis add column if not exists tingkat text[] not null default '{}';
+
+create index if not exists jadwal_tulis_tanggal_idx on public.jadwal_tulis (tanggal);
+
+alter table public.jadwal_tulis enable row level security;
+
+drop policy if exists "jadwal_tulis_select" on public.jadwal_tulis;
+create policy "jadwal_tulis_select" on public.jadwal_tulis
+  for select to authenticated using (true);
+
+drop policy if exists "panitia_write_jadwal_tulis" on public.jadwal_tulis;
+create policy "panitia_write_jadwal_tulis" on public.jadwal_tulis
+  for all to authenticated
+  using (public.is_panitia()) with check (public.is_panitia());
