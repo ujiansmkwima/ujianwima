@@ -820,6 +820,51 @@
 
     <div class="card">
       <div class="card-title-row">
+        <span class="card-title">Unduh daftar peserta ruang</span>
+      </div>
+      <p class="field-hint" style="margin:0 0 12px;">Daftar peserta tiap ruang (urut kelas, lalu nama) dengan kolom tanda tangan peserta dan tanda tangan Kepala Sekolah di setiap ruang. Isian di bawah tersimpan di perangkat ini.</p>
+      <div class="form-grid">
+        <label class="field full">
+          <span>Nama sekolah</span>
+          <input type="text" id="rx-sekolah" value="SMK Widya Mandala Tambak">
+        </label>
+        <label class="field">
+          <span>Judul daftar</span>
+          <input type="text" id="rx-judul" value="DAFTAR PESERTA UJIAN" placeholder="Contoh: DAFTAR PESERTA ASESMEN AKHIR SEMESTER">
+        </label>
+        <label class="field">
+          <span>Tahun pelajaran (opsional)</span>
+          <input type="text" id="rx-tahun" placeholder="Contoh: 2026/2027">
+        </label>
+        <label class="field">
+          <span>Kota / tempat</span>
+          <input type="text" id="rx-kota" placeholder="Contoh: Tambak">
+        </label>
+        <label class="field">
+          <span>Tanggal</span>
+          <input type="date" id="rx-tanggal">
+        </label>
+        <label class="field">
+          <span>Nama Kepala Sekolah</span>
+          <input type="text" id="rx-kepsek" placeholder="Nama lengkap beserta gelar">
+        </label>
+        <label class="field">
+          <span>NIP / NUPTK (opsional)</span>
+          <input type="text" id="rx-nip" placeholder="Kosongkan bila tidak ada">
+        </label>
+        <label class="field full">
+          <span>Ruang yang diunduh</span>
+          <select id="rx-ruang"><option value="">Semua ruang</option></select>
+        </label>
+      </div>
+      <div class="card-actions" style="margin-top:16px;">
+        <button type="button" class="btn-secondary" onclick="rxDownloadXlsx()">Unduh Excel</button>
+        <button type="button" class="btn-primary" onclick="rxDownloadPdf()">Unduh PDF</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
         <span class="card-title">Tetapkan peserta ke ruang</span>
       </div>
       <div class="form-grid">
@@ -1500,6 +1545,9 @@
 <style>.modal-bg.hidden{ display:none !important; }</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
   /* ============================================================
@@ -3477,6 +3525,7 @@
   }
 
   function renderRoomsList(){
+    if(typeof rxFillRoomSelect === 'function') rxFillRoomSelect();
     const wrap = document.getElementById('rm-list-wrap');
     if(!wrap) return;
     if(rooms.length === 0){
@@ -3484,13 +3533,14 @@
       return;
     }
     wrap.innerHTML = `<table>
-      <thead><tr><th>Nama ruang</th><th>Jumlah peserta</th><th></th></tr></thead>
+      <thead><tr><th>Nama ruang</th><th>Jumlah peserta</th><th>Unduh</th><th></th></tr></thead>
       <tbody>
         ${rooms.map(r => {
           const n = users.filter(u => u.ruang === r.nama).length;
           return `<tr>
             <td data-label="Nama ruang" class="cell-primary">${escapeHtml(r.nama)}</td>
             <td data-label="Jumlah peserta">${n} peserta</td>
+            <td data-label="Unduh"><button type="button" class="link-btn" onclick="rxDownloadPdf('${escapeHtml(r.nama).replace(/'/g, "&#39;")}')">PDF</button> · <button type="button" class="link-btn" onclick="rxDownloadXlsx('${escapeHtml(r.nama).replace(/'/g, "&#39;")}')">Excel</button></td>
             <td class="cell-action"><div class="row-actions">
               <button class="icon-btn" onclick="deleteRoom('${r.id}')" aria-label="Hapus ruang">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
@@ -3500,6 +3550,260 @@
         }).join('')}
       </tbody>
     </table>`;
+  }
+
+
+  /* ============================================================
+     UNDUH DAFTAR PESERTA RUANG (PDF & Excel) + tanda tangan Kepala Sekolah
+  ============================================================ */
+  const RX_KEY = 'ujianwima.rxSettings';
+  const RX_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const RX_FIELDS = { sekolah:'rx-sekolah', judul:'rx-judul', tahun:'rx-tahun', kota:'rx-kota', kepsek:'rx-kepsek', nip:'rx-nip' };
+
+  function rxInit(){
+    let saved = {};
+    try{ saved = JSON.parse(localStorage.getItem(RX_KEY) || '{}') || {}; }catch(e){ saved = {}; }
+    Object.keys(RX_FIELDS).forEach(k => {
+      const el = document.getElementById(RX_FIELDS[k]);
+      if(el && saved[k] != null && saved[k] !== '') el.value = saved[k];
+    });
+    const tg = document.getElementById('rx-tanggal');
+    if(tg && !tg.value){
+      const d = new Date();
+      tg.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    rxFillRoomSelect();
+  }
+  function rxFillRoomSelect(){
+    const sel = document.getElementById('rx-ruang');
+    if(!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">Semua ruang</option>' + rxSortedRooms().map(r => `<option value="${escapeHtml(r.nama)}">${escapeHtml(r.nama)}</option>`).join('');
+    if(rooms.some(r => r.nama === prev)) sel.value = prev;
+  }
+  function rxSortedRooms(){ return rooms.slice().sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id', { numeric:true })); }
+
+  function rxSettings(){
+    const o = {};
+    Object.keys(RX_FIELDS).forEach(k => { const el = document.getElementById(RX_FIELDS[k]); o[k] = el ? el.value.trim() : ''; });
+    try{ localStorage.setItem(RX_KEY, JSON.stringify(o)); }catch(e){}
+    const tg = (document.getElementById('rx-tanggal') || {}).value || '';
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tg);
+    o.tanggalLabel = m ? (+m[3] + ' ' + RX_BULAN[+m[2] - 1] + ' ' + m[1]) : '';
+    if(!o.sekolah) o.sekolah = 'SMK Widya Mandala Tambak';
+    if(!o.judul) o.judul = 'DAFTAR PESERTA UJIAN';
+    return o;
+  }
+  // which: nama ruang tertentu, atau kosong = ikuti pilihan di kartu (kosong lagi = semua ruang)
+  function rxCollect(which){
+    const pick = which || ((document.getElementById('rx-ruang') || {}).value || '');
+    const list = pick ? rxSortedRooms().filter(r => r.nama === pick) : rxSortedRooms();
+    const data = list.map(r => ({
+      nama: r.nama,
+      peserta: users.filter(u => u.ruang === r.nama).sort((a, b) =>
+        String(a.kelas || '').localeCompare(String(b.kelas || ''), 'id', { numeric:true }) ||
+        String(a.nama || '').localeCompare(String(b.nama || ''), 'id'))
+    }));
+    return { pick, data: pick ? data : data.filter(d => d.peserta.length) };
+  }
+  function rxSafeName(s){ return String(s).replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'ruang'; }
+  function rxSaveBlob(blob, filename){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  function rxEnsure(which){
+    const c = rxCollect(which);
+    if(!rooms.length){ alert('Belum ada ruang. Tambahkan ruang dan tetapkan pesertanya terlebih dahulu.'); return null; }
+    if(!c.data.length || c.data.every(d => !d.peserta.length)){
+      alert(c.pick ? `Ruang ${c.pick} belum memiliki peserta.` : 'Belum ada ruang yang memiliki peserta.'); return null;
+    }
+    return c;
+  }
+  function rxTtdWarn(cfg){
+    if(!cfg.kepsek) return confirm('Nama Kepala Sekolah belum diisi, sehingga tempat tanda tangan akan kosong tanpa nama. Tetap lanjutkan?');
+    return true;
+  }
+  function rxRuangLabel(n){ return /^ruang\b/i.test(String(n).trim()) ? String(n).trim() : 'Ruang ' + n; }
+  function rxFileName(c, ext){ return 'Peserta-Ruang-' + (c.pick ? rxSafeName(c.pick) : 'Semua') + '.' + ext; }
+
+  /* ---------- PDF ---------- */
+  function rxDownloadPdf(which){
+    if(!window.jspdf || !window.jspdf.jsPDF){ alert('Pustaka PDF belum termuat. Periksa koneksi internet lalu muat ulang halaman.'); return; }
+    const c = rxEnsure(which); if(!c) return;
+    const cfg = rxSettings(); if(!rxTtdWarn(cfg)) return;
+    const doc = new window.jspdf.jsPDF({ unit:'mm', format:'a4' });
+    if(typeof doc.autoTable !== 'function'){ alert('Pustaka tabel PDF belum termuat. Muat ulang halaman.'); return; }
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 15;
+
+    c.data.forEach((room, idx) => {
+      if(idx > 0) doc.addPage();
+      let y = 16;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(20);
+      doc.text(cfg.sekolah.toUpperCase(), W / 2, y, { align:'center' }); y += 6.5;
+      doc.setFontSize(12); doc.text(cfg.judul.toUpperCase(), W / 2, y, { align:'center' });
+      if(cfg.tahun){ y += 5.5; doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.text('Tahun Pelajaran ' + cfg.tahun, W / 2, y, { align:'center' }); }
+      y += 4; doc.setDrawColor(30); doc.setLineWidth(0.7); doc.line(M, y, W - M, y); doc.setLineWidth(0.2); doc.line(M, y + 1, W - M, y + 1);
+      y += 8;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.text('Ruang', M, y); doc.text(':  ' + room.nama, M + 32, y); y += 5.5;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Jumlah peserta', M, y); doc.text(':  ' + room.peserta.length + ' orang', M + 32, y); y += 5;
+
+      doc.autoTable({
+        startY: y,
+        margin: { left:M, right:M, bottom:18 },
+        head: [['No', 'Nama Peserta', 'Kelas', 'Username', 'Tanda Tangan']],
+        body: room.peserta.map((u, i) => [String(i + 1), u.nama || '', u.kelas || '', u.username || '', '']),
+        theme: 'grid',
+        styles: { font:'helvetica', fontSize:9.5, cellPadding:{ top:2.2, bottom:2.2, left:2.5, right:2.5 }, lineColor:[90, 90, 90], lineWidth:0.2, textColor:20, valign:'middle', minCellHeight:9 },
+        headStyles: { fillColor:[40, 52, 110], textColor:255, fontStyle:'bold', halign:'center' },
+        alternateRowStyles: { fillColor:[246, 247, 251] },
+        columnStyles: { 0:{ cellWidth:11, halign:'center' }, 1:{ cellWidth:68 }, 2:{ cellWidth:24, halign:'center' }, 3:{ cellWidth:37 }, 4:{ cellWidth:'auto' } },
+        didDrawPage: () => {
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(120);
+          doc.text(cfg.sekolah + '  ·  ' + rxRuangLabel(room.nama), M, H - 9);
+          doc.setTextColor(20);
+        }
+      });
+
+      // blok tanda tangan Kepala Sekolah (selalu utuh dalam satu halaman)
+      const NEED = 52;
+      let ty = doc.lastAutoTable.finalY + 10;
+      if(ty + NEED > H - 14){ doc.addPage(); ty = 24; }
+      const bx = W - M - 72;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(20);
+      const tempat = [cfg.kota, cfg.tanggalLabel].filter(Boolean).join(', ');
+      if(tempat){ doc.text(tempat, bx, ty); ty += 6; }
+      doc.text('Mengetahui,', bx, ty); ty += 5.5;
+      doc.text('Kepala Sekolah', bx, ty);
+      ty += 26;
+      if(cfg.kepsek){
+        doc.setFont('helvetica', 'bold');
+        doc.text(cfg.kepsek, bx, ty);
+        const w = doc.getTextWidth(cfg.kepsek);
+        doc.setLineWidth(0.3); doc.line(bx, ty + 1, bx + w, ty + 1);
+        doc.setFont('helvetica', 'normal');
+        if(cfg.nip){ ty += 5.5; doc.text('NIP/NUPTK. ' + cfg.nip, bx, ty); }
+      } else {
+        doc.text('(............................................)', bx, ty);
+      }
+    });
+    rxSaveBlob(doc.output('blob'), rxFileName(c, 'pdf'));
+  }
+
+  /* ---------- Excel (satu sheet per ruang, siap cetak A4) ---------- */
+  async function rxDownloadXlsx(which){
+    if(typeof ExcelJS === 'undefined'){ alert('Pustaka Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.'); return; }
+    const c = rxEnsure(which); if(!c) return;
+    const cfg = rxSettings(); if(!rxTtdWarn(cfg)) return;
+    const wb = new ExcelJS.Workbook();
+    wb.creator = cfg.sekolah; wb.created = new Date();
+    const used = new Set();
+    const thin = { style:'thin', color:{ argb:'FF555555' } };
+    const box = { top:thin, left:thin, bottom:thin, right:thin };
+    const FONT = 'Arial';
+
+    c.data.forEach(room => {
+      let nm = String(room.nama).replace(/[\\\/\?\*\[\]:]/g, '-').slice(0, 31) || 'Ruang';
+      let base = nm, n = 2;
+      while(used.has(nm.toLowerCase())){ nm = base.slice(0, 28) + ' ' + n++; }
+      used.add(nm.toLowerCase());
+
+      const ws = wb.addWorksheet(nm, {
+        pageSetup:{ paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0, horizontalCentered:true,
+                    margins:{ left:0.6, right:0.6, top:0.7, bottom:0.8, header:0.3, footer:0.4 } },
+        views:[{ showGridLines:false }]
+      });
+      ws.columns = [{ width:6 }, { width:40 }, { width:14 }, { width:22 }, { width:26 }];
+      const merged = (r, text, o) => {
+        ws.mergeCells(r, 1, r, 5);
+        const cell = ws.getCell(r, 1);
+        cell.value = text;
+        cell.font = { name:FONT, size:o.size, bold:!!o.bold, color:{ argb:'FF111111' } };
+        cell.alignment = { horizontal:o.align || 'center', vertical:'middle' };
+        if(o.h) ws.getRow(r).height = o.h;
+      };
+      let r = 1;
+      merged(r++, cfg.sekolah.toUpperCase(), { size:15, bold:true, h:24 });
+      merged(r++, cfg.judul.toUpperCase(), { size:12.5, bold:true, h:20 });
+      if(cfg.tahun) merged(r++, 'Tahun Pelajaran ' + cfg.tahun, { size:11, h:18 });
+      for(let col = 1; col <= 5; col++) ws.getCell(r, col).border = { bottom:{ style:'double', color:{ argb:'FF111111' } } };
+      ws.getRow(r).height = 6; r += 2;
+
+      const info = (label, val) => {
+        ws.getCell(r, 1).value = label; ws.mergeCells(r, 1, r, 2);
+        ws.getCell(r, 1).font = { name:FONT, size:11, bold:true };
+        ws.getCell(r, 3).value = ':  ' + val; ws.mergeCells(r, 3, r, 5);
+        ws.getCell(r, 3).font = { name:FONT, size:11, bold:label === 'Ruang' };
+        ws.getCell(r, 1).alignment = { horizontal:'left' }; ws.getCell(r, 3).alignment = { horizontal:'left' };
+        r++;
+      };
+      info('Ruang', room.nama);
+      info('Jumlah peserta', room.peserta.length + ' orang');
+      r++;
+
+      const headRow = r;
+      ['No', 'Nama Peserta', 'Kelas', 'Username', 'Tanda Tangan'].forEach((t, i) => {
+        const cell = ws.getCell(r, i + 1);
+        cell.value = t;
+        cell.font = { name:FONT, size:11, bold:true, color:{ argb:'FFFFFFFF' } };
+        cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF28346E' } };
+        cell.alignment = { horizontal:'center', vertical:'middle' };
+        cell.border = box;
+      });
+      ws.getRow(r).height = 22; r++;
+
+      room.peserta.forEach((u, i) => {
+        const vals = [i + 1, u.nama || '', u.kelas || '', u.username || '', ''];
+        vals.forEach((v, ci) => {
+          const cell = ws.getCell(r, ci + 1);
+          cell.value = v;
+          cell.font = { name:FONT, size:10.5 };
+          cell.border = box;
+          cell.alignment = { horizontal:(ci === 0 || ci === 2) ? 'center' : 'left', vertical:'middle', indent:(ci === 1 || ci === 3) ? 1 : 0 };
+          if(i % 2 === 1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF3F4FA' } };
+        });
+        ws.getRow(r).height = 24;
+        r++;
+      });
+      ws.pageSetup.printTitlesRow = headRow + ':' + headRow;
+      ws.headerFooter = { oddFooter:'&L&8' + cfg.sekolah + '  -  ' + rxRuangLabel(room.nama) + '&R&8Halaman &P dari &N' };
+
+      // tanda tangan Kepala Sekolah di kolom kanan
+      r += 2;
+      const sig = (text, o) => {
+        ws.mergeCells(r, 4, r, 5);
+        const cell = ws.getCell(r, 4);
+        cell.value = text;
+        cell.font = { name:FONT, size:11, bold:!!o.bold, underline:!!o.underline };
+        cell.alignment = { horizontal:'center', vertical:o.v || 'middle' };
+        if(o.h) ws.getRow(r).height = o.h;
+        r++;
+      };
+      const tempat = [cfg.kota, cfg.tanggalLabel].filter(Boolean).join(', ');
+      if(tempat) sig(tempat, {});
+      sig('Mengetahui,', {});
+      sig('Kepala Sekolah', {});
+      sig('', { h:60 });
+      if(cfg.kepsek){
+        sig(cfg.kepsek, { bold:true, underline:true });
+        if(cfg.nip) sig('NIP/NUPTK. ' + cfg.nip, {});
+      } else {
+        sig('(............................................)', {});
+      }
+      // jaga blok tanda tangan tetap satu halaman dengan baris terakhir tabel
+      ws.pageSetup.printArea = 'A1:E' + (r - 1);
+    });
+
+    try{
+      const buf = await wb.xlsx.writeBuffer();
+      rxSaveBlob(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), rxFileName(c, 'xlsx'));
+    }catch(err){
+      alert('Gagal membuat file Excel: ' + (err && err.message ? err.message : err));
+    }
   }
 
   function populateRuangTargetSelect(){
@@ -4572,6 +4876,7 @@
     populateSupervisorRuangSelect();
     renderRuangPesertaList();
     jtRenderList();
+    rxInit();
   }
   init();
 </script>
