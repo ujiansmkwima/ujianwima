@@ -982,7 +982,7 @@ function buildQuestionOrder(soal, acak){
 
 function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
 function mapQuestionSet(row){
-  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, soal: row.soal || [] };
+  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, soal: row.soal || [], loaded: Array.isArray(row.soal) };
 }
 function mapSchedule(row){
   return {
@@ -1137,7 +1137,7 @@ async function init(){
 
   const [subjRes, qsRes, schRes, atRes, jtRes, slotRes] = await Promise.all([
     sb.from('subjects').select('*'),
-    sb.from('question_sets').select('*'),
+    sb.from('question_sets').select('id,subject_id,judul,status'),
     sb.from('schedules').select('*'),
     sb.from('exam_attempts').select('*').eq('user_id', me.id),
     sb.from('jadwal_tulis').select('*'),
@@ -1361,10 +1361,33 @@ function confirmToken(){
   proceedEnterExam(scheduleId);
 }
 
+
+/* Soal diunduh HANYA untuk paket yang dikerjakan (hemat egress 5 GB/bulan di free tier:
+   sebelumnya setiap siswa mengunduh seluruh paket soal saat membuka halaman). */
+async function ensureQuestionSet(id){
+  const qs = questionSets.find(q => q.id === id);
+  if(!qs || qs.loaded) return qs;
+  let lastErr = null;
+  for(let i = 0; i < 4; i++){
+    try{
+      const { data, error } = await withTimeout(sb.from('question_sets').select('id,soal').eq('id', id).single(), NET_TIMEOUT_MS);
+      if(error) throw error;
+      qs.soal = (data && data.soal) || [];
+      qs.loaded = true;
+      return qs;
+    }catch(e){
+      lastErr = e;
+      await new Promise(r => setTimeout(r, 800 * (i + 1) + Math.random() * 600));
+    }
+  }
+  console.error('Gagal memuat soal:', lastErr);
+  return qs;
+}
+
 async function proceedEnterExam(scheduleId){
   const j = schedules.find(x => x.id === scheduleId);
-  const qs = questionSets.find(x => x.id === j.questionSetId);
-  if(!j || !qs || qs.soal.length === 0){ alert('Paket soal tidak tersedia.'); return; }
+  const qs = j ? await ensureQuestionSet(j.questionSetId) : null;
+  if(!j || !qs || qs.soal.length === 0){ alert('Paket soal belum bisa dimuat. Periksa koneksi lalu coba lagi.'); return; }
   if(getJadwalStatus(j) !== 'berlangsung'){ alert('Waktu ujian ini sudah tidak aktif.'); renderExamList(); return; }
   qs.soal.forEach(normalizeQuestionClient);
 
@@ -1398,7 +1421,7 @@ async function proceedEnterExam(scheduleId){
   }
 
   liveExam = { schedule: j, questionSet: qs, attempt: at, currentIndex: 0 };
-  startExamPresence();
+  startExamHeartbeat();
   document.body.classList.add('exam-active');
   setSaveStatus('ok', '✓ Jawaban tersimpan otomatis');
   if(dirty) flushAnswers();
@@ -1666,35 +1689,32 @@ function saveLocalBackup(){
 }
 
 
-/* ---------- Presence realtime: memberi tahu pengawas bahwa siswa sedang online di ujian ---------- */
-let presenceChannel = null, presenceTimer = null;
-function startExamPresence(){
-  stopExamPresence();
-  if(!liveExam) return;
-  const payload = () => ({
-    user_id: selectedSiswaId,
-    schedule_id: liveExam ? liveExam.schedule.id : null,
-    attempt_id: liveExam ? liveExam.attempt.id : null,
-    at: Date.now()
-  });
+/* ---------- Heartbeat ringan (HTTP biasa, TANPA Realtime) ----------
+   Free tier Supabase: Realtime dibatasi 200 koneksi, jadi siswa tidak dipakai Realtime.
+   Penanda "online" bagi pengawas = last_seen di server. Setiap simpan jawaban sudah ikut
+   memperbarui last_seen lewat trigger; heartbeat ini hanya mengisi saat siswa sedang diam. */
+const HB_INTERVAL_MS = 25000;
+let hbTimer = null, hbStartTimer = null, hbDisabled = false;
+async function sendHeartbeat(){
+  if(hbDisabled || !liveExam || examFinished || document.hidden) return;
   try{
-    presenceChannel = sb.channel('exam-presence', { config: { presence: { key: String(selectedSiswaId) } } });
-    presenceChannel.subscribe(async (st) => {
-      if(st === 'SUBSCRIBED' && liveExam){ try{ await presenceChannel.track(payload()); }catch(e){} }
-    });
-    // perbarui penanda tiap 10 detik (sekaligus menjaga koneksi tetap hidup)
-    presenceTimer = setInterval(() => {
-      if(presenceChannel && liveExam){ presenceChannel.track(payload()).catch(()=>{}); }
-    }, 10000);
-  }catch(e){ console.error('Presence gagal:', e); }
+    const { error } = await sb.rpc('exam_heartbeat', { p_attempt: liveExam.attempt.id });
+    if(error && (error.code === 'PGRST202' || error.status === 404)) hbDisabled = true; // SQL belum dijalankan
+  }catch(e){ /* abaikan: heartbeat tidak boleh mengganggu ujian */ }
 }
-function stopExamPresence(){
-  clearInterval(presenceTimer); presenceTimer = null;
-  if(presenceChannel){
-    try{ presenceChannel.untrack(); sb.removeChannel(presenceChannel); }catch(e){}
-    presenceChannel = null;
-  }
+function startExamHeartbeat(){
+  stopExamHeartbeat();
+  // jeda acak 0-8 dtk agar 300 siswa tidak menembak server di detik yang sama
+  hbStartTimer = setTimeout(() => {
+    sendHeartbeat();
+    hbTimer = setInterval(sendHeartbeat, HB_INTERVAL_MS);
+  }, Math.random() * 8000);
 }
+function stopExamHeartbeat(){
+  clearTimeout(hbStartTimer); hbStartTimer = null;
+  clearInterval(hbTimer); hbTimer = null;
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden) sendHeartbeat(); });
 
 function persistAnswer(){
   if(!liveExam || examFinished) return;
@@ -1702,7 +1722,7 @@ function persistAnswer(){
   saveLocalBackup();                       // cadangan instan di perangkat
   setSaveStatus('saving', '⏳ Menyimpan…');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushAnswers, 250);
+  saveTimer = setTimeout(flushAnswers, 1000);
 }
 
 function flushAnswers(){
@@ -1968,7 +1988,7 @@ function closeExitNoSubmitModal(){ document.getElementById('exitNoSubmitModalBg'
 function confirmExitNoSubmit(){
   closeExitNoSubmitModal();
   clearInterval(timerInterval);
-  stopExamPresence();
+  stopExamHeartbeat();
   liveExam = null;
   document.getElementById('resultView').style.display = 'none';
   document.getElementById('examView').style.display = 'none';
@@ -2079,7 +2099,7 @@ function gradeAttempt(qs, attempt){
    - Payload disimpan di perangkat sampai server mengonfirmasi, jadi tidak hilang
      walau internet putus / halaman tertutup. */
 async function submitAttempt(attempt, schedule){
-  const qs = questionSets.find(x => x.id === schedule.questionSetId);
+  const qs = await ensureQuestionSet(schedule.questionSetId);
   const key = PENDING_PREFIX + attempt.id;
   let pending = lsGet(key);
   if(!pending){
@@ -2285,7 +2305,7 @@ function showResult(){
   if(liveExam && liveExam.autoSubmitted){
     document.getElementById('rv-sub').textContent += ' (Waktu habis, jawaban dikumpulkan otomatis.)';
   }
-  stopExamPresence();
+  stopExamHeartbeat();
   liveExam = null;
   document.getElementById('examView').classList.remove('locked');
 }

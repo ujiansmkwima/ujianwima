@@ -324,9 +324,21 @@
         return false;
       }
 
-      const { data: signInData, error: signInErr } = await sb.auth.signInWithPassword({ email, password });
+      // Saat ratusan siswa login bersamaan dari WiFi yang sama, Supabase bisa membalas 429
+      // (batas per IP). Coba ulang otomatis dengan jeda acak, jangan salah dikira password salah.
+      let signInData = null, signInErr = null;
+      for(let attempt = 0; attempt < 6; attempt++){
+        const res = await sb.auth.signInWithPassword({ email, password });
+        signInData = res.data; signInErr = res.error;
+        const limited = signInErr && (signInErr.status === 429 || signInErr.code === 'over_request_rate_limit' || /rate limit/i.test(signInErr.message || ''));
+        if(!limited) break;
+        note.classList.add('show');
+        note.textContent = 'Server sedang padat, mencoba masuk lagi otomatis… (' + (attempt + 1) + '/6)';
+        await new Promise(r => setTimeout(r, 3000 + Math.random() * 5000));
+      }
       if(signInErr){
-        note.textContent = 'Username atau kata sandi salah.';
+        const limited = signInErr.status === 429 || signInErr.code === 'over_request_rate_limit';
+        note.textContent = limited ? 'Server masih padat. Tunggu 1 menit lalu coba lagi.' : 'Username atau kata sandi salah.';
         return false;
       }
 

@@ -1480,7 +1480,7 @@ D. Medan
       <div id="mon-list"></div>
 
       <div class="format-guide" style="margin-top:16px;">
-        Status peserta di sini diperbarui secara <strong>realtime</strong> selama tab Monitoring ini terbuka (dengan sinkronisasi cadangan tiap 5 detik). Penanda <em>online/terputus</em> menunjukkan apakah perangkat siswa masih terhubung. Tombol <strong>Refresh</strong> memaksa pembaruan segera.
+        Status peserta di sini diperbarui otomatis setiap ±4 detik selama tab Monitoring ini terbuka (hanya data yang berubah yang diambil, jadi ringan untuk ratusan peserta). Penanda <em>online/terputus</em> menunjukkan apakah perangkat siswa masih terhubung. Tombol <strong>Refresh</strong> memaksa pembaruan segera.
       </div>
     </div>
   </section>
@@ -3871,9 +3871,9 @@ function monitoredSchedules(){
   });
 }
 
-/* Presence realtime (siswa yang sedang terhubung) */
-let monOnline = {};          // { userId: {schedule_id, at} }
-function isOnlineNow(uid){ return !!monOnline[uid]; }
+/* Status online berdasarkan last_seen dari server (heartbeat siswa tiap 25 dtk) */
+const MON_ONLINE_MS = 90000;
+function isOnlineAttempt(at){ return !!(at && at.lastSeenAt && (Date.now() - at.lastSeenAt) < MON_ONLINE_MS); }
 
 function renderMonitoring(){
   const selEl = document.getElementById('mon-ruang');
@@ -3926,11 +3926,12 @@ function renderMonitoring(){
         const badgeClass = r.status === 'selesai' ? 'badge-selesai' : r.status === 'mengerjakan' ? 'badge-mengerjakan' : 'badge-belum';
         const label = r.status === 'selesai' ? 'Selesai' : r.status === 'mengerjakan' ? 'Mengerjakan' : 'Belum mulai';
         const pk = r.at ? (r.at.percobaanKeluar || 0) : 0;
-        const total = r.at ? (r.at.urutanSoal || []).length : 0;
-        const done = r.at ? Object.keys(r.at.jawaban || {}).length : 0;
-        const prog = r.at && total ? `${done}/${total}` : '—';
+        const qsetRef = questionSets.find(q => q.id === r.jadwal.questionSetId);
+        const total = r.at ? ((r.at.urutanSoal || []).length || (qsetRef && qsetRef.soal ? qsetRef.soal.length : 0)) : 0;
+        const done = r.at ? (r.at.answeredCount != null ? r.at.answeredCount : Object.keys(r.at.jawaban || {}).length) : 0;
+        const prog = r.at ? (total ? `${done}/${total}` : String(done)) : '—';
         const online = r.status === 'mengerjakan'
-          ? (isOnlineNow(r.siswa.id) ? ' <span title="Terhubung" style="color:#059669;font-size:11px;">● online</span>' : ' <span title="Tidak terhubung / koneksi terputus" style="color:#DC2626;font-size:11px;">● terputus</span>')
+          ? (isOnlineAttempt(r.at) ? ' <span title="Terhubung" style="color:#059669;font-size:11px;">● online</span>' : ' <span title="Tidak terhubung / koneksi terputus" style="color:#DC2626;font-size:11px;">● terputus</span>')
           : '';
         return `<tr>
           <td data-label="Nama" class="cell-primary">${escapeHtml(r.siswa.nama)}</td>
@@ -3981,61 +3982,83 @@ async function refreshMonitoring(){
   }
 }
 
-/* ---- Realtime (Supabase) + polling cadangan, aktif saat tab Monitoring terbuka ---- */
-const MON_AUTO_REFRESH_MS = 5000;     // cadangan bila realtime terputus
-let monAutoRefreshTimer = null;
-let monChannel = null, monPresenceChannel = null, monRealtimeOk = false;
+/* ---- Monitoring DELTA polling (tanpa Realtime; aman untuk free tier) ----
+   Tiap 4 dtk guru hanya meminta baris yang BERUBAH sejak polling terakhir (kolom ringan),
+   sehingga dengan 300 siswa tiap respons hanya beberapa baris / beberapa KB. */
+const MON_POLL_MS = 4000;
+let monAutoRefreshTimer = null, monSince = null, monDeltaOk = true, monPollInFlight = false, monLastSig = '';
 
-function startMonitoringRealtime(){
-  stopMonitoringRealtime();
+async function pollMonitoring(){
+  if(monPollInFlight) return;
+  if(!monDeltaOk){ return refreshMonitoring(); }          // cadangan: SQL belum dijalankan
+  monPollInFlight = true;
   try{
-    // 1) perubahan tabel exam_attempts (mulai, jawaban, selesai, percobaan keluar)
-    monChannel = sb.channel('mon-attempts-' + Math.random().toString(36).slice(2))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_attempts' }, (p) => {
-        if(p.eventType === 'DELETE'){
-          const id = p.old && p.old.id;
-          attempts = attempts.filter(a => a.id !== id);
-        } else {
-          upsertAttemptRow(p.new);
-        }
-        scheduleMonRender();
-      })
-      .subscribe((st) => {
-        monRealtimeOk = (st === 'SUBSCRIBED');
-        if(monRealtimeOk) refreshMonitoring();   // sinkron penuh begitu tersambung
+    const { data, error } = await sb.rpc('monitoring_delta', { p_since: monSince });
+    if(error){ console.warn('monitoring_delta gagal, pakai mode cadangan:', error.message); monDeltaOk = false; return; }
+    const tNow = Date.now();
+    // mundur 4 dtk agar tidak ada baris yang terlewat (penggabungan bersifat idempoten)
+    monSince = new Date(new Date(data.now).getTime() - 4000).toISOString();
+    const rows = data.rows || [];
+    const needFull = [];
+    rows.forEach(r => {
+      let at = attempts.find(a => a.id === r.id);
+      const isNew = !at;
+      if(isNew){
+        at = { id: r.id, scheduleId: r.schedule_id, userId: r.user_id, jawaban: {}, ragu: {},
+               urutanSoal: [], urutanOpsi: {}, nilai: null, penilaian: null };
+        attempts.push(at);
+      }
+      const wasDone = !isNew && at.status === 'selesai';
+      at.status = r.status;
+      at.mulai = r.mulai ? new Date(r.mulai).getTime() : null;
+      at.selesai = r.selesai ? new Date(r.selesai).getTime() : null;
+      at.percobaanKeluar = r.percobaan_keluar || 0;
+      at.answeredCount = r.answered_count || 0;
+      at.lastSeenAt = (r.seen_ago == null) ? null : tNow - r.seen_ago * 1000;
+      // attempt baru / baru selesai -> ambil data lengkap (nilai, jawaban) sekali saja untuk Rekap
+      if(r.status === 'selesai' && !wasDone) needFull.push(r.id);
+      else if(isNew) needFull.push(r.id);
+    });
+    if(needFull.length){
+      const fullRows = [];
+      for(let i = 0; i < needFull.length; i += 40){
+        const { data: part } = await sb.from('exam_attempts').select('*').in('id', needFull.slice(i, i + 40));
+        if(part) fullRows.push(...part);
+      }
+      fullRows.forEach(row => {
+        const old = attempts.find(a => a.id === row.id) || {};
+        upsertAttemptRow(row);
+        const cur = attempts.find(a => a.id === row.id);
+        if(cur){ cur.answeredCount = old.answeredCount; cur.lastSeenAt = old.lastSeenAt; }
       });
-
-    // 2) presence: siswa mana yang sedang terhubung
-    monPresenceChannel = sb.channel('exam-presence', { config: { presence: { key: 'guru-' + selectedGuruId } } });
-    const syncPresence = () => {
-      const state = monPresenceChannel.presenceState();
-      const map = {};
-      Object.values(state).forEach(arr => arr.forEach(m => { if(m && m.user_id) map[m.user_id] = m; }));
-      monOnline = map;
-      scheduleMonRender();
-    };
-    monPresenceChannel.on('presence', { event: 'sync' }, syncPresence).subscribe();
-  }catch(e){ console.error('Realtime monitoring gagal:', e); }
-}
-function stopMonitoringRealtime(){
-  monRealtimeOk = false;
-  [monChannel, monPresenceChannel].forEach(ch => { if(ch){ try{ sb.removeChannel(ch); }catch(e){} } });
-  monChannel = null; monPresenceChannel = null; monOnline = {};
+    }
+    // render hanya bila ada perubahan data atau perubahan status online/terputus
+    const sig = attempts.filter(a => a.status === 'mengerjakan').map(a => a.id + (isOnlineAttempt(a) ? '1' : '0')).join(',');
+    if(rows.length || sig !== monLastSig){
+      monLastSig = sig;
+      renderMonitoring();
+      if(needFull.length && document.getElementById('panel-rekap')?.classList.contains('active')) renderRekap();
+    }
+  }catch(e){
+    console.error('Polling monitoring gagal:', e);
+  }finally{
+    monPollInFlight = false;
+  }
 }
 
 function startMonitoringAutoRefresh(){
   stopMonitoringAutoRefresh();
-  startMonitoringRealtime();
-  monAutoRefreshTimer = setInterval(refreshMonitoring, MON_AUTO_REFRESH_MS);
+  monSince = null;                       // sinkron awal: ambil semua yang aktif
+  pollMonitoring();
+  monAutoRefreshTimer = setInterval(pollMonitoring, monDeltaOk ? MON_POLL_MS : 10000);
 }
 function stopMonitoringAutoRefresh(){
   if(monAutoRefreshTimer){ clearInterval(monAutoRefreshTimer); monAutoRefreshTimer = null; }
-  stopMonitoringRealtime();
 }
 document.addEventListener('visibilitychange', () => {
   const monActive = document.getElementById('panel-monitoring')?.classList.contains('active');
   if(document.hidden){ stopMonitoringAutoRefresh(); }
-  else if(monActive){ refreshMonitoring(); startMonitoringAutoRefresh(); }
+  else if(monActive){ startMonitoringAutoRefresh(); }
 });
 
 /* ============================================================
