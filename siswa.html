@@ -1398,6 +1398,7 @@ async function proceedEnterExam(scheduleId){
   }
 
   liveExam = { schedule: j, questionSet: qs, attempt: at, currentIndex: 0 };
+  startExamPresence();
   document.body.classList.add('exam-active');
   setSaveStatus('ok', '✓ Jawaban tersimpan otomatis');
   if(dirty) flushAnswers();
@@ -1664,13 +1665,44 @@ function saveLocalBackup(){
   lsSet(BACKUP_PREFIX + attempt.id, { jawaban: attempt.jawaban, ragu: attempt.ragu, t: Date.now() });
 }
 
+
+/* ---------- Presence realtime: memberi tahu pengawas bahwa siswa sedang online di ujian ---------- */
+let presenceChannel = null, presenceTimer = null;
+function startExamPresence(){
+  stopExamPresence();
+  if(!liveExam) return;
+  const payload = () => ({
+    user_id: selectedSiswaId,
+    schedule_id: liveExam ? liveExam.schedule.id : null,
+    attempt_id: liveExam ? liveExam.attempt.id : null,
+    at: Date.now()
+  });
+  try{
+    presenceChannel = sb.channel('exam-presence', { config: { presence: { key: String(selectedSiswaId) } } });
+    presenceChannel.subscribe(async (st) => {
+      if(st === 'SUBSCRIBED' && liveExam){ try{ await presenceChannel.track(payload()); }catch(e){} }
+    });
+    // perbarui penanda tiap 10 detik (sekaligus menjaga koneksi tetap hidup)
+    presenceTimer = setInterval(() => {
+      if(presenceChannel && liveExam){ presenceChannel.track(payload()).catch(()=>{}); }
+    }, 10000);
+  }catch(e){ console.error('Presence gagal:', e); }
+}
+function stopExamPresence(){
+  clearInterval(presenceTimer); presenceTimer = null;
+  if(presenceChannel){
+    try{ presenceChannel.untrack(); sb.removeChannel(presenceChannel); }catch(e){}
+    presenceChannel = null;
+  }
+}
+
 function persistAnswer(){
   if(!liveExam || examFinished) return;
   dirty = true;
   saveLocalBackup();                       // cadangan instan di perangkat
   setSaveStatus('saving', '⏳ Menyimpan…');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushAnswers, 350);
+  saveTimer = setTimeout(flushAnswers, 250);
 }
 
 function flushAnswers(){
@@ -1936,6 +1968,7 @@ function closeExitNoSubmitModal(){ document.getElementById('exitNoSubmitModalBg'
 function confirmExitNoSubmit(){
   closeExitNoSubmitModal();
   clearInterval(timerInterval);
+  stopExamPresence();
   liveExam = null;
   document.getElementById('resultView').style.display = 'none';
   document.getElementById('examView').style.display = 'none';
@@ -2252,6 +2285,7 @@ function showResult(){
   if(liveExam && liveExam.autoSubmitted){
     document.getElementById('rv-sub').textContent += ' (Waktu habis, jawaban dikumpulkan otomatis.)';
   }
+  stopExamPresence();
   liveExam = null;
   document.getElementById('examView').classList.remove('locked');
 }

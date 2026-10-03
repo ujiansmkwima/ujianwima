@@ -1480,7 +1480,7 @@ D. Medan
       <div id="mon-list"></div>
 
       <div class="format-guide" style="margin-top:16px;">
-        Status peserta di sini diperbarui otomatis setiap beberapa detik selama tab Monitoring ini terbuka. Tombol <strong>Refresh</strong> bisa dipakai untuk memaksa pembaruan segera.
+        Status peserta di sini diperbarui secara <strong>realtime</strong> selama tab Monitoring ini terbuka (dengan sinkronisasi cadangan tiap 5 detik). Penanda <em>online/terputus</em> menunjukkan apakah perangkat siswa masih terhubung. Tombol <strong>Refresh</strong> memaksa pembaruan segera.
       </div>
     </div>
   </section>
@@ -3857,29 +3857,54 @@ function findAttempt(scheduleId, userId){
   return attempts.find(a => a.scheduleId === scheduleId && a.userId === userId);
 }
 
+/* Jadwal yang relevan untuk dipantau: ujian yang rentang tanggalnya mencakup hari ini
+   (termasuk ujian multi-hari), yang sedang berlangsung, ATAU yang masih punya siswa
+   berstatus "mengerjakan" (walau jendela waktunya sudah lewat). */
+function monitoredSchedules(){
+  const today = todayLocalStr();
+  const busy = new Set(attempts.filter(a => a.status === 'mengerjakan').map(a => a.scheduleId));
+  return schedules.filter(j => {
+    const st = getJadwalStatus(j);
+    const akhir = j.tanggalSelesai || j.tanggal;
+    const hariIni = j.tanggal <= today && today <= akhir;
+    return st === 'berlangsung' || hariIni || busy.has(j.id);
+  });
+}
+
+/* Presence realtime (siswa yang sedang terhubung) */
+let monOnline = {};          // { userId: {schedule_id, at} }
+function isOnlineNow(uid){ return !!monOnline[uid]; }
+
 function renderMonitoring(){
   const selEl = document.getElementById('mon-ruang');
   if(!selEl) return;
   const ruang = selEl.value;
   const rooms = mySupervisorRooms();
   const roomFilter = ruang ? [ruang] : rooms;
-  const active = schedules.filter(j => {
-    const st = getJadwalStatus(j);
-    return (st === 'berlangsung' || st === 'terjadwal') && j.tanggal === todayLocalStr();
-  });
+  const active = monitoredSchedules();
 
   const rows = [];
+  const seen = new Set();
   active.forEach(j => {
-    j.peserta.forEach(uid => {
+    const ids = new Set(j.peserta || []);
+    // siswa yang sudah punya attempt tetap ditampilkan walau tidak ada di daftar peserta
+    attempts.forEach(a => { if(a.scheduleId === j.id) ids.add(a.userId); });
+    ids.forEach(uid => {
       const u = users.find(x => x.id === uid);
       if(!u || !roomFilter.includes(u.ruang)) return;
+      const key = j.id + '|' + uid;
+      if(seen.has(key)) return;
+      seen.add(key);
       const at = findAttempt(j.id, uid);
       rows.push({ jadwal: j, siswa: u, status: at ? at.status : 'belum_mulai', at });
     });
   });
+  // yang sedang mengerjakan tampil paling atas
+  const order = { mengerjakan:0, belum_mulai:1, selesai:2 };
+  rows.sort((a,b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || String(a.siswa.nama).localeCompare(String(b.siswa.nama)));
 
   const counts = { belum_mulai:0, mengerjakan:0, selesai:0 };
-  rows.forEach(r => counts[r.status]++);
+  rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
   document.getElementById('mon-stats').innerHTML = `
     <div class="stat-pill indigo"><div class="num">${rows.length}</div><div class="lbl">Peserta yang harus ikut</div></div>
     <div class="stat-pill slate"><div class="num">${counts.belum_mulai}</div><div class="lbl">Belum mulai</div></div>
@@ -3895,24 +3920,50 @@ function renderMonitoring(){
   }
   const showRuangCol = !ruang && rooms.length > 1;
   wrap.innerHTML = `<div class="list-card"><div class="table-scroll"><table>
-    <thead><tr><th>Nama</th><th>NIS (username)</th><th>Kelas</th>${showRuangCol ? '<th>Ruang</th>' : ''}<th>Paket ujian</th><th>Status</th><th>Percobaan Keluar</th></tr></thead>
+    <thead><tr><th>Nama</th><th>NIS (username)</th><th>Kelas</th>${showRuangCol ? '<th>Ruang</th>' : ''}<th>Paket ujian</th><th>Status</th><th>Progres</th><th>Percobaan Keluar</th></tr></thead>
     <tbody>
       ${rows.map(r => {
         const badgeClass = r.status === 'selesai' ? 'badge-selesai' : r.status === 'mengerjakan' ? 'badge-mengerjakan' : 'badge-belum';
         const label = r.status === 'selesai' ? 'Selesai' : r.status === 'mengerjakan' ? 'Mengerjakan' : 'Belum mulai';
         const pk = r.at ? (r.at.percobaanKeluar || 0) : 0;
+        const total = r.at ? (r.at.urutanSoal || []).length : 0;
+        const done = r.at ? Object.keys(r.at.jawaban || {}).length : 0;
+        const prog = r.at && total ? `${done}/${total}` : '—';
+        const online = r.status === 'mengerjakan'
+          ? (isOnlineNow(r.siswa.id) ? ' <span title="Terhubung" style="color:#059669;font-size:11px;">● online</span>' : ' <span title="Tidak terhubung / koneksi terputus" style="color:#DC2626;font-size:11px;">● terputus</span>')
+          : '';
         return `<tr>
           <td data-label="Nama" class="cell-primary">${escapeHtml(r.siswa.nama)}</td>
           <td data-label="NIS (username)" class="cell-muted">${escapeHtml(r.siswa.username)}</td>
           <td data-label="Kelas">${escapeHtml(r.siswa.kelas)}</td>
           ${showRuangCol ? `<td data-label="Ruang" class="cell-muted">${escapeHtml(r.siswa.ruang || '—')}</td>` : ''}
           <td data-label="Paket ujian" class="cell-muted">${escapeHtml(questionSets.find(q=>q.id===r.jadwal.questionSetId)?.judul || '—')}</td>
-          <td data-label="Status"><span class="badge ${badgeClass}">${r.status==='mengerjakan' ? '<span class="badge-dot"></span>' : ''}${label}</span></td>
+          <td data-label="Status"><span class="badge ${badgeClass}">${r.status==='mengerjakan' ? '<span class="badge-dot"></span>' : ''}${label}</span>${online}</td>
+          <td data-label="Progres" class="cell-muted">${prog}</td>
           <td data-label="Percobaan Keluar">${pk > 0 ? `<span class="badge badge-warn">⚠ ${pk}x</span>` : '<span class="cell-muted">0</span>'}</td>
         </tr>`;
       }).join('')}
     </tbody>
   </table></div></div>`;
+}
+
+/* Gabungkan satu baris attempt ke array `attempts` (tanpa menimpa data lain) */
+function upsertAttemptRow(row){
+  if(!row || !row.id) return;
+  const m = mapAttempt(row);
+  const i = attempts.findIndex(a => a.id === m.id);
+  if(i > -1) attempts[i] = m; else attempts.push(m);
+}
+
+let monRenderTimer = null;
+function scheduleMonRender(){
+  if(monRenderTimer) return;
+  monRenderTimer = setTimeout(() => {
+    monRenderTimer = null;
+    renderMonitoring();
+    // rekap ikut diperbarui hanya bila panelnya sedang terbuka
+    if(document.getElementById('panel-rekap')?.classList.contains('active')) renderRekap();
+  }, 200);
 }
 
 let monRefreshInFlight = false;
@@ -3930,20 +3981,61 @@ async function refreshMonitoring(){
   }
 }
 
-/* ---- Auto-refresh cepat khusus saat guru sedang membuka tab Monitoring ---- */
-const MON_AUTO_REFRESH_MS = 4000;
+/* ---- Realtime (Supabase) + polling cadangan, aktif saat tab Monitoring terbuka ---- */
+const MON_AUTO_REFRESH_MS = 5000;     // cadangan bila realtime terputus
 let monAutoRefreshTimer = null;
+let monChannel = null, monPresenceChannel = null, monRealtimeOk = false;
+
+function startMonitoringRealtime(){
+  stopMonitoringRealtime();
+  try{
+    // 1) perubahan tabel exam_attempts (mulai, jawaban, selesai, percobaan keluar)
+    monChannel = sb.channel('mon-attempts-' + Math.random().toString(36).slice(2))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_attempts' }, (p) => {
+        if(p.eventType === 'DELETE'){
+          const id = p.old && p.old.id;
+          attempts = attempts.filter(a => a.id !== id);
+        } else {
+          upsertAttemptRow(p.new);
+        }
+        scheduleMonRender();
+      })
+      .subscribe((st) => {
+        monRealtimeOk = (st === 'SUBSCRIBED');
+        if(monRealtimeOk) refreshMonitoring();   // sinkron penuh begitu tersambung
+      });
+
+    // 2) presence: siswa mana yang sedang terhubung
+    monPresenceChannel = sb.channel('exam-presence', { config: { presence: { key: 'guru-' + selectedGuruId } } });
+    const syncPresence = () => {
+      const state = monPresenceChannel.presenceState();
+      const map = {};
+      Object.values(state).forEach(arr => arr.forEach(m => { if(m && m.user_id) map[m.user_id] = m; }));
+      monOnline = map;
+      scheduleMonRender();
+    };
+    monPresenceChannel.on('presence', { event: 'sync' }, syncPresence).subscribe();
+  }catch(e){ console.error('Realtime monitoring gagal:', e); }
+}
+function stopMonitoringRealtime(){
+  monRealtimeOk = false;
+  [monChannel, monPresenceChannel].forEach(ch => { if(ch){ try{ sb.removeChannel(ch); }catch(e){} } });
+  monChannel = null; monPresenceChannel = null; monOnline = {};
+}
+
 function startMonitoringAutoRefresh(){
   stopMonitoringAutoRefresh();
+  startMonitoringRealtime();
   monAutoRefreshTimer = setInterval(refreshMonitoring, MON_AUTO_REFRESH_MS);
 }
 function stopMonitoringAutoRefresh(){
   if(monAutoRefreshTimer){ clearInterval(monAutoRefreshTimer); monAutoRefreshTimer = null; }
+  stopMonitoringRealtime();
 }
 document.addEventListener('visibilitychange', () => {
   const monActive = document.getElementById('panel-monitoring')?.classList.contains('active');
   if(document.hidden){ stopMonitoringAutoRefresh(); }
-  else if(monActive){ startMonitoringAutoRefresh(); }
+  else if(monActive){ refreshMonitoring(); startMonitoringAutoRefresh(); }
 });
 
 /* ============================================================
