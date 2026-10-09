@@ -1,0 +1,17 @@
+name: Ping Supabase
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # setiap hari, 00:00 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query tabel Supabase
+        run: |
+          curl -sS --fail-with-body \
+            "https://cnciipsdowdcljjnacxy.supabase.co/rest/v1/rooms?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
