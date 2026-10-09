@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Siswa — Asesmen SMK Widya Mandala Tambak</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Scheherazade+New:wght@400;700&family=Noto+Sans+Javanese:wght@400;700&display=swap');
+
+  :root{
+    --ink:#0F172A;
+    --navy:#1E1B4B;
+    --paper:#FFFFFF;
+    --cream:#F4F6FB;
+    --slate:#64748B;
+    --line:#E2E8F0;
+    --mist:#F1F5F9;
+
+    --indigo:#6366F1;
+    --indigo-soft:#E0E7FF;
+    --indigo-dark:#4F46E5;
+    --emerald:#10B981;
+    --emerald-soft:#D1FAE5;
+    --emerald-dark:#059669;
+    --amber:#F59E0B;
+    --amber-soft:#FEF3C7;
+    --amber-dark:#D97706;
+    --red:#F43F5E;
+    --red-soft:#FFE4E6;
+    --red-dark:#E11D48;
+
+    --shadow-sm:0 2px 4px rgba(15,23,42,0.04);
+    --shadow-md:0 10px 25px -5px rgba(15,23,42,0.08), 0 8px 10px -6px rgba(15,23,42,0.03);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:'Plus Jakarta Sans','Scheherazade New','Noto Sans Javanese', sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-weight:700; letter-spacing:-0.02em; margin:0; }
+  button,select{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--indigo); outline-offset:2px; }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 20px; background:rgba(255,255,255,0.85); backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:20; flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .emblem{ width:32px; height:32px; flex-shrink:0; border-radius:50%; object-fit:cover; box-shadow:0 2px 8px rgba(99,102,241,0.35); }
+  .brand .school{ font-weight:800; font-size:14.5px; line-height:1.2; letter-spacing:-0.01em; background:linear-gradient(90deg,#0F172A 0%,#334155 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .brand .product{ font-size:11.5px; color:var(--slate); font-weight:500; }
+
+  .siswa-switch{
+    display:flex; align-items:center; gap:7px; background:var(--indigo-soft); color:var(--indigo-dark);
+    font-size:12.5px; font-weight:700; padding:6px 10px 6px 8px; border-radius:99px;
+  }
+  .siswa-switch .dot{ width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#6366F1 0%,#4338CA 100%); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(99,102,241,0.35); }
+  .siswa-switch svg{ width:12px; height:12px; }
+  .siswa-switch select{ border:none; background:transparent; color:var(--indigo-dark); font-weight:700; font-size:12.5px; cursor:pointer; max-width:160px; }
+
+  .notice{ max-width:760px; margin:14px auto 0; padding:0 16px; }
+  .notice-inner{
+    display:flex; gap:10px; align-items:flex-start; background:linear-gradient(90deg,#FEF3C7 0%,#FFFBEB 100%); border:1px solid #FCD34D;
+    color:#92400E; border-radius:12px; padding:11px 13px; font-size:12.5px; line-height:1.5; box-shadow:var(--shadow-sm);
+  }
+  .notice-inner svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; color:#D97706; }
+
+  .tabs-wrap{ background:var(--paper); border-bottom:1px solid var(--line); position:sticky; top:65px; z-index:19; }
+  .tabs{ max-width:760px; margin:0 auto; display:flex; gap:4px; padding:0 16px; }
+  .tab{
+    position:relative; display:flex; align-items:center; gap:7px; background:none; border:none;
+    padding:14px 10px; font-size:13.5px; font-weight:700; color:var(--slate); cursor:pointer; white-space:nowrap;
+  }
+  .tab.active{ color:var(--indigo-dark); }
+  .tab:not(.active)::after{ display:none; }
+  .tab:not(.active):hover{ color:var(--indigo-dark); }
+  .tab svg{ width:16px; height:16px; }
+  .tab::after{ content:''; position:absolute; left:0; right:0; bottom:-1px; height:2.5px; background:linear-gradient(90deg,#6366F1 0%,#4338CA 100%); border-radius:2px 2px 0 0; }
+
+  .shell{ max-width:760px; margin:0 auto; padding:26px 16px 60px; }
+  .section-head{ margin-bottom:18px; }
+  .section-head h1{ font-size:22px; letter-spacing:-0.01em; }
+  .section-head p{ margin:5px 0 0; font-size:13.5px; color:var(--slate); }
+
+  /* ---------- Exam list cards ---------- */
+  /* ---------- Jadwal tulis (informasi) ---------- */
+  .jt-note{ font-size:12.5px; color:var(--slate); margin:0 0 14px; }
+  .jt-day{ background:var(--paper); border:1px solid var(--line); border-radius:16px; margin-bottom:12px; overflow:hidden; box-shadow:var(--shadow-sm); }
+  .jt-day.is-today{ border-color:var(--indigo); box-shadow:0 0 0 1px var(--indigo) inset; }
+  .jt-day-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:var(--mist); border-bottom:1px solid var(--line); }
+  .jt-day.is-today .jt-day-head{ background:var(--indigo-soft); }
+  .jt-day-name{ font-weight:700; font-size:14px; margin-right:8px; }
+  .jt-day-date{ font-size:13px; color:var(--slate); }
+  .jt-today-badge{ font-size:11px; font-weight:700; color:var(--indigo-dark); background:#fff; border-radius:999px; padding:3px 9px; }
+  .jt-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 16px; }
+  .jt-row + .jt-row{ border-top:1px solid var(--line); }
+  .jt-mapel{ font-weight:600; font-size:14.5px; }
+  .jt-meta{ font-size:12.5px; color:var(--slate); margin-top:2px; }
+  .jt-time{ text-align:right; font-size:13.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .jt-time .jt-dash{ color:var(--slate); font-weight:500; }
+  .jt-past{ margin-top:18px; }
+  .jt-past > summary{ cursor:pointer; font-size:12.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; padding:6px 0 12px; }
+  .jt-past .jt-day{ opacity:0.78; }
+
+  .exam-group-title{ font-size:12px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; margin:22px 0 10px; }
+  .exam-group-title:first-child{ margin-top:0; }
+  .exam-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:18px;
+    margin-bottom:12px; box-shadow:var(--shadow-sm); transition:box-shadow .2s ease;
+  }
+  .exam-card:hover{ box-shadow:var(--shadow-md); }
+  .exam-card.is-live{ border-color:var(--emerald); box-shadow:0 0 0 3px var(--emerald-soft); }
+  .exam-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .exam-title{ font-size:15.5px; font-weight:700; letter-spacing:-0.01em; }
+  .exam-subject{ font-size:12.5px; color:var(--slate); margin-top:2px; }
+  .exam-meta{ display:flex; flex-wrap:wrap; gap:14px; font-size:12.5px; color:var(--slate); margin-bottom:14px; }
+  .exam-meta span{ display:flex; align-items:center; gap:5px; }
+  .exam-meta svg{ width:14px; height:14px; }
+  .exam-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+
+  .badge{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; }
+  .badge-terjadwal{ background:var(--indigo-soft); color:var(--indigo-dark); }
+  .badge-berlangsung{ background:var(--amber-soft); color:var(--amber-dark); }
+  .badge-selesai{ background:var(--emerald-soft); color:var(--emerald-dark); }
+  .badge-terlewat{ background:var(--red-soft); color:var(--red-dark); }
+  .badge-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .btn-primary{
+    background:linear-gradient(135deg,#6366F1 0%,#4338CA 100%); color:#fff; border:none; border-radius:10px; padding:10px 18px;
+    font-size:13.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    box-shadow:0 4px 12px rgba(99,102,241,0.3); transition:all .2s ease;
+  }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(99,102,241,0.4); }
+  .btn-primary:disabled{ background:var(--line); color:var(--slate); cursor:not-allowed; box-shadow:none; transform:none; }
+  .btn-primary svg{ width:15px; height:15px; }
+  .btn-secondary{
+    display:inline-flex; align-items:center; gap:7px; background:var(--paper); color:var(--ink);
+    border:1.5px solid var(--line); border-radius:10px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer;
+    transition:all .2s ease;
+  }
+  .btn-secondary:hover{ border-color:var(--indigo); color:var(--indigo-dark); background:var(--indigo-soft); }
+
+  .nilai-pill{ font-size:13px; font-weight:700; color:var(--emerald-dark); }
+  .muted-note{ font-size:12px; color:var(--slate); }
+
+  .empty-state{ padding:44px 20px; text-align:center; color:var(--slate); font-size:13.5px; background:var(--paper); border:1px solid var(--line); border-radius:14px; }
+  .empty-state strong{ display:block; color:var(--ink); font-size:14.5px; margin-bottom:4px; }
+
+  /* ================================================================
+     TAMPILAN SOAL — mengikuti gaya visual soal.html (kertas/navy,
+     Fraunces + JetBrains Mono). Semua aturan di bawah ini di-scope di
+     bawah #examSuite supaya TIDAK memengaruhi tampilan daftar ujian
+     (#listView) maupun halaman lain — hanya layar mengerjakan soal,
+     modal terkait, dan layar hasil yang berubah.
+  ================================================================ */
+  #examSuite{
+    --sn-ink:#1c1b22; --sn-paper:#f6f4ee; --sn-card:#ffffff; --sn-line:#e4e1d6; --sn-muted:#7b7768;
+    --sn-navy:#161a2e; --sn-cream:#f3ead9;
+    --sn-good:#1f9d68; --sn-good-bg:#e7f6ee; --sn-bad:#d5473a; --sn-bad-bg:#fceceb;
+    --sn-t1:#2F6FED; --sn-t1-bg:#EAF1FE; --sn-t3:#c98a1f; --sn-t3-bg:#fbf1de;
+    --fscale:1; --doubt:#c98a1f; --doubt-soft:#fbf1de; --empty:#d8d4c6;
+    color:var(--sn-ink);
+  }
+  #examSuite h1, #examSuite h2{ font-family:'Fraunces',Georgia,serif; }
+  #examView{ display:none; }
+  #examView.locked, #examView.locked *{
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
+  #examView.locked textarea, #examView.locked input{
+    -webkit-user-select:text; -moz-user-select:text; -ms-user-select:text; user-select:text;
+  }
+
+  /* ---------- Progress shell (bar atas: judul, timer, progres, palet) ---------- */
+  #examSuite .sn-progress-shell{
+    position:static; background:var(--sn-paper); border:1px solid var(--sn-line);
+    border-radius:14px; padding:12px 16px; margin-bottom:16px;
+  }
+  #examSuite .sn-progress-inner{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #examSuite .sn-exam-title-wrap{ flex:1 1 170px; min-width:0; margin-right:4px; }
+  #examSuite .sn-exam-title{
+    font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:14.5px; color:var(--sn-navy);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #examSuite .sn-exam-sub{ font-size:11px; color:var(--sn-muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #examSuite .timer{
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:700; color:var(--sn-ink);
+    background:#eef0fb; border:1px solid #c9cdf0; padding:6px 12px; border-radius:99px; white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  #examSuite .timer.warn{ background:var(--sn-t3-bg); border-color:var(--sn-t3); color:#7a4e0a; }
+  #examSuite .timer.danger{ background:var(--sn-bad-bg); border-color:var(--sn-bad); color:var(--sn-bad); animation:snPulse 1s infinite; }
+  @keyframes snPulse{ 0%,100%{opacity:1;} 50%{opacity:.5;} }
+  #examSuite .sn-progress-track{ flex:1 1 90px; height:8px; background:var(--sn-line); border-radius:99px; overflow:hidden; min-width:60px; }
+  #examSuite .sn-progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--sn-t1),var(--sn-t3)); transition:width .3s ease; }
+  #examSuite .sn-progress-label{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sn-muted); white-space:nowrap; }
+
+  #examSuite .icon-toggle{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; background:#fff; border:1px solid var(--sn-line);
+    color:var(--sn-ink); padding:7px 11px; border-radius:99px; cursor:pointer; display:flex; align-items:center; gap:5px;
+    white-space:nowrap;
+  }
+  #examSuite .icon-toggle:hover{ background:#f3f1ea; border-color:#d7d3c4; }
+  #examSuite .icon-toggle.active{ border-color:var(--sn-t1); color:var(--sn-t1); background:var(--sn-t1-bg); }
+  #examSuite .hide-header-btn{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700; background:var(--sn-navy); border:1px solid var(--sn-navy);
+    color:#fff; padding:7px 11px; border-radius:99px; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  #examSuite .hide-header-btn svg{ width:14px; height:14px; }
+  #examSuite .hide-header-btn:hover{ background:#232849; }
+  #examSuite .hide-header-btn.active{ background:var(--sn-t3); border-color:var(--sn-t3); color:#241a05; }
+
+  #examSuite .fontsize-wrap{ position:relative; }
+  #examSuite .fontsize-menu{
+    position:absolute; top:calc(100% + 6px); right:0; display:flex; gap:4px; background:#fff; border:1px solid var(--sn-line);
+    border-radius:10px; padding:6px; box-shadow:0 8px 24px rgba(20,20,30,.15); z-index:40;
+  }
+  #examSuite .fontsize-menu.hidden{ display:none; }
+  #examSuite .fontsize-opt{
+    width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--sn-line);
+    background:#fff; color:var(--sn-muted); font-weight:800; border-radius:7px; cursor:pointer; font-family:inherit; font-size:12px;
+  }
+  #examSuite .fontsize-opt.active{ border-color:var(--sn-t1); color:var(--sn-t1); background:var(--sn-t1-bg); }
+
+  /* ---------- Panel palet nomor soal ---------- */
+  #navpanel{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
+  #navpanel.open{ max-height:320px; overflow-y:auto; margin-top:12px; padding-top:12px; border-top:1px solid var(--sn-line); }
+  #examSuite .legend{ display:flex; gap:12px; font-size:10.5px; color:var(--sn-muted); flex-wrap:wrap; font-family:'JetBrains Mono',monospace; margin-bottom:10px; }
+  #examSuite .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  #examSuite .legend .dot{ width:9px; height:9px; border-radius:3px; display:inline-block; border:1.5px solid; }
+  #examSuite .legend .dot.done{ background:var(--sn-t1-bg); border-color:var(--sn-t1); }
+  #examSuite .legend .dot.doubt{ background:var(--sn-t3-bg); border-color:var(--sn-t3); }
+  #examSuite .legend .dot.empty{ background:#fff; border-color:var(--empty); }
+  #examSuite .navgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(36px,1fr)); gap:7px; }
+  #examSuite .navcell{
+    aspect-ratio:1; border-radius:8px; border:1.5px solid var(--empty); background:#fff; color:var(--sn-muted);
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700; display:flex; align-items:center;
+    justify-content:center; cursor:pointer; transition:transform .1s ease;
+  }
+  #examSuite .navcell:hover{ transform:translateY(-1px); }
+  #examSuite .navcell.done{ background:var(--sn-t1-bg); border-color:var(--sn-t1); color:var(--sn-t1); }
+  #examSuite .navcell.doubt{ background:var(--sn-t3-bg); border-color:var(--sn-t3); color:#7a4e0a; }
+  #examSuite .navcell.current{ outline:2px solid var(--sn-navy); outline-offset:2px; }
+
+  #examSuite .nav-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; flex-wrap:wrap; }
+
+  /* ---------- Bacaan / kutipan ---------- */
+  #examSuite .bacaan-group-label{
+    display:flex; align-items:center; gap:7px; font-family:'JetBrains Mono',monospace; font-size:11px;
+    font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--sn-muted); margin-bottom:8px;
+  }
+  #examSuite .bacaan-group-label::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--sn-t1); flex-shrink:0; }
+  #examSuite .bacaan-box{
+    background:var(--sn-card); border:1px solid var(--sn-line); border-left:5px solid var(--sn-t1); border-radius:10px;
+    padding:18px 20px; margin-bottom:18px; font-size:calc(14.5px * var(--fscale)); line-height:1.75; color:#33313c;
+    max-height:280px; overflow-y:auto; white-space:pre-line; text-align:justify; transition:max-height .2s ease;
+  }
+  /* Saat soal disematkan (pin), area bacaan tidak lagi dibatasi scroll internal —
+     seluruh halaman yang digulir, sementara kartu soal melayang tetap di bagian bawah layar. */
+  #examSuite.passage-pinned .bacaan-box{ max-height:none; overflow-y:visible; }
+
+  /* ---------- Header baris jenis soal / indeks ---------- */
+  #examSuite .sn-stage-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  #examSuite .qtype-pill{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    padding:5px 11px; border-radius:99px; font-weight:700; background:var(--sn-t1-bg); color:var(--sn-t1);
+  }
+  #examSuite .sn-stage-index{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--sn-muted); }
+
+  /* ---------- Kartu soal ---------- */
+  #examSuite .question-card{
+    background:var(--sn-card); border:1px solid var(--sn-line); border-radius:12px; padding:20px 22px 22px; margin-bottom:16px;
+  }
+  #examSuite .qmeta-row{ display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  #examSuite .qpoin-pill{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:var(--sn-muted); margin-right:auto; }
+  #examSuite .doubt-btn{
+    border:1px solid var(--sn-line); background:#fff; color:var(--sn-muted); border-radius:99px; padding:6px 13px;
+    font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+  #examSuite .doubt-btn.active{ border-color:var(--sn-t3); background:var(--sn-t3-bg); color:#7a4e0a; }
+  #examSuite .pin-btn{
+    border:1px solid var(--sn-line); background:#fff; color:var(--sn-muted); border-radius:99px; padding:6px 13px;
+    font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+  #examSuite .pin-btn.active{ border-color:var(--sn-t1); background:var(--sn-t1); color:#fff; }
+  #examSuite .question-card.pinned{
+    border-color:var(--sn-t1); box-shadow:0 -4px 24px rgba(20,20,30,.14);
+    border-radius:16px 16px 0 0; background:var(--sn-card);
+    /* Menempel penuh ke tepi kiri, kanan, dan bawah layar (tanpa celah) */
+    border-left:none; border-right:none; border-bottom:none; margin:0; box-sizing:border-box;
+    padding-left:max(20px, calc((100vw - 760px) / 2 + 22px));
+    padding-right:max(20px, calc((100vw - 760px) / 2 + 22px));
+    padding-bottom:calc(22px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Efek "fade" di atas kartu yang disematkan — mengesankan teks bacaan memudar
+     di balik kartu soal yang melayang, seperti sorotan kaca buram. */
+  #examSuite .question-card.pinned::before{
+    content:''; position:absolute; left:0; right:0; top:-26px; height:26px; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(248,248,250,0), var(--sn-card));
+    border-radius:16px 16px 0 0;
+  }
+  #examSuite .question-card.pinned #ev-answer-area{ padding-bottom:4px; }
+  #examSuite .pin-placeholder{ margin-bottom:16px; }
+
+  #examSuite .sn-q-top{ margin-bottom:6px; }
+  #examSuite .question-text{
+    font-size:15.5px; font-weight:600; line-height:1.55; padding-top:4px;
+    white-space:pre-line; color:var(--sn-ink);
+  }
+  #examSuite img.question-img{ max-width:100%; border-radius:10px; border:1px solid var(--sn-line); margin:0 0 14px 0; display:block; }
+
+  #examSuite .q-table-wrap{ overflow-x:auto; margin:0 0 14px 0; border:1px solid var(--sn-line); border-radius:10px; }
+  #examSuite table.q-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  #examSuite table.q-table th, #examSuite table.q-table td{ border:1px solid var(--sn-line); padding:8px 12px; text-align:left; white-space:pre-line; }
+  #examSuite table.q-table thead th{
+    background:#faf9f5; font-weight:700; font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em;
+  }
+
+  /* ---------- Opsi PG / PGK ---------- */
+  #examSuite .opt-choice{
+    display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border:1px solid var(--sn-line);
+    border-radius:9px; margin:0 0 9px 0; cursor:pointer; background:#fff; transition:background .15s ease, border-color .15s ease;
+  }
+  #examSuite .opt-choice:hover{ background:#faf9f5; }
+  #examSuite .opt-choice.selected{ background:var(--sn-t1-bg); border-color:var(--sn-t1); }
+  #examSuite .opt-text{ flex:1; font-size:14.5px; line-height:1.5; }
+  #examSuite .opt-choice img{ max-width:180px; border-radius:8px; margin-top:6px; display:block; }
+
+  /* ---------- Benar/Salah dua pilihan ---------- */
+  #examSuite .bs-choice-row{ display:flex; gap:10px; margin:0 0 4px 0; }
+  #examSuite .bs-choice{
+    flex:1; text-align:center; padding:15px 10px; border:1px solid var(--sn-line); border-radius:9px; cursor:pointer;
+    font-size:14px; font-weight:700; color:var(--sn-muted); background:#fff; transition:all .15s ease;
+  }
+  #examSuite .bs-choice.selected{ border-color:var(--sn-t1); background:var(--sn-t1-bg); color:var(--sn-t1); }
+
+  /* ---------- Pernyataan Ganda (matriks benar/salah beberapa pernyataan) ---------- */
+  #examSuite .bsg-table{ margin:0 0 4px 0; border:1px solid var(--sn-line); border-radius:9px; overflow:hidden; }
+  #examSuite .bsg-head-row, #examSuite .bsg-row{ display:flex; align-items:center; gap:8px; padding:10px 14px; }
+  #examSuite .bsg-head-row{
+    background:#faf9f5; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; color:var(--sn-muted);
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  #examSuite .bsg-row{ border-top:1px solid var(--sn-line); }
+  #examSuite .bsg-row:hover{ background:#faf9f5; }
+  #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ flex:1; font-size:13.5px; line-height:1.5; }
+  #examSuite .bsg-head-kat{ width:60px; text-align:center; flex-shrink:0; }
+  #examSuite .bsg-radios{ display:flex; gap:0; flex-shrink:0; }
+  #examSuite .bsg-radio{ width:60px; display:flex; justify-content:center; align-items:center; cursor:pointer; }
+  #examSuite .bsg-radio input{ width:17px; height:17px; accent-color:var(--sn-t1); cursor:pointer; }
+  @media (max-width:480px){
+    #examSuite .bsg-head-kat, #examSuite .bsg-radio{ width:42px; }
+    #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ font-size:12.5px; }
+  }
+
+  /* ---------- Soal RB (klasifikasi 2-4 kolom): tabel rapi, kolom kategori lega ---------- */
+  #examSuite .rb-table{ margin:0 0 4px 0; border:1px solid var(--sn-line); border-radius:12px; overflow:hidden; background:#fff; }
+  #examSuite .rb-head, #examSuite .rb-row{ display:grid; grid-template-columns:minmax(0,1fr) repeat(var(--rb-n,2), minmax(84px,116px)); align-items:stretch; }
+  #examSuite .rb-cells{ display:contents; }
+  #examSuite .rb-head{ background:#f4f2ea; border-bottom:1px solid var(--sn-line); }
+  #examSuite .rb-head-pern{ padding:12px 16px; font-size:12px; font-weight:700; color:var(--sn-muted); display:flex; align-items:center; }
+  #examSuite .rb-head-kat{ padding:12px 8px; text-align:center; font-size:12.5px; font-weight:700; color:var(--sn-ink); border-left:1px solid var(--sn-line); display:flex; align-items:center; justify-content:center; line-height:1.3; overflow-wrap:anywhere; }
+  #examSuite .rb-row + .rb-row{ border-top:1px solid var(--sn-line); }
+  #examSuite .rb-row:nth-child(odd){ background:#fcfbf7; }
+  #examSuite .rb-pern{ padding:14px 16px; font-size:14px; line-height:1.6; display:flex; gap:8px; min-width:0; overflow-wrap:anywhere; word-break:break-word; }
+  #examSuite .rb-no{ flex-shrink:0; font-weight:700; color:var(--sn-muted); }
+  #examSuite .rb-cell{ border-left:1px solid var(--sn-line); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:10px 6px; transition:background .12s ease; }
+  #examSuite .rb-cell:hover{ background:var(--sn-t1-bg); }
+  #examSuite .rb-cell input{ width:20px; height:20px; accent-color:var(--sn-t1); cursor:pointer; margin:0; }
+  #examSuite .rb-cell-label{ display:none; }
+  @media (max-width:560px){
+    #examSuite .rb-head{ display:none; }
+    #examSuite .rb-row{ display:block; padding:14px 14px 12px; }
+    #examSuite .rb-pern{ padding:0 0 10px; font-size:13.5px; }
+    #examSuite .rb-cells{ display:flex; flex-wrap:wrap; gap:8px; }
+    #examSuite .rb-cell{ flex:1 1 130px; border:1.5px solid var(--sn-line); border-radius:10px; padding:10px 12px; justify-content:flex-start; gap:10px; background:#fff; }
+    #examSuite .rb-cell-label{ display:inline; font-size:13.5px; font-weight:600; color:var(--sn-ink); line-height:1.3; overflow-wrap:anywhere; }
+    #examSuite .rb-cell:has(input:checked){ border-color:var(--sn-t1); background:var(--sn-t1-bg); }
+  }
+
+  /* ---------- Esai ---------- */
+  #examSuite .essay-box{
+    width:100%; margin-left:0; min-height:160px; border:1px solid var(--sn-line); border-radius:9px;
+    padding:13px 14px; font-family:inherit; font-size:14px; line-height:1.6; resize:vertical;
+  }
+  #examSuite .essay-box:focus{ border-color:var(--sn-t1); outline:none; }
+
+  @media (max-width:520px){
+    #examSuite img.question-img, #examSuite .q-table-wrap, #examSuite .opt-choice,
+    #examSuite .bs-choice-row, #examSuite .bsg-table, #examSuite .essay-box{ margin-left:0; }
+    #examSuite .essay-box{ width:100%; }
+  }
+
+  /* ---------- Navigasi soal — sekarang ikut alur halaman, menyatu tepat
+     di bawah opsi jawaban (bukan bar terpisah yang menempel/fixed) ---------- */
+  #examSuite .sn-nav-row{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--sn-line);
+  }
+  #examSuite .sn-navbtn{
+    background:#fff; color:var(--sn-t1); border:1.5px solid var(--sn-t1); padding:10px 14px;
+    border-radius:99px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:700;
+    transition:background .15s ease; flex:1 1 0; text-align:center; white-space:nowrap;
+  }
+  #examSuite .sn-navbtn:hover{ background:var(--sn-t1-bg); }
+  #examSuite .sn-navbtn:disabled{ opacity:.35; cursor:not-allowed; }
+  #examSuite .sn-navbtn.sn-finish{ background:var(--sn-t1); color:#fff; border-color:var(--sn-t1); }
+  #examSuite .sn-navbtn.sn-finish:hover{ background:#2559c9; }
+  #examSuite .muted-note{ font-size:11.5px; color:var(--sn-muted); text-align:center; margin-top:8px; font-family:'JetBrains Mono',monospace; }
+
+  /* ---------- Modal (konfirmasi, token, pindah tab, keluar) ---------- */
+  #examSuite .modal-bg{
+    position:fixed; inset:0; background:rgba(22,26,46,.55); display:flex; align-items:center; justify-content:center;
+    padding:20px; z-index:100; backdrop-filter:blur(3px);
+  }
+  #examSuite .modal-bg.hidden{ display:none; }
+  #examSuite .modal-card{
+    background:var(--sn-card); border:1px solid var(--sn-line); border-radius:16px; padding:26px; max-width:400px;
+    width:100%; box-shadow:0 20px 40px rgba(15,18,30,.25);
+  }
+  #examSuite .modal-card h2{ font-family:'Fraunces',Georgia,serif; font-size:19px; font-weight:600; color:var(--sn-navy); margin-bottom:8px; }
+  #examSuite .modal-card p{ font-size:13.5px; color:var(--sn-muted); line-height:1.6; margin:0 0 16px; }
+  #examSuite .modal-summary{ display:flex; gap:8px; margin-bottom:18px; }
+  #examSuite .modal-summary .pill{ flex:1; text-align:center; border-radius:10px; padding:10px 6px; }
+  #examSuite .modal-summary .pill .n{ font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:800; color:var(--sn-navy); }
+  #examSuite .modal-summary .pill .l{ font-size:10.5px; color:var(--sn-muted); }
+  #examSuite .modal-summary .pill.done{ background:var(--sn-t1-bg); }
+  #examSuite .modal-summary .pill.doubt{ background:var(--sn-t3-bg); }
+  #examSuite .modal-summary .pill.empty{ background:#f1f1ee; }
+  #examSuite .submit-warn{
+    display:flex; gap:9px; align-items:flex-start; background:#FBF2DC; border:1px solid #E4CE96; color:#6b4f12;
+    border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5; margin-bottom:16px; font-weight:600;
+  }
+  #examSuite .submit-warn.hidden{ display:none; }
+  #examSuite .submit-warn.all-good{ background:var(--sn-t1-bg); border-color:var(--sn-t1); color:#0B7D57; }
+  #examSuite .modal-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  #examSuite .modal-actions.stack{ flex-direction:column; }
+  #examSuite .modal-actions.stack button{ width:100%; justify-content:center; }
+  #examSuite .btn-primary{
+    background:var(--sn-navy); color:#fff; border:none; border-radius:99px; padding:10px 18px;
+    font-size:13.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-family:'Inter',sans-serif;
+  }
+  #examSuite .btn-primary:hover{ background:#232849; }
+  #examSuite .btn-secondary{
+    display:inline-flex; align-items:center; gap:7px; background:#fff; color:var(--sn-ink);
+    border:1.5px solid var(--sn-line); border-radius:99px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  #examSuite .btn-secondary:hover{ border-color:var(--sn-t1); color:var(--sn-t1); }
+
+  /* ---------- Layar hasil ---------- */
+  #examSuite #resultView{ display:none; text-align:center; padding:40px 20px; }
+  #examSuite .result-circle{
+    width:120px; height:120px; border-radius:50%; background:var(--sn-good-bg); color:var(--sn-good);
+    display:flex; align-items:center; justify-content:center; flex-direction:column; margin:0 auto 20px;
+  }
+  #examSuite .result-circle .num{ font-family:'Fraunces',Georgia,serif; font-size:34px; font-weight:700; letter-spacing:-0.02em; }
+  #examSuite .result-circle .lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; text-transform:uppercase; }
+  #examSuite #resultView h1{ font-family:'Fraunces',Georgia,serif; color:var(--sn-navy); }
+  #examSuite .nilai-breakdown{ text-align:left; max-width:340px; margin:0 auto 20px; font-size:12.5px; color:var(--sn-muted); }
+  #examSuite .nilai-breakdown div{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--sn-line); }
+
+  /* ---------- Mode "Ciutkan" (sembunyikan semua atribut header saat mengerjakan) ---------- */
+  body.compact-exam .site-header, body.compact-exam .tabs-wrap, body.compact-exam .notice{ display:none; }
+  body.compact-exam .shell{ padding-top:12px; }
+  /* Saat diciutkan, seluruh bar info (judul, timer, progres, tombol) disembunyikan total
+     supaya area bacaan seluas mungkin — yang tersisa hanya tombol "Tampilkan". */
+  body.compact-exam #examSuite .sn-progress-shell{ display:none; }
+
+  #examSuite .show-header-fab{
+    display:none; position:fixed; top:12px; right:14px; z-index:35;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700; background:var(--sn-navy); border:1px solid var(--sn-navy);
+    color:#fff; padding:8px 14px; border-radius:99px; cursor:pointer; align-items:center; gap:6px;
+    box-shadow:0 6px 18px rgba(20,20,30,.28);
+  }
+  #examSuite .show-header-fab svg{ width:14px; height:14px; }
+  #examSuite .show-header-fab:hover{ background:#232849; }
+  body.compact-exam #examSuite .show-header-fab{ display:flex; }
+
+  /* ================================================================
+     PC / DESKTOP (Windows dkk): kanvas sedikit lebih lega, tapi lebar
+     bacaan/soal tetap dijaga supaya nyaman dibaca (tidak selebar
+     halaman admin/guru). Tidak mengubah tampilan HP sama sekali.
+  ================================================================ */
+  @media (min-width:1024px){
+    .site-header{ padding:16px 32px; }
+    .notice{ max-width:900px; padding:0 32px; }
+    .tabs{ max-width:900px; padding:0 32px; }
+    .shell{ max-width:900px; padding:36px 32px 70px; }
+
+    .section-head h1{ font-size:25px; }
+    .section-head p{ font-size:14px; }
+
+    .exam-card{ padding:22px 26px; border-radius:16px; transition:box-shadow .15s ease; }
+    .exam-card:hover{ box-shadow:0 3px 12px rgba(20,20,30,0.07); }
+    .btn-primary{ padding:11px 22px; }
+    .btn-secondary{ padding:9px 18px; }
+
+    #examSuite .question-card{ padding:24px 28px 28px; }
+    #examSuite .bacaan-box{ padding:20px 24px; }
+  }
+
+  @media (min-width:1440px){
+    .notice{ max-width:960px; }
+    .tabs{ max-width:960px; }
+    .shell{ max-width:960px; }
+  }
+
+  /* ================================================================
+     PERBAIKAN TAMPILAN SOAL (anti-overlap) + STATUS SIMPAN/KIRIM
+  ================================================================ */
+  /* Saat ujian berjalan, header/tab "Portal Ujian" disembunyikan total supaya
+     tidak bertumpuk dengan bar ujian (keduanya sebelumnya sticky di top:0). */
+  body.exam-active .site-header,
+  body.exam-active .tabs-wrap,
+  body.exam-active .notice{ display:none !important; }
+  body.exam-active .shell{ padding-top:10px; }
+
+  #examView{ position:relative; }
+  #examSuite{ min-width:0; }
+  #examSuite .sn-progress-shell{
+    /* header ujian (judul, timer, progres) menempel di atas layar dan tidak ikut tergulir */
+    position:sticky; top:env(safe-area-inset-top, 0px); z-index:34;
+    box-shadow:0 10px 0 0 var(--cream), 0 6px 18px rgba(20,20,30,.08);
+  }
+  #examSuite .show-header-fab{ z-index:41; }
+  #examSuite .fontsize-menu{ z-index:45; }
+  #examSuite .question-card{ position:relative; min-width:0; }
+  #examSuite .question-card.pinned{ z-index:32; }
+  #navpanel.open{ max-height:min(320px, 45vh); }
+
+  /* Teks panjang tidak boleh keluar kotak / menimpa elemen lain */
+  #examSuite .question-text,
+  #examSuite .bacaan-box,
+  #examSuite .opt-text,
+  #examSuite .bsg-pernyataan-text,
+  #examSuite .bsg-head-pernyataan,
+  #examSuite .sn-exam-title{ overflow-wrap:anywhere; word-break:break-word; }
+  #examSuite .opt-choice{ min-width:0; }
+  #examSuite .opt-choice img, #examSuite img.question-img{ max-width:100%; height:auto; }
+  #examSuite .bsg-pernyataan-text, #examSuite .bsg-head-pernyataan{ min-width:0; }
+  #examSuite .bsg-table{ overflow-x:auto; }
+  #examSuite .sn-stage-head{ position:relative; }
+
+  /* Saat soal disematkan: beri ruang di bawah halaman supaya bacaan tidak tertutup kartu */
+  /* Kartu yang disematkan menempati separuh bawah layar (top:50vh). Tempat asli kartu (placeholder)
+     dan keterangan progres di bawahnya dikosongkan, dan ruang bawah dibuat setinggi kartu saja —
+     jadi halaman berhenti menggulir tepat saat bacaan habis (akhir bacaan sejajar tepi atas kartu). */
+  body.exam-active #examSuite.passage-pinned{ padding-bottom:50vh; }
+  #examSuite.passage-pinned .pin-placeholder{ height:0 !important; margin:0 !important; }
+  #examSuite.passage-pinned #ev-progress-wrap{ display:none; }
+  body.passage-pinned-body .shell{ padding-bottom:0; }
+
+  @media (max-width:640px){
+    #examSuite .sn-progress-shell{ padding:9px 11px; border-radius:12px; margin-bottom:12px; }
+    #examSuite .sn-progress-inner{ gap:7px; }
+    #examSuite .sn-exam-title-wrap{ flex:1 1 100%; margin-right:0; }
+    #examSuite .sn-progress-track{ order:9; flex:1 1 100%; }
+    #examSuite .icon-toggle, #examSuite .hide-header-btn{ padding:6px 10px; font-size:11.5px; }
+    #examSuite #hideHeaderLabel{ display:none; }
+    #examSuite .question-card{ padding:16px 14px 18px; }
+    #examSuite .bacaan-box{ padding:14px 14px; max-height:240px; }
+    #examSuite .sn-navbtn{ padding:10px 8px; font-size:12.5px; }
+  }
+
+  /* ---------- Indikator simpan otomatis ---------- */
+  #examSuite .save-status{
+    display:flex; align-items:center; gap:8px; margin-top:8px; padding:6px 10px; border-radius:8px;
+    font-size:11.5px; font-weight:700; font-family:'JetBrains Mono',monospace; flex-wrap:wrap;
+  }
+  #examSuite .save-status.ok{ background:var(--sn-good-bg); color:#157a50; }
+  #examSuite .save-status.saving{ background:var(--sn-t1-bg); color:var(--sn-t1); }
+  #examSuite .save-status.fail{ background:var(--sn-bad-bg); color:var(--sn-bad); }
+  #examSuite .save-status button{
+    margin-left:auto; border:1.5px solid currentColor; background:#fff; color:inherit; border-radius:99px;
+    padding:3px 11px; font-size:11px; font-weight:800; cursor:pointer; font-family:inherit;
+  }
+  #examSuite .nav-submit-btn{
+    width:100%; margin-top:12px; padding:9px 12px; border-radius:10px; border:1.5px solid var(--sn-good);
+    background:#fff; color:var(--sn-good); font-weight:800; font-size:12.5px; cursor:pointer;
+  }
+
+  /* ---------- Modal status pengiriman ---------- */
+  #examSuite #submitStatusModalBg{ z-index:200; }
+  #examSuite .ss-icon{ width:54px; height:54px; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; font-size:26px; }
+  #examSuite .ss-icon.sending{ background:var(--sn-t1-bg); }
+  #examSuite .ss-icon.fail{ background:var(--sn-bad-bg); }
+  #examSuite .ss-spinner{ width:26px; height:26px; border:3px solid var(--sn-t1-bg); border-top-color:var(--sn-t1); border-radius:50%; animation:ssSpin .8s linear infinite; }
+  @keyframes ssSpin{ to{ transform:rotate(360deg); } }
+  #examSuite #submitStatusModalBg .modal-card{ text-align:center; }
+  #examSuite .ss-detail{ background:var(--sn-bad-bg); border:1px solid #f0b9b4; color:#8c2a20; border-radius:10px; padding:9px 12px; font-size:12px; line-height:1.5; margin:0 0 14px; text-align:left; word-break:break-word; }
+  #examSuite .ss-detail.hidden{ display:none; }
+  #examSuite .receipt{ margin:0 auto 18px; max-width:340px; background:var(--sn-good-bg); color:#157a50; border-radius:10px; padding:9px 12px; font-size:12px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+
+  /* ---------- Banner jawaban tertunda (daftar ujian) ---------- */
+  .pending-banner{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#FFE4E6; border:1px solid #FDA4AF; color:#9F1239;
+    border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:16px; font-weight:600;
+  }
+  .pending-banner.hidden{ display:none; }
+  .pending-banner button{ margin-left:auto; background:#E11D48; color:#fff; border:none; border-radius:9px; padding:8px 14px; font-weight:800; font-size:12.5px; cursor:pointer; }
+  .pending-banner button:disabled{ opacity:.6; cursor:wait; }
+
+
+  /* ---------- Teks Arab & Aksara Jawa: font khusus + ukuran 3x ---------- */
+  .txt-ar, .txt-jv{ font-size:1.5em; line-height:1.6; font-weight:400; letter-spacing:normal; text-transform:none; }
+  .txt-ar{ font-family:'Amiri Quran','Scheherazade New','Noto Naskh Arabic','Traditional Arabic',serif; direction:rtl; unicode-bidi:isolate; }
+  .txt-jv{ font-family:'Noto Sans Javanese','Tuladha Jejeg','Noto Serif Javanese',sans-serif; unicode-bidi:isolate; }
+
+  /* ================================================================
+     HEADER UJIAN RINGKAS: penuh selebar layar, menempel di atas,
+     tanpa celah kiri/kanan/atas, tinggi satu baris
+  ================================================================ */
+  body.exam-active{ overflow-x:hidden; }
+  body.exam-active .shell{ padding-top:0; }
+  #examSuite .sn-progress-shell{
+    position:sticky; top:0; z-index:34;
+    margin:0 calc(50% - 50vw);
+    padding:calc(6px + env(safe-area-inset-top, 0px)) max(10px, calc(50vw - 50% - 8px)) 6px;
+    border:0; border-bottom:1px solid var(--sn-line); border-radius:0;
+    box-shadow:0 2px 10px rgba(20,20,30,.07);
+  }
+  #examSuite .sn-progress-inner{ gap:8px; flex-wrap:nowrap; }
+  #examSuite .sn-exam-title-wrap{ flex:1 1 auto; min-width:0; margin-right:4px; }
+  #examSuite .sn-exam-title{ font-size:14px; line-height:1.25; }
+  #examSuite .sn-exam-meta{ display:flex; align-items:center; gap:8px; min-width:0; margin-top:1px; }
+  #examSuite .sn-exam-sub{ margin-top:0; min-width:0; flex:0 1 auto; }
+  #examSuite .save-status{
+    margin-top:0; padding:0 8px; border-radius:99px; font-size:10.5px; line-height:1.7;
+    flex:0 1 auto; flex-wrap:nowrap; min-width:0; gap:6px;
+  }
+  #examSuite #saveStatusText{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  #examSuite .save-status button{ flex-shrink:0; margin-left:2px; padding:1px 9px; }
+  #examSuite .timer{ padding:4px 10px; font-size:13px; }
+  #examSuite .icon-toggle, #examSuite .hide-header-btn{ padding:5px 10px; }
+  /* progres: garis tipis di tepi bawah header */
+  #examSuite .sn-progress-track{
+    position:absolute; left:0; right:0; bottom:0; height:3px; min-width:0; flex:none; order:0;
+    border-radius:0; background:var(--sn-line);
+  }
+  #examSuite .sn-progress-fill{ border-radius:0; }
+  #examSuite .sn-stage-head{ margin-top:14px; }
+  @media (max-width:640px){
+    #examSuite .sn-progress-shell{
+      padding:calc(5px + env(safe-area-inset-top, 0px)) max(8px, calc(50vw - 50% - 8px)) 5px;
+      border-radius:0; margin-bottom:0;
+    }
+    #examSuite .sn-progress-inner{ gap:6px; }
+    #examSuite .sn-exam-title-wrap{ flex:1 1 auto; margin-right:0; }
+    #examSuite .sn-exam-title{ font-size:13px; }
+    #examSuite .sn-exam-sub, #examSuite .sn-progress-label, #examSuite .btn-label{ display:none; }
+    #examSuite .timer{ padding:3px 8px; font-size:12px; }
+    #examSuite .icon-toggle, #examSuite .hide-header-btn{ padding:5px 9px; font-size:12px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <img class="emblem" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCADwAPADASIAAhEBAxEB/8QAHQABAAEEAwEAAAAAAAAAAAAAAAcEBQYIAQMJAv/EAEkQAAEDBAAEAgYHBgIHBwUAAAECAwQABQYRBxIhMRNBCBQiUWFxFSMyQlKBkWJygpKhsTNDFiRTY4OzwRdEdJOjwuFkorLR8P/EABsBAQACAwEBAAAAAAAAAAAAAAAEBgMFBwIB/8QAOhEAAQMCBAMFCAECBgMBAAAAAQACEQMEBRIhMUFRYQYTInGRFDKBobHB0fDhFSMWQlJicqI0Y4KS/9oADAMBAAIRAxEAPwDfylKURKUpREpSlESlKURKUpREpSlESlKURKUpREpSlESlKURKUpREpSlESlKURKUpREpSlESlKURKUpREpSlESlKURKUpREpSlESlKURKVbcgv9qxfF5+Q3yWiLb4LKn33l/dSB5e8noAO5JAHeubFfLXkuNQb/ZZbcu3zWUvsPIOwpKhv8j5EeRBHlRfJEwrjSlKL6lKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlUN3vVpx+zP3a+XKLboLA5nZMp0NtoHxUen5URV1Y3mue4pw9xtd8yy7swIw2G0H2nX1D7jaB1Wr4D89CtcuJvpkQIoetXC+3Cc91SbzcGyllPxaaOlL+auUfA1qbkmU5FmGQOXvJ7xLuk9zoX5K98o/CkDohP7KQB8KxuqAbLQ3+P0LeW0vE75ev4Ui8bOPN+4uXVMJpty14zGc541t5tqdUOzr5HRS/ckeyny2etffBHj3fOElzNvktu3TGJDnPIt/NpbCj3dYJ6BXvSfZV8D1qIKVizGZVR/qlz3/tObxfKOUcv3derGGZ1ivEDGm75il3YuEVWgsIOnGVfgcQeqFfAj5bFZFXk7jOV5HhuQN3vFrzKtc9HTxo6tc6fwrSdpWn9lQIrbThl6Y9tmhm1cT7eLc/0T9MQEFbCvi411U3808w+CaytqA7q32GPULiG1PC75fA/lbXUqitN4tV+tDF1stxi3CC+nmakxXQ42sfBQ6VW1kW9SlKURKUpREpSlESlKURKUpREpSlESlKURKUpREpSlESlKjXjnxNHCzhFMvsXw13aQsQ7a2sbBfWCeZQ80oSFLI8+UDzoTC8VKjabS9xgBWPjV6QuOcKGlWiI0i8ZO43zIt6F6RHBHsrfUPsg9wke0r4DrWi2d8SMy4kXz6Ty68uzCkksxU+xHj/AAbbHRPz6qPmTWOTp0253OTcrjLelzJLinn5D6uZbq1HalKPmSayrF+Fua5Zb/pWBakw7ODpV3ujqYcNP/Fc0FfJPMfhUdziVQ73E7nEXmnRBy8hx8/2FhtKnS1cFsNiJSu+5Td7875s4/DEZjf/AImToqHxS2aymJhvD6AlKYXDi0uLH+beblKnLPzQgtI/QVq6+MWVAxUqiemv0lYWYNXPvkN8z+JWsR6d6d+1baIh2tlsFjB8DYR2BGNtuD+Zxaif1rl6BbFp1LwTBXQob0vG0NbHvBbWk/nUP/EuH/6z6H8LN/RP/YPQrUqlbOS8L4e3BKkzOHNtZWf82y3STCWPkhzxUf2rFrrwVw+WlS7Dllzsjn3WMihh5jf/AIqNzBI+KmxUyhi9lXMU6onrp9YWF+DVx7hDvI/mFHOB8S8z4a3v6RxK8uxApQL8Rf1kaR8HGz0P7w0oeRFb1cFvSDxviwwLVIbTZ8mbb53bctfMl8D7S2FH7afMpPtJ89jrWjGU8L81xGD9J3K0+sWlR0i7211MuGv/AIzZIT8laPwrGLfcJ1pu0a6WyY9DmxXUvR5LCuVbS0nYUk+8f/Hato1xCzWOJ3GHv7qsDl5HceX7C9caVHPBHiUnilwhg5C+ltu5tKMO4tN9EpkIA2UjySoFKwPIK15VI1SAZV8pvbUaHtMgpSlKL2lKUoiUpSiJSlKIlKUoiUpSiJSlKIlYbxB4p4Vwxs6Z2WXdLDjgJjwmR4kiRr8DY6kftHSR5kVg3Hjj/a+FVrNmtAYuGVyW+ZmKo7biIPZ17Xl+FHdXwGzWgV/yC95Tkcm/ZDc5FxuUlXM7JfVtSvcB5JSPJI0B5CvDnwtJimNMs/7bPE/lwHn+FsZmHpoZdPfcYwrHrfZ4u9JkXDcqQR7+UEIT8va+dRhNyHi7x+vUe13K4rvCYAXI5ltsxYsFBAC3XVpSlKE6HdRPuGyasfD/AIfS81nPypMr6MsEEpNwui2ysN832Wm0jq48vslA+Z0K2AjxIESwJslmtabTYIv1wgKcSS4of94mOnQdd7dzyI6BI6brU4jilOyYC/Vx2aNz+81pKLru/Ge4eQw8BpPQdOp+ax3F8Bw/Em0PxYsbKLuOpu1yYPqLJ1/3aKrReIPZx3SToEIIrKpi5NxuPrd2nLuE5pCVblPJW4whR0kpbH+CgnYHKlKT5Vh2d545hNyhxHLbNi89xiKFykMNvxLlDUf9YQ0sE+EsBST7XtFIJHLsbseXwrlj/HWRcMZtU6fkU+GxJiMxkBTcxDJUxMYkbI02pttpwKGyFhOu41X6tpe4jpc1MgcCWtG2ke9z36/Zb+hYZW5G+EEaAdOZ4rJs8yG9YxiLF0sNsg3CY5cWYikTecp5XAvl0EqT1K0hOzv7Q6VZ4GbXC78aWItvnqXil0hIYhxC2hPhSlQkSQFHl5isKS4g7PfmFZDerenNOGLrEJyRaVXSK1LhLuDC0ORHkOpcb8RAHMClTZGwOoIUOhr6i4ZjlvyWVd4rkzbmRRskYZZQlpEd5ttaVtAnmJacU4s60khOh8ajWD7C3s30buG1BmadJOvlPwPTRZaLqLKZbU0dqFjNkyJyRx9ucFeRKlR7tOnWhm1KlFfqqoiWVMOJa37CXNPoBAGzurJbctv6eJUmzqulwTHvmatSYS0yHP8ABjyn2n2R16II8LaR0Oh0qRoWMYxbn4j8azAvxLub41JdeJf9ZKyvanEhJU3114Z9nQr6ZxrGWLlY5zdnUl2yTpNxhgSlkeLIXzu8+9lSSoAhOxrXQ1NZj2HMe57SZIDdv9MwfmsgvKAJI5R6LDchyvKol7yW72q8oNts13tthjWZ6K26zNedT9eObQWhQOztJ/tWXXjKLZaOJdsw5MObKkzpAaXIYWkJgpcUoMlwEe0VhC1aBBCUg9d1b7fgNqjZLGnSL9eZVtZvC799EyUMllc1Q6LW4hIWpIOvZ12HTud2u1YblFtzez329X1u7RDMnZBfn4sVITEkNxFobKFHTriORXKhJSAFJIHevgp4XfZWsIcWtIA2JMCORMQfiUi3qwBBgeUrO4Mh23XJb1ouYgXBbAfdbivpS6tkq5Qt1k7DjZUCna0qG+lYrlHD3D8sSt96PFxO7q6i529lQtzx/wDqIw2WCen1jW0DqSkVS8P5Ma62C9cTLhLhMqu7qi66p5JbtUFg8rTDihvkOk86h3PsaBJqvxrLpGR5PdISMeegWyLDYmRJshakSHg6rTZcaPRAcSFuIHRSUJBPNzdIVIXuHOeKBzU6YGbNtMahv8fPSYVe0zNLHjM1u88+ijqDkvF7gFeZNmt892y+u8kkgNNSY01IGkvNrUlSVpI+8k+7fUVKGHemjlkB9tjN8dgXeLvSpNu3FfA9/KSUK+Xs/OrlKh22fYnMfvltN0sTiitUBCgh2Ks934iz/hO+ZT9hfUKAJ3Wv/EDh/Nwi5MPNSk3OxTwpduuzSChL6UnSkLSerbyD0W2eoPw61acMxWlfU89IwRuOI/jqtJWfd2AD7d5NMcDrHQ9Oo+S9GeH/ABPwviZZVXDE7uiSpsDx4jo8ORHJ8nGz1HwI2k+RNZhXkzjuR3zE8kjX/HLnIt1yjHbUhhWiB5pI7KSfNJ2D5it/+BPHy1cV7T9FXNLNuyqK3zSIaTpElI7vM76lPvT3TvzGidu186Ld4XjNO88D9H8ufl+FM9KUr2t2lKUoiUpSiJSlKIlKVwpSUJKlKAAGyT5CiLmoW498ebbwqsJtVpUxNyyW3uNFV7SIqT08Z4e78Ke6iPcCaxjjN6VNgxSNJx/h8/Gvd+ILa5qfrIkI9t7HR1Y/CPZB+0fI6QXS6XG93mVd7vOfnT5Thdfkvq5lurPmT/TXYDQGgKxufGgVfxbG2WwNKiZf9P56eqXO53G9XmVd7tNemz5bpekSX1cy3VnuSf8A+AAAGgBV5wbDZ2cZai0Rn24kZttUmdPeH1cKMjq48v4AdAPMkDzrG62hxXEzhmGx8TLJ+lpZanX0gbUXiAuPC+TSVJWoebi0/h1WuvrxlnRdXqcPmeAVVsLU3dUuqe6NT16eZV4gQYa48GzWKC5AslvBEGK6PabCui5Ugju8vuo/cSQga0d4BlEhrNLSXbPbZNwexact284TdkeEqe0DrnUhB2ohPtNkEjrrXMBz/XEDJWRbosONEN1sL0lDZv8AjtzHrdsurS1ciSnYR08kL0HDzcqwQNdNhuDfEOam4t3B3HOIGMLQ0/cWYSkB1kq5dOMK0eRXUFpWi2o9NoPs6K1tatI/1G798/8AUco5RoeLfKSr5QoGkBVdp9h+PouMKdsF2TecFt0pWQ4JItrdxiB47dtiXXOUwXSegcSeZbZ7pKOYdFKrNrXa49rstnhvPG7TbVFXDYu81hKZJbXoFI0SEjlShHckhI69TXe65aLe+Y8KHEtjM2Wt1EaO2Gw48valKIHdZAOyfkNDQrmQ+I7HilClpBAPKQOUE/aJJAAHcnyFVvFMZfXqObby1h9SYIJ6TsefFRK9w6o6KegPz4LuWsqUpxxZKj1Upatk/Ek10MSmZIUWyeh7KGiR5KA80kdQexFfd9s12tZbtt0ZjuypDXrTCmVpUlkjqnm7kcqugXohRGwO4qqu9ymX28xpk6DBYEVgtM+r9dEn4pB+z0769wTs1WGV+9yPow5jp8QO0bacZOnRH2raTXisYeIgRuu7H7OnIciNqmyY8dg6c8IpUpcpoa8RKSNBJ8iDs8p2N+XxfLSbBkX0RGlsy2UArUAhSFx2zstpUTsLVrQ6a6DZ7gGkQqUzMTIizn4yvDW0rwSEqUlRST7XdP2R9nR6nrRRkuzFyZM1+SsoQ2kvEKUlKd6HN3V9rudnoOtYe5ufa+97z+3Hu9ee3x3+MaLL7Rb+yd1k8fP9PL4LqVLYRKSwpXtHur7qT10knyUdKIHnyn3V3pUpDiXEKKVpO0qSdEH3g+VcNzZ0fEZ+Nx7fb/UpL/NzKOlhBKSoD2dD/M77Pt9CmjMG4u43IyCOwy3bYSvAdYWtCXSrsNDehr2AEnqrxAR2G8xrZJNaGjNA1mZ28iTpCxm0FTKLc5jEnhCttzxbFshbES+2rcR6YiZNbhL9VE5aUlCTIDYBd5QpRT1BBJO+p3SYZjU7HbE9EuE03K7T5q5MiQl9clSwNNR2+dQClFLSUjqN7URrpV8SSpCVFJSSNlKu4+BqleMO5w7nZ1SX0+IwqLIMR0tPshxPdC9HlVrz0RrYPcit83FLirR9krPOQkSdyAD++gCxC4e5vduOix9OVXm58RlwMWtbuQY5AbRDuzkbwkpYllw7cjOKILykpI8ROynlSSNABVZRNiW562z7JfYy51huBBmMsglaVJ6ImR9jo8gdR/tEbQd9NYNlN1ueDRYFns1nbx3DWXfUo12hobuUx5ZbLiQzGJAQ44oFPO4FEL6noAKvuKwrpjuKR2czyFZuVznlxpF1nBamXHNBMRtxWi6veivXshZ0OUAk2K5t3W7ad3aQCNGgal4096NOZMT5ggKVXogsDmgco3kdVA+bYfccHy96xz3G5CORL8Saz1amR1jbbzZ80qH6EEdxVqtN2uVivkS82ac9BuERwPR5LCtLbWOxH9iD0IJB2Ca2Py/FBmmCv460zzXi3Jen2MhPtL0CuTB+SkgutjyUlY6A6rWTy2KtNleMu6La9PY/I8R8FR7+2NpWDqZ0OoP7xC9FeA/Ha2cV8fFuuSmIWVQ2wZUNJ0mQkdPGZB7pPmnuknXYgmZa8kbTdrnYr5FvNmnvwbhEcDrElhXKttQ8wf6EHoQSCCDW8XBn0p8fy+NGsGevxrHkGg2mWs8kSaewIUejSz+BR0T9knsNg186FWzCcaZcgUqxh/1/np6LYylcBSVAFJBBGwR51zWRb9KUpREpSlEStMfS6gcTrTd0XF3K7nMwm5LDSITZDLUR3W/BcCAPESoAlKl77KB6gE7nVj2c4hbc84eXXE7sgGPPYLXPrZaX3Q4PilQSofKvjhIUW9tzcUXUw6CeI/dl5TeWh0A8qVWXa1zrJfp1lubXhTYMhyLIR+FxCilX5bB/KqOoy5e9pY4tduFJPBSwR7jn7mR3OKJNsxxj6UeZUPZkPBQRGYP77ykdPclVTYH0tSI/0hdGRcp8lQbU4vlcmyiFOueH71faVrp5AddCsW4Y2pNn4KWxRSEv3+e9dXjvr6vG+oYSR7i6t9Y/cFdmc2G+ZbbF4/jeQ2AuR0j1izzEtrcRICudD6HmyXWHkgpA6AaHUnZFVTFgy+vW2dR0MaJJ6nboI0OvVXLCbRraLWO0nU/Hb5fVduQYPimT+suTYZhzZLZaen2xSWHXknydTrw3hvrpaSd+YPWrzaIb9pxa32V67SrsuIyGVT5aEpefCSrkCiNkpQlXIkKUogefWscwOHnsZ2S5nlzzVFxiIKFMT3GHbbN8XmSlTa0jmUpIBUUknqAd9hWVOOstBHiuob51htPOoDmUeyR7yfdVfxarc2zRZOr940wfwJ1J57qfcOqMHdF8hXCHYl3LEcgvqGi47AU0mMkdz4RS89r4kEJ/hq3ONtSYi2uclp1BHMhWiUkdwfkalDhw2kcPmXAAS7JkuK35nx1j+yRUdXm3DHcilWVLbi20LSqE22kqW404T4aEj7ygoKb1+wDXO8Kxfvr+5tXnVriR5CGn6A/ElbXEcOLLWhVpjgAfjr9SqQNf6yX1PSHFlPJ9a8twd+Yn2iepJJJqti264Toz8iFAkyWo+vGWy0VhvY2N67D49q6GkTrbfn494gRS9FWkKilxS0FKm0LAUUkbI5tbSddOhNTLw8Th8+6NXPG1O2e9IbUh+1uSVLbfQR15ebZKdgHY6pI6j33nBcOpYi9rRUEHUQdSDrI0g84mVqRQc+qW1T4uM7qE5EhqNDdlPLCWm0FalE9NAVyw+3IiNyW1AtuIC0nfTRG6nPIeF+JZJmSbldgqPD9l2TbwQhCn0LC+ZzyKFJSoHyPfvX1jnDDD8ayVqdZw5KjNoKo0JSg4gvKUVhaNnolKVAfhHQjqDW7/AMHV9s43+XPz6Kf/AEyj7Nmznvc20aZec854bRxlQvKt1wgx2H5sCTGakb8FbzRQHNdTrfcfHtVvVFSpLifHlBLiw4pCZCwnfs/dB1o8idjXXVTdxDGHQLq7csjU5eL2ttKGbY3JUhthAHTm5dFKdknZ6qJ6D3Qy+Jc+8MMWuJFQ/LfDTcYrWhpI5VKIBPMQdJ7nfvNaTGcOpYc8t7wGNeoA1k6QOcSTCgOouZUyUnanTquO57gbqsdsao+B2nKOUpXLmOBwEa2w8dMk/m22f+IapoNvdvl8j4+W3o7r7ymZbaxyuR20Db3N7jykJB7EuJIJBBqTM/ZaRwvuSG0JbQw22ttKRoJ5HUFIHy0BVGxfF/Z7u1t6Z1c4E/8AE+H5yfRbbC8OL6FapUHAgee/1AUWPQPpHwRFRbGrvHUpdpuFwjGQiBJWAjxeQHrtPTz0eVWtpFQbdUW+PkP+lmXY9k96gsL5YsvIXE25d3dSemkK2ptgEezHYQonpzrHap0DrLrrzbbqFltZbcCVAlB1vR9x0QdfEVimTS0WjiPDudkxe1TcpvMZ1833ILt4LEUMBKFob5zts8vIvlQUk8x102K6x2XxF0OtXCTEt4acRPLj6qDh9c60z8Ff7Ndr3d7Bb8il2p7H744v1tMV8kqYeQ5zNuaPtBCvZOlAHRUNa1uGOMuOxLPxE+mLRGEez5Awm7RGR2YKyQ8x823kuJ15DlrMeHWbX3Kr2U3C7tXFmTa1zZEWLalRWbU8l1AbSXVD61TiVLG+Y76dT11dOKlq+l+Cst9KeaRjtybmtnfaLM+rdA+AfbQr/ifGtjhwdZX77R8APGYAbA8Rr0HyWrxm0mk9pGo8Q+/y+i13odEEHqD3BpVdZbROv+R2+xWtvxJs+S3FYT5Fa1BKd/DZ2fgDVmVLYwvcGt3K2j9ESBxOu1wcun+llziYTblFkwXSHm5b2v8ACbDgPhpTsFSka66SPPW5NWHC8TtmDYDasUs6OWJb2EspVrRcV3U4r9pSipR+Jq/VJaIELqNnbm3otplxJHE/uyUpSvqkpSlKIlKUoi89fSwxlOP+kfOmstBDF5is3Ecvbn0WnPz22Cf3qg8nlSVe4brcP03rGFW3EMmQ31bekW91fwWlLiB/6a/1rUW3x/W7vEia34z7bX8ygP8ArUd4grneN0O7vXAcYPr/ACttU2v1GXasaACBbLVbrWdDeleAl5069/PIWfyrXm93HDctzOXdLRiwhXyRIU5IiZHdI7LMlRP2khamnWFH9hzQ/DWxmVynWssy64MxFzHo82e61FbJCn1MhQQ2NdevhJT06+7rUWSuIkzJcQQ6wzhl5j26EJN9vN/jOt2xp5aiWobCXNrLxGkk+ZB1oAqNZwkvdeXNcNkZsszG3Tjw+3FXayaWudlGg035LNcbtyrVhUCKuBMgOOlclcOTeRdkslRCAGnxsFshsKCdkjmOyTV0iw4M+/2uHcm+eI/KDDg3ojxG1oSQfIhSkkHyOjVDZ3Yz+K2eRCtTVpjO2+O61bmk8qYiVthfhAe4cx+e9nvXf9FTr1do9vt84xpK2nlx0kgIceRyrSlR8jpK1JPkpI3sbFUHH63e17h73ZPeE8oBE6clHpFz7wEDWdvLgpWw23XHHMUkW68KDhjS31tvtJKvHaUrnSvlA2Fe0dp8iDrY1VdDbxvIpkDLLe5EuC2WnWYs1hznSkKICwNdOYFJHXqnah02a+savL18x5qXMgvwJ6CWZkR9BQpl5PRQ+KT9pKhsFJBBNYTh2oPpIcR7TC9iC7Gtl0caT0SiW6h1DigPIrS02o+8jdcSdTq133VaoctVgzGNjLgxw055pkGCJEahdDZlY1jGjw/jZdnEi2IjXiBe2iAZf+pPo/EUpU42v8gFpPwKfdUH8WrJOmYuzf7U/Jam2YrkJ9XeUyvkIHOUqT1CgAD8gamniHcfXMsi2ts7at7Rec+Lro0kfk2Cf+IKxGZHEu3SIhIAeaW0SRvXMkjf9a6j2Or1rS0t6zzqNf8A5kwPT5Kj4zUY2/c5nCJ8+K1rm8aeI11xZ7HLnnuUSba+jw3GXZLbpUjzT4hSF8p8xzdfOuLfxm4iWjFWcbtWeZTFtjKPDajsyW2ihHkkOBJXyjyHNoeVYlcrEbTeJNplzW2JMVwtOIkNrQQR8QFAgjRB32Irm1Y+u83yLaIU5l6TKcDSEsIWvv3JJCQABsk78q733tPLnzHLEzrtzU+WxPBT9wes81rHpOUXN+S5JvBSsesPqeWptJPKtSldyokn5aqceHltRNymVdHiCm3IS0yj/eOpJUv8kDlH76qw63w27daItvaILcZlDKSBrYSkJ3/SsrwK4/R+bmGs/U3Nnwx8Hmgpaf1QXB/CK4T2uuK15bXNamdSP+oiR/8AmVrsJqMdftc8aE6fZZ9Oj49ZrhKzC4riwXURQxInvuhtCWgrY5iTrvob79h7hVFlsWbkeArh2IILk5bCUuvpKEtt+KlSnFJIBICUk8utnoOm91jHEUJncYeFtjm6XbX7nMmuMq+w6/HiFbAUPPlUSsD3pB8qzm/3gWPH5Fy9UkTXkDlYiR0FxyQ6eiG0geZOtnsBsnQBrlAp1KHsldhLqjvE2dgGvLWj1aTvEQr24NeHtI04qH59vhWvKLnb7eVKYjrbYLiuqnFpaSXFqPmoqUdn37qzZNaG73ib8Y45jl9ejuJktRsgcW1HQACHFhaCClXLy9yEkdD5VcHbXdrVfFs3mYHZ70dMuWyhQUhl11xxWgR3UR1J7dQB0AJ+LhGZm4/dIciHapjb0J5Jj3dxTcRek848dSSClsFIJII1qu29nq3d1rdzX5vdGbnwJ4b7rntcll6dI19AeHosAx/iZlmSNWeNY8dx+6xlBn1mFa1TUItTPQFLjiylhpSUb0kFWunepGft7dzjX2woHjIudluMJs6+0tDfrLKv5o/9ah9riZmTjr0GGnDbdjcFXhC922yzZdrYVr7pQOg96uTy/Op0x1xhXELGnmnWX2Hp0cB1gfVuoebKCpG/uqDpI35EVeL6gbe/t6wY1oLo0mTOmugH1Xu7o+JugAOnrzWmYPMAr3jdTr6JWNJv3pFx7i82lbNlhvTvaHTxDppv8/rFH+GoNea8CS4wf8takfodf9K3G9CKxeHj+W5Ktrq/JYgNrPubQXFa/N1P6VbWCSqZgdHvL1s8JPp/K2xpSlSF0RKUpREpSlESlKURQv6VGPqv3oz3l5tJU7anWbkgAb6Nr0s/+WtdeflkdTHym2vL7NzGVH8nEmvV68WuJe8enWaejniTY7kZ5PvQtJSofoTXlPk1guGIZjdMbuIKZtrkuRln8RQfZUPgocqh8FCsNUcVUe01Ah9O4Hl9x91tjfOZvOch0SlSbzMIIOiP9YWof3FUrr7shotSVJkNk7Lb6EupJ2DvlUCN7AO9b6VU3yS3Oyyfcmf8K4CPc2z70yIzTu/5iv8ASqELQVlAUkqT1KQeorkWJF9G9rBpI8RPz0U2q4h5IPFfS1qccK3FlS1HZUo7JNUsl66sTLe9ZGEPT0SkuMpJIJUlKlaT7yrlKdeYUR3Iqwzbw23xSt1sdVpsRVhO+3iufZ/+1BA/e+NX6e66zBL0dLxfQttTJZ1zpc508ik8xA2FaPU9da86gV6Lg0B0HMOO2sjXpzUs2tW1qUX1QRnAcOZEkSPRTbjl/t+UY3FvNtc2y8NFJPtMrB0ttXuKTsH/AOawXg2RfhlvETunJb26Yaz5w4o9WY/I+G4v+KuUXm23LhbmmQWCKiDkQtsk3KIztCky0MLCVqbP3jroogKIACuqdC98I4kODwCwqLAKTHTY4ZSpPZW2UqJ/MkmuRXNAWVpc5Wlpc9rIO4aJeRPHUMg8QJgTC6DTf3haZnSfso+nSVTshus5e+Z+c938koUWkj+VsV1Vnt94dql3ORcbJcm4i5Cy67FktFxorPVSklJCkbPUjqNknQ2atcbhvf3ngmdd7dFZ+8qI2t1wj9nnASk/EhXyNXW07SYaLdv9zLAAggyIG22vwVNu8EvH13ENkEkzI4rW3ithTN/y5NzZv+O2eRyCOpu7y1RfWilIVzocKC2SAtKSkqCh7JI0RXzwqw5nHsyVcHsixu8SfCMcMWiWqWY3Ps+ItYQG075CkJ5uY7Oh0NXr0s2LfZrph2MWxotsxocmUoKUVKWpx1KStSj1Uolskk1QeigiBceImR45c2Q9GuFnCi2SR1afQQQR1Chz7BHUEAiuisxKu7sucSzHu4PhgTlD8u//AB1j4TC2PsQy+yHeInrH5UwV8mSuBIjXFv7cSS1IT8eVY2PzSVD86y2Xw2vbL5TbbxClMb9n15C23Uj9pTYKVfPlTVdZ+HDjc9mXfrkzJQytLqYcRoobUpJ2nnUolSgCAeUBIJA3sdK57X7S4Z3Jd3maRtBk9Nvrotbb4HetrNlsQRrIVFxwQq1YXbM6joKncQvEe8K5e5jBRZkj/wAp1Z/hrO7vfbXY8akX6fKSiAw14pdB+2k65Qn3lWwAPMkVS5nEiT+HGQwrhy+qP2yU28V9uQsq2TUdYxd7RB9Grh5kGWsCdcGbTDcgxH1El6V4ACFBHmsJ682iUgkjqRui2tAXtlRa4EllQtgbkOGYAcoLXa8M0wVc6j+7c4zwVgRMu0+8XKbeogjS33kvlrZ5kJW2lSUKB7FKOQa92t9SRXeQ2ttxt1lp5pxCm3GnkBaFpUkpUlST0IIJGq6Ir8qSl+TPbdRNckOmT4wCVF3nIUdAnQ2NAdwAAeorH493bVxWl2xpQKFQ0pXr/aoJV+oSvX5fCuvWlJwaO7gFgB02ERt05KgG2q3Vas+kCcgLjzABAJPqsrbfeaS2llwsoaTyNoZ+rS2n8KUp0APgBqq+wFyRxDxzmO1G7RewA6JWD2HQABP9KtZWgLSkqSFK7Anqaq7VLFuvzd2V9i2RJt0WfcGYjpB/nWitjhWere0gSTLgfQ7qFScc4JPGVqLNWHrrJdT2W8tQ/NRNeiHovY8cf9GawqcQUPXIu3NwEa6OrPJ/6aUV5/YnjU7MM1tGK24EyrnJbipUB9jmPtLPwSnmUfgmvVi126LaLJDtUFvw4sRhEdlH4UISEpH6AV1ykOKhdmKBJqVz5D6n7KrpSlZlbkpSlESlKURKUpRErUX0weFDjnhcVrKwD4aERbw2nvy75Wn/AI62G1fDkPka26qNfSBhLn+jJmrDaSpSbYt7Q/3ZDn/try4SFEvrdtxQfTeOHz4LW/ELmLzwnxC7FfO41DdsUjp9lyI4VNA/Nh9P8lSjw8cxq6LfxHKIrSm5jodhSSeRbT3KElKVjqkqCUkeRIIO9gHXTgbeFSo1/wAHO1vyEpvNrb2drkxkq8RpI97kdTqfmgVJ6VNPMpcbUHG1pCkqHZQPUH+xrn+NOdh+Ituw2WvGoOx4EekFaOxuc1JlXfSD8NPpBWPceuG11wbOGrohx+VaJqEJjTuXlLbiB/hrI6BegFA9N9dDoa6cZyRjJLWu2z18k8NlLgT08VOteIn4+ZHkevapnRxRxtzhlc7DxUjP3K3paDSXkMqdW/v7LaiPsujW0rJG9b2CNnUV+WqDfFSbV6wmMh0rjLUR47aQTy82uila1vXfr0IrLfWdteUWVLYwCNBxHTy/Qu4YVhtLtZgTbd9MsfQ0p1IOU/7T8gYmNDzB3DxCfZsjWJ8yDDGSx4/qs1fhgOOtnpzb7raXrY3sA7HQirHitryXhc6cXatki/YUlxSrXKhEOS7U2pRV6u80errSSTyOI2oDoU9N1HOM3dGSY9Fu/KtmS0tTfisqU0pC0nSlNqGlJB92/eDvVZbFybKoLyHGb/IlJR/kXBKHW1j3EhKVg/EK/WuM33ZivRfVpUXA03bsdOhExlI2IkxsIJBkSqIMYFvUNC7aW1GEgkQRI0P6J6KZkKC20rTvShsbBB/Q1hOUZ39HzHLTYUMyZzZ5X5Du1Mxj+EgEFbn7IIA+8R0Bxu5Zvk10iGKgxLU2oacchLWt5Q9yVqA5PmAVe4jvWPtNNMMpZZQlDaRpKU9hWvwbshkf3t+NtmzPqR9Bvx5HHiXaFuXJanXn+JUb8bcSyHOUoyj1t25XSBFEZmBDgfWSgXNhKQgnatrOtDtVDwRw3KcOu8jKLgzOx+8oS7AVbrlbylxtB5Fc+lkfa0NdCNbrYvCbvY8Ox3KeJF/ZkPxscg+seFGb8RzRCuYpTsddJ5dkgDmOyK+r3mWP8WeDuPcVLFBmwUyn3ICmJqAlz2CsEHlJCgFoVog6IUa7fRs6h7OOpiMmsNgRknUREbyfktSLi4NA1c3i5qoxnPlyZrdryNLDEh1QRHmtAoZeUeyFJJPhrPl1KVdgQfZrOyeUEny79KgZxtt5lbTqEuNrHKpChsKHuIq+WnMsks0URErjXSOgabE5a0utjyHipB5x+8N/tGuI4z2Q7x3e2AA5tmB8CdvI/DktrhvaEZcl2def5VzzGHlXEhp3DrfAl2DFZP1V2vEz6qTLY37ceKz9pIWPZU64E6STygk7q+ZI9jmJxYs+Pa4KrwzG9TtLRQCtCQAAEb6oaToFShroAOp0KwmZlOVz5CnXL47BSroI9uSltCR+8tKlk/HY+AFYlkt3Tj1hmXxzxJMpRS2XpC1OrWpR0nnUdnlBPbt5DW6m2XZi4rGlRquDaY/yNmXEwDmceJgAxpAgAbrM7GW1qgo2jS6o8gAmAJJgfpjqqHJMjbxu1JhR3Q/c1o2kqG+Ukkl1Y+JJIHmT7q44FcOrtnfEBdwLr8a1QkrMueU8xU4saDaSehWdlR76HUjqNxbHmfSWQokXhySIrjyVSpCUgvlJI5ihJ0NhO9A6HYdBW3z3EjFbZw3t2OcJSGIKmOslKFIWwN6UPaGy8TvmUd679SRrtFjZW1lRdUuToNxxPSOSvOJ2FHslgbrdrC+rcCKlQg5f+LT6xz1ceAFPxDOM2dLGH4xFaHqzvjz5W+dxx0JKUoUs9SQFKJHYEgDXUCJ83uQs/B7LbjzKS5Maj2CMR95T6w+/+jLCP56vTjjTDC3nVcjbaStaj10B1J/uaizjpd1xn7Dgx9h63NKudzQPuzJQSrw1fFtlLKPnzV4wVxxDEHXZblawQANhOgHpJ81xC/uctJ9XbSB8dPpKmP0PuFDkaO7xWvTAC5CFxrO2ruGydOv/AA5iORPwCj2UK21qO+A8Fdv9GrCY7ieVRtLLpB/bHP8A+6pEq/NEBb2xt229BtNg2CUpSvSlJSlKIlKUoiUpSiJVtyC0tX7ErpY3iA1PiOxFk+5xBQf71cqUReTNquN4w/MYlyhuGNdrRLC0kj7DzS9EEe7aSCPdsVtAJVuucGJe7EPCtF6ZVNhIB36sren4x/aacJAH4FI1UVekzhysQ9Iq8KaaKIV41do510+s2HR+TiVn5KFUPCLN4lrkP4ZkU0RbLcnkvR5q+qbZNA5UPkf7NQPhuDzSd/drR4vhwvaBpf5hqPP+dlQ7Z/sd0+1qaNJ06HgfiN1vLZbTh/ELgm7YG7WxEgyWixKisDSo740eYHuVA8q0qPUjRNaSZrg17wvOJWKXZhapKFfUOtggSGzvldR8CB+RBB7VsBiGUXXBsue9ZiuIKFiPcrfzbJ11CknsSAeZCuykq+PTu9JS3zszsWO3iEUnCvBfVMvFst658xpwj6tp1pOliKtSQlzk2rfQhI61Fs6jMTpBrvDVZo4fxy5ctl2Xsb2yq4OKlJzczHDVu0OjQjodj08lHGK3WFMtCIDMZMKRDQGnIYGvD15j3pPffx/M36oZlw8hxhdueuFpk2Ca+0mdEhqbcR6pHcQkpZSXACtKVc/QjSebk7DpnVizaNNZZavDfqL7g+reUkpZe8tpUe39vjVNxbCHUKrjS8Q+Y/f3moOP9ibplu3FrGmXUagzFu7mfct4g7ge8ARJzKLFkTZjcWK0XHnDpIA/qfcB3Jqrk2xpiQthMwlSFFPtJ5dkfAb/AOlYHm2I3HLIsFNry25467HWtRet61AvJUAOU8qk7GwD51iP/Z3xZtqd2TjdeHCOzVw8RxB+YUpY/pUzBThDaJ9sMvPMHQdCPVUy29nDf7h1Kn3F7qxYrpJjXeMmbZrlHXBuMfXNzsrBBPL562enXoTXVdF2eJjFhwXD0FrGsfipixFudDIUBpTxHx6nZ1sqUfOoHbyPj5iryHL1jtpy+E0oKUuBpt4gHfZIHX+CuyZmPHXMbi/KxzELdicJ9wrS7dFBboBPfSh1P8GqsjaWHC2NFtcdyTMZh5xO8cY36qZlpZMof4fNTG1b2VuJQ7KIJIBCE7I/I6/ua6p8CTbbg5DlIIWjsrRAWnyUPgf/ANiodHD/AIv3NPNe+Ndzj77s20LbQPkElsf0rJ8Jwu6YnInSbtmt2yIvoQhBuDiiI4SSTrmWrvsb7dqr2Mf0d1vFoYeNoB15gk+qiXHs5Z/bOvxWZVYMpvEWBa1wVRkzpUtBQ3D5efnBHUqA+6P6/wBRQ3vNGo7L7NjZM99tO3HkJKmmR7yR3/t8axLHcfyTPr3IgWuL9IzFlMmUZLDrzC2UBXMh4NEK5CSkhKftFCU6O6gYVhDq9VpreEfMq6YB2JuX27sWv6ZFGmJyk5XP2+LW8SdyPd3kMEwO9ZznMbFrUyttwnmkvOJOorQPtOL37vIHuSB51ujlllwvCuDEaxOWpl+PDaEa3MrOnFPEE84WOoO9rUofH5VHvo+NXTE7NlOQ5DzxsbW3F9WmT7F9ESHHUIUlxttgkueAn6tDYX7RVza6dTasrya7Zzl7S2Y5U44Sxb4Cl6DaftKUtXZPQc7i+yQn4DdwvXsw6iabRnq1NAP45fXZS+2fbF+MZKTG5WNGjf8AdGpPlsOnmVjap9vs0CXkV6AetdkaRLktq0PW396jRh8XHAFKHkhCt9DWr0yTd8vy96TJdVKu14mEqXrq488vXQfvK6Cs64t5xEvUuPiOOTDJsFrdU6uYBy/ScxQ5XJJHkjQCGx5IA99Xf0YMOVlvpE2qQ61zwrIlV1fPlzI9lofMuKSf4DU3CcOFlbto8dyev8bLjdw8Xl1TtaerQfXmfTZehFltjNlxu32aP/gwozcVH7qEBI/tVdSlbtXxKUpREpSlESlKURKUpREpSlEWu/pe4F/pHwfay2GzzTsdcLyykdVRXNJdH8JCF/JKq0N7HVeuU+DFudqk22eyl+LJaUw80rqFoUClST8wSK8sM+xGVgfEu9YhL5lKt0pTLbihouNH2m1/xIUg/MmsNQcVT+01pBbct46H7KTuGvEaPe4ELD8quDMO5RUCPZ7zKVytLb37MKUryb2fq3f8snR9kkVNmJZle8HvsiKuM8lCHAmfaZJ5FIXr7Q8kq1ohQ2lY11I0RpFUt4PxdQzBi49nvrkuBGb8GBeI2lzbcjyQQro+xv8AyldR9wg6rSX+GuqvFzbOyVRx4Hof3+IuG4tEMqmCNj9j+VuDxHg/9sXCcRMGiY3cLj46E+LfitJtm/tOciAVFY6ezsJUPNQ6HVKFwq4hzrPk06Lj8+Yq2XdNtuDaZJlOKfYYSHHW06TzIUp06CEgBISANCpRhXCdZ2o2T2e7tOwVnkj3+1OFUVw/gWT1aV72ngOvbm71K+OcauVKY2VW476bmwkb38Vt9x80k/IVHZi1KpNvft7qoePA+R5eenVdHwTtNWw6vSrb5CSAScuogkQePPy3Wn1rvlys1wXaWLk/FlMRDPfjy2vqGmgr2ubftJUE+2QB9k++soh59MMv1SVZhJdCQvmhOE7TyhW9KHuIPfp51MGWcCLFxKfVcsSzqNKl3HI3LpeHZCtPLgvNtsuREpSNgJQ0kJCgPPZ86yC/+ithM+TJlwLxeYYfDnjx18klC0rBCkgEBXUEgdfdX267P29cNcxs8zPz/SrQMUwbFn16uK27Q4yWFoIMnYOLIkDaS0k78FB/+n1oS3zyIVzYAUUErY6BQ7je+491c/6d2tfJ6vb7q+XCeTkj/b130d9ayHCfRtzPLeGNtvt5yNVpudwQFSoFwgOIcaS0VNtIKeYcp5QVnpsrcUT5ViefcI8lw+4XzGpLN8uzk2xtJsz1qtL8lmdK5XmlMcySQwRztqKldCBuoH+FKWcjWP3qopwvsv7M2uM+ck+DPsACRJ7viQBodJmdCqOZxHWluQqPb2YjcdBW8/PdIDSQQCSlI33IGhs9e1Y9dLxdbxcGLVKmTJUiXHMqM1EbHqzgBVpKeU7WpSELWnp2Hv7bMxPRVx2Zj81+8Xm6qutwhOIU0lSENMOutkEdASoJUr3+Qqx43wJtuFyYF9z7O4tsmR022YxAt5C1Q5kdxbr3gqUNqZdU477HJ0DqwDrVbC0wC3t2F9RoB5zt1UmpiuD4TcU6mD0GkDKS5wJdIOoBdMAiNWhpCiCbwd4gxcXsV1nY1JZ9bvTUOFHXJXGfbckNLbQ+rwwpTSULDaiVDsCCNE1tHw5gyeC/C1y358/jRnesKLT9hYU27choHmcbUB9ZskHXsga+zXxkfGta0rjYrAKO/wDrs1Pb4pa/6qI+RqKJ1wlXOPIym93lqPbwrlfv91WfAB/A0B7T6uh020Nb7lNeXYtTpxbYe3vag48B5n8adVV8c7TVsSuKtcwC+CQJDdBAJ11gcfPZX3KsuvudZBHjiM65zrIgWmOrmO9dVEnQJA+04dJQN9h1MI8TOI8S2W2bhmJXBqbKlI8C9XuMT4a0b2YcU9/BBHtudC6R+EAVaM54tibb5WOYO3Kg2uQnw51zkkCbc0/hVy9GWPcyjv8AeJJNRTUjD8NNJ5ubl2eqePAdAucYli2aadEyTufsOnVO5rfj0RsCOMcGFZPMZ5J+ROCSOYaKYyNpZH57Wv8AjFaXcO8OkZ/xRsmIR+cC4SUtvLT3bZG1Or/JCVfnqvUyHEjW+3MQYTKWI0dtLTTSBoIQkAJSPgAAK3dMcVL7M2kl1y7yH3XfSlKzK4JSlKIlKUoiUpSiJSlKIlKUoiVpR6auKohZ3j2YR2wkXKKuFIKfNxkhSCfiUOEfwVuvWunpmwWpHAW3zSjbsW9MlKvcFtuoP9x+leXjRa7FqQq2dRp5T6arRCldkdh+WsoiMuyFD7rCC4f0Tuqh20XdhHO/abg0n8TkVxI/UpqOucihUcJDTHkrli2Z5PhV1XcMZvD8BxxPI82nSmpCfwOtq2lxPwUDUsWLjJiFzSlrJLNJxiWftTLEgSISz71Q3FAt/wDCWB+zUEFaAvkK0BX4eYb/AEr60db0aw17elXbkqtDh1Ui3vq9t4WnTkdltravVr+tDuL3uxZGrugWyalmUn5x3/DcSfgkqrIRl2d40EplXLJLYlPQJuUd3k/IuoKf0NaUHrrY3rtvyrJbPxDz7Hmg3ZM1yC3sp/y2J7qW/wCXm5f6Vpz2fosM21R1PyOn78VtqOOtHvNI8j9j+Vt61xsyhI0cntDp/wB42zv+hFcO8bMoUNDKLS1v/Zts7/qTUK4JmHpMcRJiY2K3W43VoHS5syJHVHa/eecbI/IEq+FfOdZl6S3DyaqJld1uVpbJ5UTIkSOiO7+4822B+RIV8BX3+k3kf+W6PL7ytp/Un933uV+XnA/PzUxHK87yYFMW45LdEK6FNuju8n5lpCU/qax26qiY8pbmUX2w44rutFwmJkS1fKNH53Cf3imtb7zxCz3Imi3fM0yC4NK/y5E91Tf8vNy/0rGgAOwA37q+Ds/Rec1zUdU8zp+/FautjrT7rCfM/YflTpfeMuKW0KZxiySMjljtOyBAZiIPvRCbJ5/h4y1fu1E2UZhkuaXgXPJ7xIuMhKeRsOEBtlP4G206S2n4JAFWXR1vRr5C0FfIFoKvwhQ3+lbmjQp0G5KTQ0dFqbi+r3PhcdOQ29FzSqxq0Xd9HOxabg6n8TcVxQ/UJqnkMPRHOSWy5HWfuvILZ/RWqyqOaFRoktMeS2k9CjFW5eX5HmT7YPqEdu3xyR2W6edwj4hKED+I1ulWvPobQW43o+ypYQA5LvEhaleZCUttj/8AGthqkMGi6NhNIUrSm0cp9dUpSlelsUpSlESlKURKUpREpSlESlKURKtGR4tjuXWtq25NZ4l1htPokpjykc7fiJ3yqKex1s9DsVd6UTdUsC2W21Q0xLXb4sGOnolqM0lpI+QSAKqtfP8AWlKIrRcsWxm8gi8Y7abgD3EuG27v+ZJrC7h6PnBe5uFcnh3Zm1HuYqFRv+WpNSXSvkLy5jX+8JUMr9Fbggp3nGJyEj8KbnKA/wCZV8s3o/cGrFJRIg8P7S46jqFzQqWQff8AWqUKkqlICxttqLTLWAHyC62I7EWMiPGZbZZbHKhttISlI9wA6CuJEaPLiuRpTDbzLg5VtuJCkqHuIPQ120r6syjS8ej7wavslcibw/tTbq+pXCC4hJ9/1SkirIj0VuB6HOY4nIUPwqucoj/mVM1K+QFhdbUXGXMBPkFGtu9H3gxa3AuNw7srih2MptUn/mKVWaW3F8aswAs+PWq3gdhEiNta/lSKu1K+xCyNY1nuiE18T+tUlwtdsu0NUS62+JOjq6KalMpdSfmFAiqulF6VoxzF8exG0rteM2iLa4S3lyDGio5GwtZ2ohPYb9w6Vd6UomyUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoi//9k=" alt="Logo SMK Widya Mandala Tambak">
+    <div>
+      <div class="school">SMK Widya Mandala Tambak</div>
+      <div class="product">Asesmen</div>
+    </div>
+  </div>
+  <div class="siswa-switch">
+    <span class="dot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+    </span>
+    <span id="siswaNameLabel" style="font-size:13px; font-weight:600;"></span>
+  </div>
+  <button type="button" onclick="logout()" style="margin-left:10px; background:none; border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:600; color:var(--slate); cursor:pointer;">Keluar</button>
+</header>
+
+<div class="notice" id="storageNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span id="storageNoticeText"></span>
+  </div>
+</div>
+<div class="notice" id="noSiswaNotice" style="display:none;">
+  <div class="notice-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span>Belum ada data siswa. Tambahkan pengguna terlebih dahulu lewat halaman Admin.</span>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <nav class="tabs">
+    <button class="tab active" id="tab-ujianku" onclick="switchTab('ujianku')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+      Ujianku
+    </button>
+    <button class="tab" id="tab-history" onclick="switchTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+      History
+    </button>
+    <button class="tab" id="tab-jadwal" onclick="switchTab('jadwal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Jadwal
+    </button>
+  </nav>
+</div>
+
+<div class="shell">
+
+  <!-- ============ LIST VIEW ============ -->
+  <div id="listView">
+    <div class="section-head">
+      <h1 id="tab-title">Ujianku</h1>
+      <p id="tab-desc">Ujian yang sedang berlangsung dan akan datang.</p>
+    </div>
+    <div class="pending-banner hidden" id="pendingBanner">
+      <span id="pendingBannerText">⚠️ Ada jawaban ujian yang belum terkirim ke server.</span>
+      <button type="button" id="pendingRetryBtn" onclick="retryPendingSubmits(true)">Kirim Sekarang</button>
+    </div>
+    <div id="exam-list"></div>
+  </div>
+
+  <!-- ============ EXAM SUITE — tampilan mengikuti soal.html ============ -->
+  <div id="examSuite">
+
+  <!-- ============ EXAM-TAKING VIEW ============ -->
+  <div id="examView" class="locked">
+    <div class="sn-progress-shell">
+      <div class="sn-progress-inner">
+        <div class="sn-exam-title-wrap">
+          <div class="sn-exam-title" id="ev-title">—</div>
+          <div class="sn-exam-meta">
+            <div class="sn-exam-sub" id="ev-sub">—</div>
+            <div class="save-status ok" id="saveStatus"><span id="saveStatusText">✓ Jawaban tersimpan otomatis</span><button type="button" id="saveRetryBtn" style="display:none;" onclick="manualSaveRetry()">Simpan Ulang</button></div>
+          </div>
+        </div>
+        <div class="timer" id="ev-timer">--:--</div>
+        <div class="sn-progress-track"><div class="sn-progress-fill" id="ev-progress-fill"></div></div>
+        <div class="sn-progress-label" id="ev-progress-label">0/0 terjawab</div>
+        <button type="button" class="icon-toggle" id="navToggleBtn">☰ <span class="btn-label">Nomor Soal</span></button>
+        <div class="fontsize-wrap">
+          <button type="button" class="icon-toggle" id="fontSizeBtn" onclick="event.stopPropagation(); toggleFontMenu()" title="Ukuran teks bacaan/referensi">Aa</button>
+          <div class="fontsize-menu hidden" id="fontSizeMenu">
+            <button type="button" class="fontsize-opt" data-level="1" onclick="setFontLevel(1)">A</button>
+            <button type="button" class="fontsize-opt" data-level="2" onclick="setFontLevel(2)">A</button>
+            <button type="button" class="fontsize-opt" data-level="3" onclick="setFontLevel(3)">A</button>
+            <button type="button" class="fontsize-opt" data-level="4" onclick="setFontLevel(4)">A</button>
+            <button type="button" class="fontsize-opt" data-level="5" onclick="setFontLevel(5)">A</button>
+          </div>
+        </div>
+        <button type="button" class="hide-header-btn" id="hideHeaderBtn" onclick="toggleHeaderCompact()" title="Sembunyikan header agar teks bacaan lebih luas">
+          <svg id="hideHeaderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15V9a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/><path d="M12 3v4M12 17v4"/></svg>
+          <span id="hideHeaderLabel">Ciutkan</span>
+        </button>
+      </div>
+      <div id="navpanel">
+        <div class="legend">
+          <span><span class="dot done"></span>Terjawab</span>
+          <span><span class="dot doubt"></span>Ragu-ragu</span>
+          <span><span class="dot empty"></span>Kosong</span>
+        </div>
+        <div class="navgrid" id="ev-qnav"></div>
+        <button type="button" class="nav-submit-btn" onclick="openSubmitModal()">Kumpulkan Ujian</button>
+      </div>
+    </div>
+
+    <button type="button" class="show-header-fab" id="showHeaderFab" onclick="toggleHeaderCompact()" title="Tampilkan kembali header ujian">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Tampilkan</span>
+    </button>
+
+    <div class="sn-stage-head">
+      <span class="qtype-pill" id="ev-qtype">—</span>
+      <span class="sn-stage-index" id="ev-qnum">Soal 1 dari 0</span>
+    </div>
+
+    <div id="ev-bacaan"></div>
+
+    <div class="question-card" id="ev-question-card">
+      <div class="sn-q-top">
+        <div class="question-text" id="ev-question-text"></div>
+      </div>
+      <div id="ev-question-img"></div>
+      <div id="ev-question-table"></div>
+      <div class="qmeta-row">
+        <span class="qpoin-pill" id="ev-qpoin"></span>
+        <button type="button" class="doubt-btn" id="ev-doubt-btn" onclick="toggleDoubt()">☆ Ragu-ragu</button>
+        <button type="button" class="pin-btn" id="ev-pin-btn" onclick="togglePinQuestion()" title="Sematkan soal agar tetap terlihat di layar saat menggulir">📌 Sematkan</button>
+      </div>
+      <div id="ev-answer-area"></div>
+
+      <div class="sn-nav-row">
+        <button class="sn-navbtn" id="ev-prev" onclick="navQuestion(-1)">← Sebelumnya</button>
+        <button class="sn-navbtn" id="ev-next" onclick="navQuestion(1)">Selanjutnya →</button>
+        <button class="sn-navbtn sn-finish" id="ev-finish-btn" onclick="openSubmitModal()">Kumpulkan</button>
+      </div>
+    </div>
+
+    <div id="ev-progress-wrap" style="text-align:center; margin:16px 0 4px;">
+      <div class="muted-note" id="ev-progress"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: KONFIRMASI KUMPULKAN ============ -->
+  <div class="modal-bg hidden" id="submitModalBg">
+    <div class="modal-card">
+      <h2>Kumpulkan ujian?</h2>
+      <p>Periksa kembali ringkasan jawabanmu sebelum mengumpulkan. Jawaban yang sudah dikumpulkan tidak bisa diubah lagi.</p>
+      <div class="modal-summary">
+        <div class="pill done"><div class="n" id="sumDone">0</div><div class="l">Terjawab</div></div>
+        <div class="pill doubt"><div class="n" id="sumDoubt">0</div><div class="l">Ragu</div></div>
+        <div class="pill empty"><div class="n" id="sumEmpty">0</div><div class="l">Kosong</div></div>
+      </div>
+      <div class="submit-warn hidden" id="submitWarnBox"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeSubmitModal()">Kembali</button>
+        <button class="btn-primary" style="background:var(--sn-good);" onclick="confirmSubmit()">Ya, Kumpulkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: TOKEN UJIAN ============ -->
+  <div class="modal-bg hidden" id="tokenModalBg">
+    <div class="modal-card">
+      <h2>Masukkan token ujian</h2>
+      <p>Ujian ini memerlukan token dari gurumu sebelum bisa dimulai.</p>
+      <input type="text" id="tokenInput" placeholder="Masukkan token" autocomplete="off"
+        style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid var(--sn-line); border-radius:10px; font-size:15px; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; font-family:'JetBrains Mono',monospace;"
+        onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmToken(); }">
+      <p id="tokenError" style="color:var(--sn-bad); font-size:12.5px; margin:0 0 14px; display:none;">Token salah, coba lagi.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeTokenModal()">Batal</button>
+        <button class="btn-primary" onclick="confirmToken()">Mulai Ujian</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: KELUAR / PINDAH TAB ============ -->
+  <div class="modal-bg hidden" id="tabLeaveModalBg">
+    <div class="modal-card">
+      <h2>Kamu meninggalkan halaman ujian</h2>
+      <p>Ujian masih berjalan. Percobaan keluar tab/aplikasi ini tercatat dan bisa dilihat oleh gurumu. Pilih salah satu:</p>
+      <div class="modal-actions stack">
+        <button class="btn-primary" onclick="closeTabLeaveModal()">Lanjutkan Ujian</button>
+        <button class="btn-secondary" style="border-color:var(--sn-good); color:var(--sn-good);" onclick="closeTabLeaveModal(); openSubmitModal();">Submit Ujian</button>
+        <button class="btn-secondary" style="border-color:var(--sn-bad); color:var(--sn-bad);" onclick="closeTabLeaveModal(); openExitNoSubmitModal();">Keluar Tanpa Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: KONFIRMASI KELUAR TANPA SUBMIT ============ -->
+  <div class="modal-bg hidden" id="exitNoSubmitModalBg">
+    <div class="modal-card">
+      <h2>Keluar tanpa mengumpulkan?</h2>
+      <p>Ujian belum dikumpulkan. Jawaban yang sudah kamu isi tetap tersimpan dan kamu masih bisa melanjutkan ujian ini nanti selama waktunya belum habis — tapi ujian ini <strong>tidak dianggap selesai</strong> sampai kamu menekan Kumpulkan.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeExitNoSubmitModal()">Batal</button>
+        <button class="btn-primary" style="background:var(--sn-bad);" onclick="confirmExitNoSubmit()">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: STATUS PENGIRIMAN JAWABAN ============ -->
+  <div class="modal-bg hidden" id="submitStatusModalBg">
+    <div class="modal-card">
+      <div class="ss-icon sending" id="ssIcon"><div class="ss-spinner"></div></div>
+      <h2 id="ssTitle">Mengirim jawaban…</h2>
+      <p id="ssText">Mohon tunggu dan jangan tutup halaman ini.</p>
+      <div class="ss-detail hidden" id="ssDetail"></div>
+      <div class="modal-actions stack" id="ssActions" style="display:none;">
+        <button class="btn-primary" id="ssRetryBtn" style="background:var(--sn-bad);" onclick="retrySubmit()">🔄 Kirim Ulang</button>
+        <button class="btn-secondary" id="ssBackBtn" onclick="cancelSubmitStatus()">Kembali ke Soal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RESULT VIEW ============ -->
+  <div id="resultView">
+    <div class="result-circle" id="rv-circle">
+      <div class="num" id="rv-num">—</div>
+      <div class="lbl">Nilai</div>
+    </div>
+    <h1 id="rv-title" style="font-size:19px;">Ujian selesai</h1>
+    <p class="muted-note" id="rv-sub" style="margin:8px 0 14px;"></p>
+    <div class="receipt" id="rv-receipt">✓ Jawaban berhasil diterima server</div>
+    <div class="nilai-breakdown" id="rv-breakdown"></div>
+    <button class="btn-primary" onclick="backToList()">Kembali ke Ujianku</button>
+  </div>
+
+  </div>
+  <!-- ============ /EXAM SUITE ============ -->
+
+</div>
+
+<script>
+/* ============================================================
+   SUPABASE
+============================================================ */
+const SUPABASE_URL = 'https://cnciipsdowdcljjnacxy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function requireSiswa(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ window.location.href = 'index.html'; return null; }
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if(!profile || profile.role !== 'siswa'){ window.location.href = 'index.html'; return null; }
+  return profile;
+}
+async function logout(){ await sb.auth.signOut(); window.location.href = 'index.html'; }
+
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+// Ubah entitas HTML yang tertulis apa adanya di teks soal (mis. &quot; &amp; &#39;) menjadi karakter aslinya,
+// supaya tampil sebagai " & ' — bukan sebagai tulisan "&quot;". Hasilnya tetap di-escape aman untuk HTML.
+function decodeEntities(str){
+  let s = String(str);
+  for(let n = 0; n < 2 && s.indexOf('&') !== -1; n++){
+    const t = s.replace(/&(quot|apos|amp|lt|gt|nbsp|#\d{1,7}|#[xX][0-9a-fA-F]{1,6});/g, (m, e) => {
+      switch(e){
+        case 'quot': return '"'; case 'apos': return "'"; case 'amp': return '&';
+        case 'lt': return '<'; case 'gt': return '>'; case 'nbsp': return '\u00A0';
+      }
+      const c = (e.charAt(1) === 'x' || e.charAt(1) === 'X') ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+      return (c > 0 && c <= 0x10FFFF && !(c >= 0xD800 && c <= 0xDFFF)) ? String.fromCodePoint(c) : m;
+    });
+    if(t === s) break;
+    s = t;
+  }
+  return s;
+}
+function escapeHtml(str){ return decodeEntities(str).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m])); }
+function renderTabelHtml(tabel){
+  if(!tabel || !tabel.rows || !tabel.rows.length) return '';
+  const rows = tabel.rows;
+  const bodyRows = tabel.header ? rows.slice(1) : rows;
+  const headRow = tabel.header ? rows[0] : null;
+  return `<div class="q-table-wrap">
+    <table class="q-table">
+      ${headRow ? `<thead><tr>${headRow.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>` : ''}
+      <tbody>${bodyRows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+/* Mengacak urutan soal TANPA memisahkan kelompok bacaan/referensi.
+   Soal-soal berurutan (pada urutan asli paket soal) yang berbagi teks
+   `bacaan` yang sama dianggap satu blok utuh — blok ini boleh berpindah
+   posisi bersama-sama saat diacak, dan urutan DI DALAM blok juga ikut
+   diacak, tapi anggotanya tidak akan pernah tercampur dengan soal dari
+   kelompok/nomor lain. Soal tanpa bacaan (blok berisi 1 soal) diacak bebas
+   seperti biasa. */
+function buildQuestionOrder(soal, acak){
+  const ids = soal.map(q => q.id);
+  if(!acak) return ids;
+  const blocks = [];
+  let i = 0;
+  while(i < soal.length){
+    const q = soal[i];
+    if(q.bacaan){
+      let j = i + 1;
+      while(j < soal.length && soal[j].bacaan === q.bacaan) j++;
+      blocks.push(soal.slice(i, j).map(x => x.id));
+      i = j;
+    } else {
+      blocks.push([q.id]);
+      i++;
+    }
+  }
+  return shuffle(blocks).map(b => (b.length > 1 ? shuffle(b) : b)).flat();
+}
+
+function mapSubject(row){ return { id: row.id, nama: row.nama, guruId: row.guru_id }; }
+function mapQuestionSet(row){
+  return { id: row.id, subjectId: row.subject_id, judul: row.judul, status: row.status, soal: row.soal || [], loaded: Array.isArray(row.soal) };
+}
+function mapSchedule(row){
+  return {
+    id: row.id, questionSetId: row.question_set_id, tanggal: row.tanggal, jamMulai: row.jam_mulai,
+    durasiMenit: row.durasi_menit, tingkat: row.tingkat, kelas: row.kelas || [], peserta: row.peserta || [],
+    acakSoal: row.acak_soal, acakOpsi: row.acak_opsi, tampilkanNilai: row.tampilkan_nilai, token: row.token || '',
+    tanggalSelesai: row.tanggal_selesai || '', jamSelesai: row.jam_selesai || ''
+  };
+}
+function mapAttempt(row){
+  return {
+    id: row.id, scheduleId: row.schedule_id, userId: row.user_id, status: row.status,
+    mulai: row.mulai ? new Date(row.mulai).getTime() : null,
+    selesai: row.selesai ? new Date(row.selesai).getTime() : null,
+    nilai: row.nilai, urutanSoal: row.urutan_soal || [], urutanOpsi: row.urutan_opsi || {}, jawaban: row.jawaban || {},
+    ragu: row.ragu || {}, penilaian: row.penilaian || null, percobaanKeluar: row.percobaan_keluar || 0
+  };
+}
+
+const TYPE_LABEL = { pg: 'Pilihan Ganda', pgk: 'PG Kompleks', bs: 'Benar/Salah', bsg: 'Pernyataan Ganda', rb: 'Radio Button', essay: 'Esai' };
+const FONT_SCALES = [0.85, 0.925, 1, 1.1, 1.2];
+
+/* ============================================================
+   STATE
+============================================================ */
+let users = [];
+let subjects = [];
+let questionSets = [];
+let schedules = [];
+let attempts = [];
+let jadwalTulis = [];   // jadwal ujian tulis yang diterbitkan panitia (informasi)
+let timeSlots = [];     // alokasi waktu panitia: {hari,jamKe,mulai,selesai}
+let myKelas = '';
+
+let selectedSiswaId = null;   // = siswa yang sedang login
+let liveExam = null;       // { schedule, questionSet, attempt, questionOrder, currentIndex }
+let timerInterval = null;
+let saveTimer = null;
+let fontLevel = 3;
+let headerCollapsedShown = false;
+let activeTab = 'ujianku';
+
+  /* ---------- Jadwal Tulis: pembantu bersama (waktu diambil dari Alokasi Waktu) ---------- */
+  const JT_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  function jtSlotsOf(hari){ return timeSlots.filter(s => s.hari === hari).sort((a,b) => a.jamKe - b.jamKe); }
+  // Tingkat dari nama kelas (aturan sama dengan menu Penjadwalan Soal): X-1 → X, XI TKJ 2 → XI
+  function jtTingkatOf(kelas){
+    if(!kelas) return '';
+    const m = String(kelas).trim().match(/^(XII|XI|X)(?=[-\s]|$)/i);
+    if(m) return m[1].toUpperCase();
+    return String(kelas).trim().split(/[-\s]/)[0].toUpperCase();
+  }
+  function jtHariOf(ymd){ return JT_HARI[new Date(ymd + 'T00:00').getDay()]; }
+  const JT_NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  function jtDateLabel(ymd){ const [y, m, d] = String(ymd).split('-').map(Number); return d + ' ' + JT_NAMA_BULAN[m - 1] + ' ' + y; }
+  function jtRuns(list){
+    const out = []; let cur = null;
+    list.slice().sort((a,b) => a - b).forEach(n => {
+      if(cur && n === cur[1] + 1) cur[1] = n; else { cur = [n, n]; out.push(cur); }
+    });
+    return out;
+  }
+  function jtRunLabel(r){ return r[0] === r[1] ? String(r[0]) : r[0] + '–' + r[1]; }
+  function jtJamLabel(e){
+    if(e.semuaJam) return 'Semua jam ke';
+    return 'Jam ke-' + jtRuns(e.jamKe).map(jtRunLabel).join(', ');
+  }
+  function jtJamSort(e){ return e.semuaJam || !e.jamKe.length ? 0 : Math.min.apply(null, e.jamKe); }
+  // Waktu mulai–selesai dari alokasi waktu panitia; "-" bila alokasi hari itu belum ada.
+  function jtWaktuLines(e){
+    const slots = jtSlotsOf(jtHariOf(e.tanggal));
+    if(!slots.length) return ['-'];
+    if(e.semuaJam) return [slots[0].mulai + ' – ' + slots[slots.length - 1].selesai];
+    const runs = jtRuns(e.jamKe);
+    return runs.map(r => {
+      const inRun = slots.filter(s => s.jamKe >= r[0] && s.jamKe <= r[1]);
+      const t = inRun.length ? inRun[0].mulai + ' – ' + inRun[inRun.length - 1].selesai : '-';
+      return runs.length > 1 ? 'Jam ke-' + jtRunLabel(r) + ': ' + t : t;
+    });
+  }
+
+function jtNormKey(s){ return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function jtMap(r){
+  return { id:r.id, tanggal:String(r.tanggal).slice(0,10), mapel:r.mapel, kelas:r.kelas || [],
+           tingkat:r.tingkat || [], semuaKelas:!!r.semua_kelas, jamKe:(r.jam_ke || []).map(Number), semuaJam:!!r.semua_jam };
+}
+function jtTodayYmd(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function jtDayHtml(date, items, today){
+  const rows = items.sort((a, b) => jtJamSort(a) - jtJamSort(b) || String(a.mapel).localeCompare(String(b.mapel), 'id')).map(e => {
+    const waktu = jtWaktuLines(e).map(l => l === '-' ? '<div class="jt-dash">-</div>' : '<div>' + escapeHtml(l) + '</div>').join('');
+    return `<div class="jt-row">
+      <div><div class="jt-mapel">${escapeHtml(e.mapel)}</div><div class="jt-meta">${escapeHtml(jtJamLabel(e))}</div></div>
+      <div class="jt-time">${waktu}</div>
+    </div>`;
+  }).join('');
+  const isToday = date === today;
+  return `<div class="jt-day${isToday ? ' is-today' : ''}">
+    <div class="jt-day-head">
+      <div><span class="jt-day-name">${escapeHtml(jtHariOf(date))}</span><span class="jt-day-date">${escapeHtml(jtDateLabel(date))}</span></div>
+      ${isToday ? '<span class="jt-today-badge">Hari ini</span>' : ''}
+    </div>${rows}</div>`;
+}
+function jtGroup(list){
+  const g = {};
+  list.forEach(e => { (g[e.tanggal] = g[e.tanggal] || []).push(e); });
+  return g;
+}
+function renderJadwalTulis(){
+  const wrap = document.getElementById('exam-list');
+  const kNorm = jtNormKey(myKelas);
+  const myTingkat = jtTingkatOf(myKelas);
+  const mine = jadwalTulis.filter(e =>
+    (e.semuaKelas || e.kelas.some(k => jtNormKey(k) === kNorm)) &&
+    (!e.tingkat.length || e.tingkat.map(t => String(t).toUpperCase()).includes(myTingkat)));
+  if(!mine.length){
+    wrap.innerHTML = `<div class="empty-state"><strong>Belum ada jadwal</strong>Jadwal ujian tulis untuk kelasmu akan muncul di sini setelah diterbitkan panitia.</div>`;
+    return;
+  }
+  // Tampilkan SEMUA jadwal yang diterbitkan panitia untuk kelas ini, urut tanggal
+  // (tanpa memisahkan jadwal mendatang / yang sudah lewat).
+  const today = jtTodayYmd();
+  const g = jtGroup(mine);
+  const dates = Object.keys(g).sort();
+  let html = `<p class="jt-note">Waktu mengikuti alokasi waktu dari panitia. Tanda “-” berarti waktunya belum ditetapkan.</p>`;
+  html += dates.map(d => jtDayHtml(d, g[d], today)).join('');
+  wrap.innerHTML = html;
+}
+
+function switchTab(name){
+  activeTab = name;
+  ['ujianku','history','jadwal'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === name));
+  const T = {
+    ujianku: ['Ujianku', 'Ujian yang sedang berlangsung dan akan datang.'],
+    history: ['History', 'Riwayat ujian yang sudah selesai atau terlewat.'],
+    jadwal:  ['Jadwal', 'Jadwal ujian tulis untuk kelasmu yang diterbitkan panitia.']
+  };
+  document.getElementById('tab-title').textContent = T[name][0];
+  document.getElementById('tab-desc').textContent = T[name][1];
+  renderExamList();
+}
+
+async function init(){
+  const me = await requireSiswa();
+  if(!me) return;
+  selectedSiswaId = me.id;
+  document.getElementById('siswaNameLabel').textContent = me.nama + ' — ' + (me.kelas || '');
+  users = [me];
+  myKelas = me.kelas || '';
+
+  const [subjRes, qsRes, schRes, atRes, jtRes, slotRes] = await Promise.all([
+    sb.from('subjects').select('*'),
+    sb.from('question_sets').select('id,subject_id,judul,status'),
+    sb.from('schedules').select('*'),
+    sb.from('exam_attempts').select('*').eq('user_id', me.id),
+    sb.from('jadwal_tulis').select('*'),
+    sb.from('time_slots').select('*')
+  ]);
+  subjects = (subjRes.data || []).map(mapSubject);
+  questionSets = (qsRes.data || []).map(mapQuestionSet);
+  schedules = (schRes.data || []).map(mapSchedule);
+  attempts = (atRes.data || []).map(mapAttempt);
+  jadwalTulis = jtRes.error ? [] : (jtRes.data || []).map(jtMap);
+  timeSlots = slotRes.error ? [] : (slotRes.data || []).map(r => ({
+    hari:r.hari, jamKe:r.jam_ke, mulai:String(r.mulai || '').slice(0,5), selesai:String(r.selesai || '').slice(0,5)
+  }));
+
+  renderExamList();
+  updatePendingBanner();
+  retryPendingSubmits(false);   // kirim otomatis jawaban tertunda dari sesi sebelumnya
+}
+
+/* ============================================================
+
+   STATUS HELPERS
+============================================================ */
+function getJadwalStatus(j){
+  const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
+  const batas = getBatasAkhir(j);
+  const now = new Date();
+  if(now < start) return 'terjadwal';
+  if(now <= batas) return 'berlangsung';
+  return 'selesai';
+}
+function getScheduleEnd(j){
+  const start = new Date(j.tanggal + 'T' + (j.jamMulai || '00:00'));
+  return new Date(start.getTime() + (j.durasiMenit || 0) * 60000);
+}
+// Batas akhir jendela ujian (kapan siswa masih boleh mulai/lanjut mengerjakan).
+// Jika guru mengisi "jadwal selesai", pakai itu — walaupun sudah lewat durasi
+// dari jam mulai, siswa masih bisa mengerjakan selama belum lewat batas ini.
+// Jika tidak diisi, fallback ke perilaku lama (jam mulai + durasi).
+function getBatasAkhir(j){
+  if(j.tanggalSelesai){
+    return new Date(j.tanggalSelesai + 'T' + (j.jamSelesai || '23:59'));
+  }
+  return getScheduleEnd(j);
+}
+// Batas waktu pengerjaan untuk seorang siswa: durasi dihitung dari saat DIA
+// mulai mengerjakan (attempt.mulai), tapi tidak boleh melewati batas akhir
+// jendela ujian (jadwal selesai / fallback jam mulai + durasi).
+function getAttemptDeadline(j, at){
+  const batas = getBatasAkhir(j).getTime();
+  if(!at || !at.mulai) return batas;
+  return Math.min(at.mulai + (j.durasiMenit || 0) * 60000, batas);
+}
+function findAttempt(scheduleId, userId){
+  return attempts.find(a => a.scheduleId === scheduleId && a.userId === userId);
+}
+
+/* ============================================================
+   EXAM LIST
+============================================================ */
+function renderExamList(){
+  if(!selectedSiswaId){ document.getElementById('exam-list').innerHTML = ''; return; }
+  if(activeTab === 'jadwal'){ renderJadwalTulis(); return; }
+
+  const mine = schedules.filter(j => j.peserta.includes(selectedSiswaId));
+
+  // finalisasi otomatis: jika batas waktu pengerjaan siswa sudah habis tapi
+  // status masih 'mengerjakan' (dihitung dari waktu mulai siswa, dibatasi
+  // jadwal selesai — bukan cuma dari jam mulai + durasi jadwal)
+  mine.forEach(j => {
+    const at = findAttempt(j.id, selectedSiswaId);
+    if(at && at.status === 'mengerjakan' && Date.now() > getAttemptDeadline(j, at)){
+      if(!autoFinalizing.has(at.id) && !(liveExam && liveExam.attempt.id === at.id)){
+        autoFinalizing.add(at.id);
+        submitAttempt(at, j).then(res => {
+          autoFinalizing.delete(at.id);
+          if(res.ok) renderExamList();
+          updatePendingBanner();
+        });
+      }
+    }
+  });
+
+  const enriched = mine.map(j => {
+    const qs = questionSets.find(q => q.id === j.questionSetId);
+    const subj = qs ? subjects.find(s => s.id === qs.subjectId) : null;
+    const st = getJadwalStatus(j);
+    const at = findAttempt(j.id, selectedSiswaId);
+    return { j, qs, subj, st, at };
+  });
+
+  const isHist = e => e.st === 'selesai' || (e.at && e.at.status === 'selesai');
+  const berlangsung = enriched.filter(e => !isHist(e) && e.st === 'berlangsung');
+  const terjadwal = enriched.filter(e => !isHist(e) && e.st === 'terjadwal').sort((a,b)=>(a.j.tanggal+a.j.jamMulai).localeCompare(b.j.tanggal+b.j.jamMulai));
+  const riwayat = enriched.filter(isHist).sort((a,b)=>(b.j.tanggal+b.j.jamMulai).localeCompare(a.j.tanggal+a.j.jamMulai));
+
+  const wrap = document.getElementById('exam-list');
+  let html = '';
+  if(activeTab === 'history'){
+    if(riwayat.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Belum ada riwayat ujian</strong>Ujian yang sudah selesai atau terlewat akan muncul di sini.</div>`;
+      return;
+    }
+    html = riwayat.map(renderExamCard).join('');
+  } else {
+    if(berlangsung.length + terjadwal.length === 0){
+      wrap.innerHTML = `<div class="empty-state"><strong>Tidak ada ujian aktif</strong>Ujian yang dijadwalkan gurumu akan muncul di sini. Ujian yang sudah selesai ada di tab History.</div>`;
+      return;
+    }
+    if(berlangsung.length){ html += `<div class="exam-group-title">Sedang berlangsung</div>` + berlangsung.map(renderExamCard).join(''); }
+    if(terjadwal.length){ html += `<div class="exam-group-title">Akan datang</div>` + terjadwal.map(renderExamCard).join(''); }
+  }
+  wrap.innerHTML = html;
+}
+
+function renderExamCard(e){
+  const { j, qs, subj, st, at } = e;
+  const judul = qs ? qs.judul : 'Paket soal dihapus';
+  const mapel = subj ? subj.nama : '—';
+  const tanggalStr = new Date(j.tanggal + 'T' + j.jamMulai).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long' });
+
+  let statusBadge = '', actionHtml = '';
+  if(st === 'terjadwal'){
+    statusBadge = `<span class="badge badge-terjadwal">Terjadwal</span>`;
+    actionHtml = `<button class="btn-primary" disabled>Menunggu waktu ujian</button>`;
+  } else if(st === 'berlangsung'){
+    statusBadge = `<span class="badge badge-berlangsung"><span class="badge-dot"></span>Berlangsung</span>`;
+    if(at && at.status === 'mengerjakan'){
+      actionHtml = `<button class="btn-primary" onclick="enterExam('${j.id}')">Lanjutkan Ujian →</button>`;
+    } else if(at && at.status === 'selesai'){
+      statusBadge = `<span class="badge badge-selesai">Selesai</span>`;
+      actionHtml = renderNilaiInfo(j, at);
+    } else {
+      actionHtml = `<button class="btn-primary" onclick="enterExam('${j.id}')">Mulai Ujian →</button>`;
+    }
+  } else {
+    if(at && at.status === 'selesai'){
+      statusBadge = `<span class="badge badge-selesai">Selesai</span>`;
+      actionHtml = renderNilaiInfo(j, at);
+    } else {
+      statusBadge = `<span class="badge badge-terlewat">Terlewat</span>`;
+      actionHtml = `<span class="muted-note">Waktu ujian telah berakhir dan tidak dikerjakan.</span>`;
+    }
+  }
+
+  return `<div class="exam-card ${st==='berlangsung' ? 'is-live' : ''}">
+    <div class="exam-top">
+      <div>
+        <div class="exam-title">${escapeHtml(judul)}</div>
+        <div class="exam-subject">${escapeHtml(mapel)}</div>
+      </div>
+      ${statusBadge}
+    </div>
+    <div class="exam-meta">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${tanggalStr}</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${escapeHtml(j.jamMulai)} · ${j.durasiMenit} menit</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>${qs ? qs.soal.length : 0} soal</span>
+    </div>
+    ${j.tanggalSelesai ? `<div class="exam-meta"><span>Bisa mulai/lanjut mengerjakan sampai ${escapeHtml(formatBatasAkhirLabel(j))}</span></div>` : ''}
+    <div class="exam-actions">${actionHtml}</div>
+  </div>`;
+}
+
+function formatBatasAkhirLabel(j){
+  const batas = getBatasAkhir(j);
+  const tgl = batas.toLocaleDateString('id-ID', { day:'numeric', month:'long' });
+  const jam = String(batas.getHours()).padStart(2,'0') + ':' + String(batas.getMinutes()).padStart(2,'0');
+  return `${tgl}, ${jam}`;
+}
+function renderNilaiInfo(j, at){
+  if(j.tampilkanNilai && at.nilai !== null && at.nilai !== undefined){
+    return `<span class="nilai-pill">Nilai: ${at.nilai}</span>`;
+  }
+  return `<span class="muted-note">Nilai akan diumumkan oleh guru</span>`;
+}
+
+/* ============================================================
+   MASUK UJIAN
+============================================================ */
+let pendingTokenSchedule = null;
+
+function enterExam(scheduleId){
+  const j = schedules.find(x => x.id === scheduleId);
+  if(!j){ alert('Paket soal tidak tersedia.'); return; }
+  if(getJadwalStatus(j) !== 'berlangsung'){ alert('Waktu ujian ini sudah tidak aktif.'); renderExamList(); return; }
+
+  const at = findAttempt(j.id, selectedSiswaId);
+  if(at && at.status === 'mengerjakan' && Date.now() > getAttemptDeadline(j, at)){
+    alert('Waktu pengerjaanmu untuk ujian ini sudah habis. Jawabanmu akan dikirim otomatis.');
+    submitAttempt(at, j).then(() => { renderExamList(); updatePendingBanner(); });
+    return;
+  }
+  if(!at && j.token){
+    openTokenModal(scheduleId);
+    return;
+  }
+  proceedEnterExam(scheduleId);
+}
+
+function openTokenModal(scheduleId){
+  pendingTokenSchedule = scheduleId;
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('tokenError').style.display = 'none';
+  document.getElementById('tokenModalBg').classList.remove('hidden');
+  setTimeout(() => document.getElementById('tokenInput').focus(), 50);
+}
+function closeTokenModal(){
+  pendingTokenSchedule = null;
+  document.getElementById('tokenModalBg').classList.add('hidden');
+}
+function confirmToken(){
+  const j = schedules.find(x => x.id === pendingTokenSchedule);
+  if(!j) return;
+  const val = document.getElementById('tokenInput').value.trim();
+  if(!val || val.toUpperCase() !== String(j.token).trim().toUpperCase()){
+    document.getElementById('tokenError').style.display = 'block';
+    return;
+  }
+  const scheduleId = pendingTokenSchedule;
+  closeTokenModal();
+  proceedEnterExam(scheduleId);
+}
+
+
+/* Soal diunduh HANYA untuk paket yang dikerjakan (hemat egress 5 GB/bulan di free tier:
+   sebelumnya setiap siswa mengunduh seluruh paket soal saat membuka halaman). */
+async function ensureQuestionSet(id){
+  const qs = questionSets.find(q => q.id === id);
+  if(!qs || qs.loaded) return qs;
+  let lastErr = null;
+  for(let i = 0; i < 4; i++){
+    try{
+      const { data, error } = await withTimeout(sb.from('question_sets').select('id,soal').eq('id', id).single(), NET_TIMEOUT_MS);
+      if(error) throw error;
+      qs.soal = (data && data.soal) || [];
+      qs.loaded = true;
+      return qs;
+    }catch(e){
+      lastErr = e;
+      await new Promise(r => setTimeout(r, 800 * (i + 1) + Math.random() * 600));
+    }
+  }
+  console.error('Gagal memuat soal:', lastErr);
+  return qs;
+}
+
+async function proceedEnterExam(scheduleId){
+  const j = schedules.find(x => x.id === scheduleId);
+  const qs = j ? await ensureQuestionSet(j.questionSetId) : null;
+  if(!j || !qs || qs.soal.length === 0){ alert('Paket soal belum bisa dimuat. Periksa koneksi lalu coba lagi.'); return; }
+  if(getJadwalStatus(j) !== 'berlangsung'){ alert('Waktu ujian ini sudah tidak aktif.'); renderExamList(); return; }
+  qs.soal.forEach(normalizeQuestionClient);
+
+  let at = findAttempt(j.id, selectedSiswaId);
+  if(!at){
+    const qOrder = buildQuestionOrder(qs.soal, j.acakSoal);
+    const optOrder = {};
+    qs.soal.forEach(q => {
+      if(q.type === 'pg' || q.type === 'pgk'){
+        optOrder[q.id] = j.acakOpsi ? shuffle(q.opsi.map(o => o.id)) : q.opsi.map(o => o.id);
+      } else {
+        optOrder[q.id] = [];
+      }
+    });
+    const { data, error } = await sb.from('exam_attempts').insert({
+      schedule_id: j.id, user_id: selectedSiswaId, status: 'mengerjakan',
+      mulai: new Date().toISOString(), urutan_soal: qOrder, urutan_opsi: optOrder, jawaban: {}, ragu: {}
+    }).select().single();
+    if(error){ alert('Gagal memulai ujian: ' + error.message); return; }
+    at = mapAttempt(data);
+    attempts.push(at);
+  }
+
+  // pulihkan jawaban dari cadangan perangkat bila lebih baru (mis. halaman di-refresh saat offline)
+  const bk = lsGet(BACKUP_PREFIX + at.id);
+  dirty = false; examFinished = false; submitState = 'idle'; submitAttemptNo = 0; submitAuto = false;
+  if(bk && bk.jawaban && typeof bk.jawaban === 'object'){
+    at.jawaban = Object.assign({}, at.jawaban, bk.jawaban);
+    if(bk.ragu && typeof bk.ragu === 'object') at.ragu = Object.assign({}, at.ragu, bk.ragu);
+    dirty = true;
+  }
+
+  liveExam = { schedule: j, questionSet: qs, attempt: at, currentIndex: 0 };
+  startExamHeartbeat();
+  document.body.classList.add('exam-active');
+  setSaveStatus('ok', '✓ Jawaban tersimpan otomatis');
+  if(dirty) flushAnswers();
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('examView').style.display = 'block';
+  document.getElementById('examView').classList.add('locked');
+  document.getElementById('ev-title').textContent = qs.judul;
+  document.getElementById('ev-sub').textContent = (subjects.find(s=>s.id===qs.subjectId)||{}).nama || '';
+  resetHeaderCompact();
+  unpinQuestionCard();
+  window.scrollTo({ top:0 });
+
+  document.getElementById('navToggleBtn').onclick = () => {
+    document.getElementById('navpanel').classList.toggle('open');
+  };
+
+  setFontLevel(fontLevel);
+  renderQnav();
+  renderQuestion();
+  startTimer();
+}
+
+// migrasi ringan untuk paket soal lama yang belum punya field `type` dsb.
+function normalizeQuestionClient(q){
+  if(!q.type) q.type = 'pg';
+  if(q.kunciIds === undefined) q.kunciIds = [];
+  if(q.kategori === undefined) q.kategori = (q.type === 'bs' || q.type === 'bsg') ? ['Benar','Salah'] : (q.type === 'rb' ? ['Kolom 1','Kolom 2'] : null);
+  if(q.kunciKategori === undefined) q.kunciKategori = null;
+  if(q.pernyataan === undefined) q.pernyataan = (q.type === 'bsg' || q.type === 'rb') ? [] : null;
+  if(q.bacaan === undefined) q.bacaan = null;
+  if(q.tabel === undefined) q.tabel = null;
+  if(!q.poin) q.poin = 10;
+  return q;
+}
+
+function currentQuestion(){
+  const { questionSet, attempt, currentIndex } = liveExam;
+  const qid = attempt.urutanSoal[currentIndex];
+  return questionSet.soal.find(q => q.id === qid);
+}
+
+function isAnswered(q, attempt){
+  const a = attempt.jawaban[q.id];
+  if(q.type === 'essay') return typeof a === 'string' && a.trim().length > 0;
+  if(q.type === 'pgk') return Array.isArray(a) && a.length > 0;
+  if(q.type === 'bs') return a === 0 || a === 1;
+  if(q.type === 'bsg'){
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    if(pernyataan.length === 0) return false;
+    const ans = (a && typeof a === 'object') ? a : {};
+    return pernyataan.every(p => ans[p.id] === 0 || ans[p.id] === 1);
+  }
+  if(q.type === 'rb'){
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    if(pernyataan.length === 0) return false;
+    const ans = (a && typeof a === 'object') ? a : {};
+    return pernyataan.every(p => Number.isInteger(ans[p.id]));
+  }
+  return a !== undefined && a !== null && a !== '';
+}
+function statusOf(q, attempt){
+  if(attempt.ragu[q.id]) return 'doubt';
+  return isAnswered(q, attempt) ? 'done' : 'empty';
+}
+
+/* Jika beberapa soal berurutan berbagi teks bacaan yang sama (soal kelompok bacaan),
+   tampilkan label kecil "Soal No. X-Y" di atas kotak bacaan — mengikuti urutan tampil
+   siswa saat ini (bisa berbeda per siswa jika soal diacak). */
+function bacaanGroupLabelHtml(currentIndex){
+  const { attempt, questionSet } = liveExam;
+  const order = attempt.urutanSoal;
+  const qAt = i => questionSet.soal.find(x => x.id === order[i]);
+  const teks = qAt(currentIndex).bacaan;
+  let start = currentIndex, end = currentIndex;
+  while(start > 0 && qAt(start - 1) && qAt(start - 1).bacaan === teks) start--;
+  while(end < order.length - 1 && qAt(end + 1) && qAt(end + 1).bacaan === teks) end++;
+  if(start === end) return '';
+  return `<div class="bacaan-group-label">Soal No. ${start + 1}–${end + 1}</div>`;
+}
+
+function renderQnav(){
+  const { attempt } = liveExam;
+  document.getElementById('ev-qnav').innerHTML = attempt.urutanSoal.map((qid, i) => {
+    const q = liveExam.questionSet.soal.find(x => x.id === qid);
+    const st = statusOf(q, attempt);
+    const cls = [st, i === liveExam.currentIndex ? 'current' : ''].filter(Boolean).join(' ');
+    return `<button class="navcell ${cls}" onclick="jumpTo(${i})">${i+1}</button>`;
+  }).join('');
+}
+
+function renderQuestion(){
+  const { attempt, currentIndex } = liveExam;
+  const q = currentQuestion();
+  const total = attempt.urutanSoal.length;
+
+  document.getElementById('ev-qnum').textContent = `Soal ${currentIndex + 1} dari ${total}`;
+  document.getElementById('ev-qtype').textContent = TYPE_LABEL[q.type] || q.type;
+  document.getElementById('ev-qpoin').textContent = `${q.poin} poin`;
+  document.getElementById('ev-bacaan').innerHTML = q.bacaan ? `${bacaanGroupLabelHtml(currentIndex)}<div class="bacaan-box">${escapeHtml(q.bacaan)}</div>` : '';
+  document.getElementById('ev-question-text').innerHTML = escapeHtml(q.teks);
+  document.getElementById('ev-question-img').innerHTML = q.gambar ? `<img class="question-img" src="${q.gambar}" alt="">` : '';
+  document.getElementById('ev-question-table').innerHTML = renderTabelHtml(q.tabel);
+
+  const doubtBtn = document.getElementById('ev-doubt-btn');
+  const isDoubt = !!attempt.ragu[q.id];
+  doubtBtn.classList.toggle('active', isDoubt);
+  doubtBtn.innerHTML = isDoubt ? '★ Ragu-ragu' : '☆ Ragu-ragu';
+
+  document.getElementById('ev-answer-area').innerHTML = renderAnswerArea(q, attempt);
+  if(q.type === 'essay'){
+    const box = document.getElementById('essayInput');
+    if(box) box.addEventListener('input', () => setAnswerEssay(q.id, box.value));
+  }
+
+  document.getElementById('ev-prev').disabled = currentIndex === 0;
+  document.getElementById('ev-prev').style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+  const isLastQuestion = currentIndex === total - 1;
+  document.getElementById('ev-next').textContent = 'Selanjutnya →';
+  document.getElementById('ev-next').style.display = isLastQuestion ? 'none' : '';
+  document.getElementById('ev-finish-btn').style.display = isLastQuestion ? '' : 'none';
+
+  const c = counts();
+  document.getElementById('ev-progress').textContent = `${c.done} terjawab · ${c.doubt} ragu · ${c.empty} kosong dari ${total} soal`;
+  const pct = total > 0 ? Math.round((c.done / total) * 100) : 0;
+  document.getElementById('ev-progress-fill').style.width = pct + '%';
+  document.getElementById('ev-progress-label').textContent = `${c.done}/${total} terjawab`;
+}
+
+function renderAnswerArea(q, attempt){
+  const optOrder = attempt.urutanOpsi[q.id] || q.opsi.map(o=>o.id);
+  if(q.type === 'pg'){
+    const selected = attempt.jawaban[q.id];
+    return `<div class="muted-note" style="margin-bottom:8px;">Pilih salah satu jawaban yang benar.</div>` +
+      optOrder.map((oid, i) => {
+      const o = q.opsi.find(x => x.id === oid);
+      if(!o) return '';
+      return `<label class="opt-choice ${selected === oid ? 'selected' : ''}" onclick="setAnswerPG('${q.id}','${oid}')">
+        <span class="opt-text">${escapeHtml(o.teks)}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
+      </label>`;
+    }).join('');
+  }
+  if(q.type === 'pgk'){
+    const selected = Array.isArray(attempt.jawaban[q.id]) ? attempt.jawaban[q.id] : [];
+    return `<div class="muted-note" style="margin-bottom:8px;">Pilih semua jawaban yang benar (boleh lebih dari satu).</div>` +
+      optOrder.map((oid, i) => {
+        const o = q.opsi.find(x => x.id === oid);
+        if(!o) return '';
+        const isSel = selected.includes(oid);
+        return `<label class="opt-choice ${isSel ? 'selected' : ''}" onclick="toggleAnswerPGK('${q.id}','${oid}')">
+          <span class="opt-text">${escapeHtml(o.teks)}${o.gambar ? `<br><img src="${o.gambar}" alt="">` : ''}</span>
+        </label>`;
+      }).join('');
+  }
+  if(q.type === 'bs'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const selected = attempt.jawaban[q.id];
+    return `<div class="bs-choice-row">
+      ${kat.map((label, i) => `<div class="bs-choice ${selected === i ? 'selected' : ''}" onclick="setAnswerBS('${q.id}', ${i})">${escapeHtml(label)}</div>`).join('')}
+    </div>`;
+  }
+  if(q.type === 'bsg'){
+    const kat = q.kategori && q.kategori.length === 2 ? q.kategori : ['Benar','Salah'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const ans = (attempt.jawaban[q.id] && typeof attempt.jawaban[q.id] === 'object') ? attempt.jawaban[q.id] : {};
+    return `<div class="bsg-table">
+      <div class="bsg-head-row">
+        <span class="bsg-head-pernyataan">Pernyataan</span>
+        ${kat.map(label => `<span class="bsg-head-kat">${escapeHtml(label)}</span>`).join('')}
+      </div>
+      ${pernyataan.map((p, i) => {
+        const chosen = ans[p.id];
+        return `<div class="bsg-row">
+          <span class="bsg-pernyataan-text">${i+1}. ${escapeHtml(p.teks)}</span>
+          <span class="bsg-radios">
+            ${kat.map((label, ki) => `<label class="bsg-radio" title="${escapeHtml(label)}">
+              <input type="radio" name="bsg-${q.id}-${p.id}" ${chosen === ki ? 'checked' : ''} onchange="setAnswerBSG('${q.id}','${p.id}', ${ki})">
+            </label>`).join('')}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  if(q.type === 'rb'){
+    const kat = Array.isArray(q.kategori) && q.kategori.length >= 2 ? q.kategori : ['Kolom 1','Kolom 2'];
+    const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+    const ans = (attempt.jawaban[q.id] && typeof attempt.jawaban[q.id] === 'object') ? attempt.jawaban[q.id] : {};
+    return `<div class="muted-note" style="margin-bottom:8px;">Tandai satu kategori yang benar untuk setiap pernyataan.</div>
+    <div class="rb-table" style="--rb-n:${kat.length}">
+      <div class="rb-head">
+        <span class="rb-head-pern">Pernyataan</span>
+        ${kat.map(label => `<span class="rb-head-kat">${escapeHtml(label)}</span>`).join('')}
+      </div>
+      ${pernyataan.map((p, i) => {
+        const chosen = ans[p.id];
+        return `<div class="rb-row">
+          <span class="rb-pern"><span class="rb-no">${i + 1}.</span><span>${escapeHtml(p.teks || '')}</span></span>
+          <span class="rb-cells">
+            ${kat.map((label, ki) => `<label class="rb-cell" title="${escapeHtml(label)}">
+              <input type="radio" name="bsg-${q.id}-${p.id}" ${chosen === ki ? 'checked' : ''} onchange="setAnswerBSG('${q.id}','${p.id}', ${ki})">
+              <span class="rb-cell-label">${escapeHtml(label)}</span>
+            </label>`).join('')}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  // essay
+  const val = typeof attempt.jawaban[q.id] === 'string' ? attempt.jawaban[q.id] : '';
+  return `<textarea id="essayInput" class="essay-box" placeholder="Tulis jawabanmu di sini…">${escapeHtml(val)}</textarea>`;
+}
+
+function counts(){
+  const { attempt, questionSet } = liveExam;
+  let done=0, doubt=0, empty=0;
+  attempt.urutanSoal.forEach(qid => {
+    const q = questionSet.soal.find(x => x.id === qid);
+    const st = statusOf(q, attempt);
+    if(st === 'doubt') doubt++; else if(st === 'done') done++; else empty++;
+  });
+  return { done, doubt, empty };
+}
+
+/* ============================================================
+   SIMPAN OTOMATIS + CADANGAN LOKAL + KIRIM JAWABAN YANG ANDAL
+============================================================ */
+const BACKUP_PREFIX  = 'ujian_backup_';
+const PENDING_PREFIX = 'ujian_pending_';
+const NET_TIMEOUT_MS = 20000;
+let dirty = false, saveChain = Promise.resolve(), saveRetryTimer = null, examFinished = false;
+let submitState = 'idle';          // idle | sending | failed
+let submitAuto = false;            // true bila dipicu waktu habis
+let submitAttemptNo = 0;
+
+function withTimeout(promise, ms){
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('Koneksi terlalu lambat (timeout).')), ms);
+    Promise.resolve(promise).then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
+}
+function friendlyError(e){
+  const msg = (e && (e.message || e.error_description)) ? String(e.message || e.error_description) : String(e || '');
+  if(!navigator.onLine) return 'Perangkat tidak terhubung ke internet.';
+  if(/failed to fetch|networkerror|load failed|network request/i.test(msg)) return 'Tidak dapat menjangkau server (koneksi internet bermasalah).';
+  return msg || 'Terjadi kendala yang tidak diketahui.';
+}
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function lsGet(k){ try{ const r = localStorage.getItem(k); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+function setSaveStatus(state, text){
+  const box = document.getElementById('saveStatus');
+  const txt = document.getElementById('saveStatusText');
+  const btn = document.getElementById('saveRetryBtn');
+  if(!box) return;
+  box.className = 'save-status ' + state;
+  txt.textContent = text;
+  btn.style.display = state === 'fail' ? '' : 'none';
+}
+
+function saveLocalBackup(){
+  if(!liveExam) return;
+  const { attempt } = liveExam;
+  lsSet(BACKUP_PREFIX + attempt.id, { jawaban: attempt.jawaban, ragu: attempt.ragu, t: Date.now() });
+}
+
+
+/* ---------- Heartbeat ringan (HTTP biasa, TANPA Realtime) ----------
+   Free tier Supabase: Realtime dibatasi 200 koneksi, jadi siswa tidak dipakai Realtime.
+   Penanda "online" bagi pengawas = last_seen di server. Setiap simpan jawaban sudah ikut
+   memperbarui last_seen lewat trigger; heartbeat ini hanya mengisi saat siswa sedang diam. */
+const HB_INTERVAL_MS = 25000;
+let hbTimer = null, hbStartTimer = null, hbDisabled = false;
+async function sendHeartbeat(){
+  if(hbDisabled || !liveExam || examFinished || document.hidden) return;
+  try{
+    const { error } = await sb.rpc('exam_heartbeat', { p_attempt: liveExam.attempt.id });
+    if(error && (error.code === 'PGRST202' || error.status === 404)) hbDisabled = true; // SQL belum dijalankan
+  }catch(e){ /* abaikan: heartbeat tidak boleh mengganggu ujian */ }
+}
+function startExamHeartbeat(){
+  stopExamHeartbeat();
+  // jeda acak 0-8 dtk agar 300 siswa tidak menembak server di detik yang sama
+  hbStartTimer = setTimeout(() => {
+    sendHeartbeat();
+    hbTimer = setInterval(sendHeartbeat, HB_INTERVAL_MS);
+  }, Math.random() * 8000);
+}
+function stopExamHeartbeat(){
+  clearTimeout(hbStartTimer); hbStartTimer = null;
+  clearInterval(hbTimer); hbTimer = null;
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden) sendHeartbeat(); });
+
+function persistAnswer(){
+  if(!liveExam || examFinished) return;
+  dirty = true;
+  saveLocalBackup();                       // cadangan instan di perangkat
+  setSaveStatus('saving', '⏳ Menyimpan…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushAnswers, 1000);
+}
+
+function flushAnswers(){
+  saveChain = saveChain.then(doSaveAnswers).catch(() => false);
+  return saveChain;
+}
+async function doSaveAnswers(){
+  if(!liveExam || examFinished || !dirty) return true;
+  const { attempt } = liveExam;
+  const snapshot = { jawaban: JSON.parse(JSON.stringify(attempt.jawaban)), ragu: JSON.parse(JSON.stringify(attempt.ragu)) };
+  dirty = false;
+  try{
+    const { data, error } = await withTimeout(
+      sb.from('exam_attempts').update(snapshot).eq('id', attempt.id).select('id'), NET_TIMEOUT_MS);
+    if(error) throw error;
+    if(!data || !data.length) throw new Error('Server tidak menerima penyimpanan jawaban.');
+    if(!dirty){ setSaveStatus('ok', '✓ Jawaban tersimpan otomatis'); }
+    clearTimeout(saveRetryTimer);
+    return true;
+  }catch(e){
+    dirty = true;                          // tandai belum tersimpan -> dicoba lagi
+    console.error('Autosave gagal:', e);
+    setSaveStatus('fail', '⚠ Belum tersimpan ke server — ' + friendlyError(e) + ' (jawaban aman di perangkat, mencoba lagi…)');
+    clearTimeout(saveRetryTimer);
+    saveRetryTimer = setTimeout(flushAnswers, 5000);
+    return false;
+  }
+}
+function manualSaveRetry(){
+  setSaveStatus('saving', '⏳ Menyimpan…');
+  flushAnswers();
+}
+window.addEventListener('online', () => {
+  if(liveExam && !examFinished && dirty) flushAnswers();
+  if(submitState === 'failed') retrySubmit();
+  retryPendingSubmits(false);
+});
+window.addEventListener('offline', () => {
+  if(liveExam && !examFinished) setSaveStatus('fail', '⚠ Internet terputus — jawaban tetap aman di perangkat dan akan dikirim saat tersambung.');
+});
+
+function setAnswerPG(qid, oid){
+  liveExam.attempt.jawaban[qid] = oid;
+  persistAnswer(); renderQnav(); renderQuestion();
+}
+function toggleAnswerPGK(qid, oid){
+  const a = liveExam.attempt.jawaban;
+  const cur = Array.isArray(a[qid]) ? a[qid].slice() : [];
+  const idx = cur.indexOf(oid);
+  if(idx > -1) cur.splice(idx,1); else cur.push(oid);
+  a[qid] = cur;
+  persistAnswer(); renderQnav(); renderQuestion();
+}
+function setAnswerBS(qid, idx){
+  liveExam.attempt.jawaban[qid] = idx;
+  persistAnswer(); renderQnav(); renderQuestion();
+}
+function setAnswerBSG(qid, pid, idx){
+  const a = liveExam.attempt.jawaban;
+  const cur = (a[qid] && typeof a[qid] === 'object' && !Array.isArray(a[qid])) ? { ...a[qid] } : {};
+  cur[pid] = idx;
+  a[qid] = cur;
+  persistAnswer(); renderQnav(); renderQuestion();
+}
+function setAnswerEssay(qid, val){
+  liveExam.attempt.jawaban[qid] = val;
+  persistAnswer();
+  renderQnav();
+}
+
+function toggleDoubt(){
+  const q = currentQuestion();
+  liveExam.attempt.ragu[q.id] = !liveExam.attempt.ragu[q.id];
+  persistAnswer(); renderQnav(); renderQuestion();
+}
+
+/* ---------- sembunyikan/tampilkan header informasi ---------- */
+function toggleHeaderCompact(){
+  document.body.classList.toggle('compact-exam');
+  window.scrollTo({ top:0 });
+  repositionPinnedCard();
+}
+function resetHeaderCompact(){
+  document.body.classList.remove('compact-exam');
+}
+
+/* ---------- sematkan (pin) soal agar tetap terlihat saat menggulir ---------- */
+function togglePinQuestion(){
+  const card = document.getElementById('ev-question-card');
+  if(!card) return;
+  if(card.classList.contains('pinned')) unpinQuestionCard();
+  else pinQuestionCard();
+}
+function pinQuestionCard(){
+  const card = document.getElementById('ev-question-card');
+  const pinBtn = document.getElementById('ev-pin-btn');
+  if(!card || card.classList.contains('pinned')) return;
+
+  const rect = card.getBoundingClientRect();
+  const placeholder = document.createElement('div');
+  placeholder.id = 'ev-pin-placeholder';
+  placeholder.className = 'pin-placeholder';
+  placeholder.style.height = rect.height + 'px';
+  card.parentNode.insertBefore(placeholder, card);
+
+  card.classList.add('pinned');
+  card.style.position = 'fixed';
+  card.style.left = '0px';
+  card.style.right = '0px';
+  card.style.width = '100%';
+  card.style.overflowY = 'auto';
+  card.style.zIndex = '32';
+
+  if(pinBtn){ pinBtn.classList.add('active'); pinBtn.innerHTML = '📌 Disematkan'; }
+  document.getElementById('examSuite').classList.add('passage-pinned');
+  document.body.classList.add('passage-pinned-body');
+  repositionPinnedCard();
+}function unpinQuestionCard(){
+  document.body.classList.remove('passage-pinned-body');
+  const card = document.getElementById('ev-question-card');
+  const pinBtn = document.getElementById('ev-pin-btn');
+  if(!card) return;
+  card.classList.remove('pinned');
+  card.style.position = '';
+  card.style.top = '';
+  card.style.bottom = '';
+  card.style.left = '';
+  card.style.right = '';
+  card.style.width = '';
+  card.style.maxHeight = '';
+  card.style.overflowY = '';
+  card.style.zIndex = '';
+  const placeholder = document.getElementById('ev-pin-placeholder');
+  if(placeholder) placeholder.remove();
+  if(pinBtn){ pinBtn.classList.remove('active'); pinBtn.innerHTML = '📌 Sematkan'; }
+  document.getElementById('examSuite').classList.remove('passage-pinned');
+}
+function repositionPinnedCard(){
+  const card = document.getElementById('ev-question-card');
+  if(!card || !card.classList.contains('pinned')) return;
+  // Kartu disematkan selebar layar (rata kiri-kanan-bawah), bukan mengikuti lebar kolom soal
+  card.style.left = '0px';
+  card.style.right = '0px';
+  card.style.width = '100%';
+  // Soal + opsi (termasuk navigasi di bawahnya, karena kini satu kartu yang sama)
+  // disematkan mulai dari TENGAH layar dan menempel RATA sampai ke tepi bawah layar
+  // (sudut bawah kartu memang siku, bukan melengkung, supaya menyatu dengan tepi) —
+  // posisi kiri/lebar tetap mengikuti kolom soal, bukan berpindah ke tengah horizontal.
+  card.style.top = '50vh';
+  card.style.bottom = '0px';
+  card.style.maxHeight = '';
+}
+window.addEventListener('resize', repositionPinnedCard);
+
+/* ---------- ukuran font ---------- */
+function toggleFontMenu(){ document.getElementById('fontSizeMenu').classList.toggle('hidden'); }
+function setFontLevel(level){
+  fontLevel = level;
+  document.getElementById('examSuite').style.setProperty('--fscale', FONT_SCALES[level-1]);
+  document.querySelectorAll('.fontsize-opt').forEach(b => b.classList.toggle('active', parseInt(b.dataset.level,10) === level));
+  document.getElementById('fontSizeMenu').classList.add('hidden');
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('fontSizeMenu');
+  if(m) m.classList.add('hidden');
+});
+
+function navQuestion(delta){
+  const max = liveExam.attempt.urutanSoal.length - 1;
+  liveExam.currentIndex = Math.min(max, Math.max(0, liveExam.currentIndex + delta));
+  renderQnav();
+  renderQuestion();
+}
+function jumpTo(i){
+  liveExam.currentIndex = i;
+  renderQnav();
+  renderQuestion();
+  document.getElementById('navpanel').classList.remove('open');
+}
+
+/* ---------- timer ---------- */
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+function updateTimer(){
+  const end = getAttemptDeadline(liveExam.schedule, liveExam.attempt);
+  const remain = end - Date.now();
+  const el = document.getElementById('ev-timer');
+  if(remain <= 0){
+    el.textContent = '00:00';
+    clearInterval(timerInterval);
+    ['submitModalBg','tabLeaveModalBg','exitNoSubmitModalBg'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    runSubmit(true);        // waktu habis -> kirim otomatis (dengan peringatan + tombol kirim ulang bila gagal)
+    return;
+  }
+  const mm = Math.floor(remain / 60000);
+  const ss = Math.floor((remain % 60000) / 1000);
+  el.textContent = String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+  el.classList.toggle('warn', remain < 5 * 60000 && remain >= 60000);
+  el.classList.toggle('danger', remain < 60000);
+}
+
+/* ---------- submit ---------- */
+function openSubmitModal(){
+  const c = counts();
+  document.getElementById('sumDone').textContent = c.done;
+  document.getElementById('sumDoubt').textContent = c.doubt;
+  document.getElementById('sumEmpty').textContent = c.empty;
+
+  const warnBox = document.getElementById('submitWarnBox');
+  if(c.empty > 0 || c.doubt > 0){
+    const parts = [];
+    if(c.empty > 0) parts.push(`<strong>${c.empty} soal masih kosong</strong>`);
+    if(c.doubt > 0) parts.push(`<strong>${c.doubt} soal ditandai ragu-ragu</strong>`);
+    warnBox.classList.remove('all-good', 'hidden');
+    warnBox.innerHTML = `<span>⚠️</span><span>Masih ada ${parts.join(' dan ')}. Periksa kembali sebelum mengumpulkan — jawaban tidak bisa diubah lagi setelah dikumpulkan.</span>`;
+  } else {
+    warnBox.classList.add('all-good');
+    warnBox.classList.remove('hidden');
+    warnBox.innerHTML = `<span>✅</span><span>Semua soal sudah terjawab. Kamu yakin ingin mengumpulkan sekarang?</span>`;
+  }
+
+  document.getElementById('submitModalBg').classList.remove('hidden');
+}
+function closeSubmitModal(){ document.getElementById('submitModalBg').classList.add('hidden'); }
+
+function confirmSubmit(){
+  closeSubmitModal();
+  runSubmit(false);
+}
+
+/* ---------- deteksi keluar / pindah tab ---------- */
+function examInProgress(){ return !!liveExam; }
+function openTabLeaveModal(){
+  if(!examInProgress() || submitState !== 'idle') return;
+  logTabLeaveAttempt();
+  document.getElementById('tabLeaveModalBg').classList.remove('hidden');
+}
+function closeTabLeaveModal(){ document.getElementById('tabLeaveModalBg').classList.add('hidden'); }
+document.addEventListener('visibilitychange', () => { if(document.hidden) openTabLeaveModal(); });
+
+async function logTabLeaveAttempt(){
+  if(!liveExam) return;
+  const { attempt } = liveExam;
+  attempt.percobaanKeluar = (attempt.percobaanKeluar || 0) + 1;
+  const idx = attempts.findIndex(a => a.id === attempt.id);
+  if(idx > -1) attempts[idx].percobaanKeluar = attempt.percobaanKeluar;
+  try{
+    const { error } = await sb.from('exam_attempts')
+      .update({ percobaan_keluar: attempt.percobaanKeluar })
+      .eq('id', attempt.id);
+    if(error) console.error(error);
+  }catch(e){ console.error(e); }
+}
+
+function openExitNoSubmitModal(){
+  if(!examInProgress()) return;
+  document.getElementById('exitNoSubmitModalBg').classList.remove('hidden');
+}
+function closeExitNoSubmitModal(){ document.getElementById('exitNoSubmitModalBg').classList.add('hidden'); }
+function confirmExitNoSubmit(){
+  closeExitNoSubmitModal();
+  clearInterval(timerInterval);
+  stopExamHeartbeat();
+  liveExam = null;
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('examView').style.display = 'none';
+  document.getElementById('examView').classList.remove('locked');
+  document.getElementById('listView').style.display = 'block';
+  closeSubmitModal();
+  closeTabLeaveModal();
+  resetHeaderCompact();
+  document.body.classList.remove('exam-active');
+  unpinQuestionCard();
+  if(dirty) flushAnswers();
+  renderExamList();
+}
+
+/* ---------- anti copy (hanya aktif saat sedang mengerjakan) ---------- */
+["copy","cut","contextmenu","selectstart","dragstart"].forEach(evt => {
+  document.addEventListener(evt, (e) => {
+    if(!examInProgress()) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if(evt === 'selectstart' && (tag === 'TEXTAREA' || tag === 'INPUT')) return;
+    e.preventDefault();
+    return false;
+  });
+});
+document.addEventListener('keydown', (e) => {
+  if(!examInProgress()) return;
+  const k = e.key ? e.key.toLowerCase() : '';
+  const blockCombo = (e.ctrlKey || e.metaKey) && ['c','x','u','s','p'].includes(k);
+  const blockDevtools = e.key === 'F12' || ((e.ctrlKey||e.metaKey) && e.shiftKey && ['i','j','c'].includes(k));
+  if(blockCombo || blockDevtools){ e.preventDefault(); return false; }
+});
+
+/* ---------- penilaian ---------- */
+function gradeAttempt(qs, attempt){
+  let totalPoin = 0, autoMax = 0, autoEarned = 0, correctCount = 0, incorrectCount = 0;
+  const manualQids = [];
+  qs.soal.forEach(q => {
+    normalizeQuestionClient(q);
+    const poin = q.poin || 10;
+    totalPoin += poin;
+    const a = attempt.jawaban[q.id];
+
+    if(q.type === 'bsg'){
+      // Soal pernyataan ganda: setiap pernyataan adalah unit penilaian sendiri.
+      // Kalau semua pernyataan sudah punya kunci pasti -> nilai otomatis (poin
+      // dibagi rata per pernyataan). Kalau ada satu saja tanpa kunci -> seluruh
+      // soal ini dinilai manual oleh guru (sama seperti soal BS beropini).
+      const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+      const allKeyed = pernyataan.length > 0 && pernyataan.every(p => p.kunci === 0 || p.kunci === 1);
+      if(allKeyed){
+        const n = pernyataan.length;
+        const per = poin / n;
+        const ans = (a && typeof a === 'object') ? a : {};
+        pernyataan.forEach(p => {
+          if(ans[p.id] === p.kunci){ autoEarned += per; correctCount++; }
+          else { incorrectCount++; }
+        });
+        autoMax += poin;
+      } else {
+        manualQids.push(q.id);
+      }
+      return;
+    }
+
+    if(q.type === 'rb'){
+      // Soal radio button (klasifikasi 2-4 kolom): sama seperti BSG, tapi
+      // kunci per pernyataan adalah index kolom (0..3), bukan cuma 0/1.
+      const pernyataan = Array.isArray(q.pernyataan) ? q.pernyataan : [];
+      const allKeyed = pernyataan.length > 0 && pernyataan.every(p => Number.isInteger(p.kunci));
+      if(allKeyed){
+        const n = pernyataan.length;
+        const per = poin / n;
+        const ans = (a && typeof a === 'object') ? a : {};
+        pernyataan.forEach(p => {
+          if(ans[p.id] === p.kunci){ autoEarned += per; correctCount++; }
+          else { incorrectCount++; }
+        });
+        autoMax += poin;
+      } else {
+        manualQids.push(q.id);
+      }
+      return;
+    }
+
+    let graded = false, correct = false;
+    if(q.type === 'pg' && q.kunciId){ graded = true; correct = a === q.kunciId; }
+    else if(q.type === 'pgk' && q.kunciIds && q.kunciIds.length){
+      graded = true;
+      if(Array.isArray(a)){
+        const sa = [...a].sort(); const sk = [...q.kunciIds].sort();
+        correct = sa.length === sk.length && sa.every((v,i)=>v===sk[i]);
+      }
+    } else if(q.type === 'bs' && (q.kunciKategori === 0 || q.kunciKategori === 1)){
+      graded = true; correct = a === q.kunciKategori;
+    }
+    if(graded){
+      autoMax += poin;
+      if(correct){ autoEarned += poin; correctCount++; } else { incorrectCount++; }
+    } else {
+      manualQids.push(q.id);
+    }
+  });
+  return { totalPoin, autoMax, autoEarned, correctCount, incorrectCount, manualQids, manualScores: {} };
+}
+
+/* Kirim jawaban final. Mengembalikan { ok, message }.
+   - Dianggap BERHASIL hanya jika server mengonfirmasi status 'selesai'.
+   - Payload disimpan di perangkat sampai server mengonfirmasi, jadi tidak hilang
+     walau internet putus / halaman tertutup. */
+async function submitAttempt(attempt, schedule){
+  const qs = await ensureQuestionSet(schedule.questionSetId);
+  const key = PENDING_PREFIX + attempt.id;
+  let pending = lsGet(key);
+  if(!pending){
+    // gabungkan cadangan jawaban di perangkat (bisa lebih baru dari server bila sempat offline)
+    const bk = lsGet(BACKUP_PREFIX + attempt.id);
+    const deadline = getAttemptDeadline(schedule, attempt);
+    if(bk && bk.jawaban && typeof bk.jawaban === 'object' && (!bk.t || bk.t <= deadline + 15000)){
+      attempt.jawaban = Object.assign({}, attempt.jawaban, bk.jawaban);
+      if(bk.ragu && typeof bk.ragu === 'object') attempt.ragu = Object.assign({}, attempt.ragu, bk.ragu);
+    }
+    const penilaian = gradeAttempt(qs, attempt);
+    // waktu selesai dicatat paling lambat = batas waktu (bukan saat kirim ulang)
+    const selesaiMs = Math.min(Date.now(), deadline);
+    const nilai = penilaian.totalPoin > 0 ? Math.round((penilaian.autoEarned / penilaian.totalPoin) * 100) : 0;
+    pending = {
+      attemptId: attempt.id, userId: attempt.userId, scheduleId: schedule.id,
+      payload: {
+        status: 'selesai', selesai: new Date(selesaiMs).toISOString(), nilai,
+        jawaban: attempt.jawaban, ragu: attempt.ragu, penilaian
+      }
+    };
+    lsSet(key, pending);
+  } else {
+    // pakai jawaban terbaru bila ada perubahan
+    pending.payload.jawaban = attempt.jawaban; pending.payload.ragu = attempt.ragu;
+    lsSet(key, pending);
+  }
+  const res = await sendPendingPayload(pending);
+  if(res.ok){
+    const pl = pending.payload;
+    attempt.status = 'selesai';
+    attempt.selesai = new Date(pl.selesai).getTime();
+    attempt.nilai = pl.nilai;
+    attempt.penilaian = pl.penilaian;
+    attempt.receiptAt = res.confirmedAt;
+    lsDel(key); lsDel(BACKUP_PREFIX + attempt.id);
+  }
+  return res;
+}
+
+async function sendPendingPayload(pending){
+  try{
+    const { data, error } = await withTimeout(
+      sb.from('exam_attempts').update(pending.payload).eq('id', pending.attemptId).select('id,status').maybeSingle(),
+      NET_TIMEOUT_MS);
+    if(error) throw error;
+    let confirmed = data && data.status === 'selesai';
+    if(!confirmed){
+      // verifikasi ulang langsung dari server (jaga-jaga policy select/update)
+      const chk = await withTimeout(
+        sb.from('exam_attempts').select('id,status').eq('id', pending.attemptId).maybeSingle(), NET_TIMEOUT_MS);
+      if(chk.error) throw chk.error;
+      confirmed = chk.data && chk.data.status === 'selesai';
+    }
+    if(!confirmed) throw new Error('Server belum mengonfirmasi jawabanmu (data tidak tercatat).');
+    return { ok:true, confirmedAt: Date.now() };
+  }catch(e){
+    console.error('Submit gagal:', e);
+    return { ok:false, message: friendlyError(e) };
+  }
+}
+
+/* ---------- UI status pengiriman ---------- */
+function showSubmitStatus(state, detail){
+  const bg = document.getElementById('submitStatusModalBg');
+  const icon = document.getElementById('ssIcon');
+  const title = document.getElementById('ssTitle');
+  const text = document.getElementById('ssText');
+  const det = document.getElementById('ssDetail');
+  const actions = document.getElementById('ssActions');
+  const back = document.getElementById('ssBackBtn');
+  bg.classList.remove('hidden');
+  if(state === 'sending'){
+    icon.className = 'ss-icon sending'; icon.innerHTML = '<div class="ss-spinner"></div>';
+    title.textContent = 'Mengirim jawaban…';
+    text.textContent = 'Mohon tunggu dan jangan tutup atau muat ulang halaman ini.' + (submitAttemptNo > 1 ? ` (percobaan ke-${submitAttemptNo})` : '');
+    det.classList.add('hidden'); actions.style.display = 'none';
+  } else {
+    icon.className = 'ss-icon fail'; icon.innerHTML = '⚠️';
+    title.textContent = 'Jawaban GAGAL terkirim';
+    text.innerHTML = 'Jawabanmu <strong>belum masuk ke server</strong>, tetapi sudah tersimpan aman di perangkat ini. Pastikan internet menyala lalu tekan <strong>Kirim Ulang</strong>. Jangan tutup halaman ini.';
+    det.textContent = 'Penyebab: ' + (detail || 'tidak diketahui') + (navigator.onLine ? '' : ' — sambungkan internet, pengiriman akan dicoba otomatis.');
+    det.classList.remove('hidden'); actions.style.display = '';
+    back.style.display = submitAuto ? 'none' : '';
+    document.getElementById('ssRetryBtn').disabled = false;
+  }
+}
+function hideSubmitStatus(){ document.getElementById('submitStatusModalBg').classList.add('hidden'); }
+
+async function runSubmit(auto){
+  if(!liveExam || submitState === 'sending') return;
+  submitAuto = !!auto;
+  submitState = 'sending';
+  submitAttemptNo++;
+  examFinished = true;                     // hentikan autosave biasa
+  clearTimeout(saveTimer); clearTimeout(saveRetryTimer);
+  unpinQuestionCard();
+  clearInterval(timerInterval);
+  showSubmitStatus('sending');
+  const res = await submitAttempt(liveExam.attempt, liveExam.schedule);
+  if(res.ok){
+    submitState = 'idle'; submitAttemptNo = 0;
+    hideSubmitStatus();
+    liveExam.autoSubmitted = !!auto;
+    showResult();
+  } else {
+    submitState = 'failed';
+    showSubmitStatus('fail', res.message);
+  }
+}
+function retrySubmit(){
+  if(submitState !== 'failed') return;
+  document.getElementById('ssRetryBtn').disabled = true;
+  runSubmit(submitAuto);
+}
+function cancelSubmitStatus(){
+  // kembali mengerjakan (hanya jika bukan karena waktu habis)
+  if(submitAuto || !liveExam) return;
+  submitState = 'idle'; examFinished = false;
+  hideSubmitStatus();
+  startTimer();
+  if(dirty) flushAnswers();
+}
+
+/* ---------- jawaban tertunda (mis. halaman tertutup saat gagal kirim) ---------- */
+let retryingPending = false;
+const autoFinalizing = new Set();
+function listPendingKeys(){
+  const keys = [];
+  try{ for(let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); if(k && k.startsWith(PENDING_PREFIX)) keys.push(k); } }catch(e){}
+  return keys;
+}
+function updatePendingBanner(){
+  const keys = listPendingKeys().filter(k => { const p = lsGet(k); return p && p.userId === selectedSiswaId; });
+  const el = document.getElementById('pendingBanner');
+  if(!el) return;
+  if(keys.length){
+    document.getElementById('pendingBannerText').textContent = `⚠️ ${keys.length} jawaban ujian BELUM terkirim ke server. Pastikan internet menyala lalu tekan "Kirim Sekarang".`;
+    el.classList.remove('hidden');
+  } else el.classList.add('hidden');
+}
+async function retryPendingSubmits(manual){
+  if(retryingPending || !selectedSiswaId) return;
+  retryingPending = true;
+  const btn = document.getElementById('pendingRetryBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Mengirim…'; }
+  let okCount = 0, failMsg = '';
+  for(const k of listPendingKeys()){
+    const pending = lsGet(k);
+    if(!pending || pending.userId !== selectedSiswaId) continue;
+    const res = await sendPendingPayload(pending);
+    if(res.ok){
+      okCount++; lsDel(k); lsDel(BACKUP_PREFIX + pending.attemptId);
+      const at = attempts.find(a => a.id === pending.attemptId);
+      if(at){ at.status = 'selesai'; at.nilai = pending.payload.nilai; at.penilaian = pending.payload.penilaian; at.selesai = new Date(pending.payload.selesai).getTime(); }
+    } else failMsg = res.message;
+  }
+  retryingPending = false;
+  if(btn){ btn.disabled = false; btn.textContent = 'Kirim Sekarang'; }
+  updatePendingBanner();
+  if(okCount){ renderExamList(); if(manual) alert(`✓ ${okCount} jawaban ujian berhasil terkirim ke server.`); }
+  else if(manual && failMsg) alert('Masih gagal mengirim: ' + failMsg + '\nPeriksa internet lalu coba lagi.');
+}
+
+function showResult(){
+  document.getElementById('examView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'block';
+  resetHeaderCompact();
+  document.body.classList.remove('exam-active');
+  window.scrollTo({ top:0 });
+  const { attempt, schedule, questionSet } = liveExam;
+  const jam = new Date(attempt.receiptAt || Date.now()).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('rv-receipt').textContent = `✓ Terkirim & diterima server pukul ${jam} · Kode ${String(attempt.id).slice(0,8).toUpperCase()}`;
+  const p = attempt.penilaian || {};
+  const needsManual = (p.manualQids || []).length > 0;
+
+  if(schedule.tampilkanNilai && !needsManual){
+    document.getElementById('rv-num').textContent = attempt.nilai;
+    document.getElementById('rv-sub').textContent = `Ujian "${questionSet.judul}" telah dikumpulkan.`;
+  } else if(schedule.tampilkanNilai && needsManual){
+    document.getElementById('rv-num').textContent = attempt.nilai;
+    document.getElementById('rv-sub').textContent = `Ujian "${questionSet.judul}" telah dikumpulkan. Nilai sementara — ${p.manualQids.length} soal esai/opini masih menunggu penilaian guru.`;
+  } else {
+    document.getElementById('rv-circle').style.background = 'var(--indigo-soft)';
+    document.getElementById('rv-circle').style.color = 'var(--indigo-dark)';
+    document.getElementById('rv-num').innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+    document.getElementById('rv-sub').textContent = `Ujian "${questionSet.judul}" telah dikumpulkan. Nilai akan diumumkan oleh guru.`;
+  }
+
+  const rvBreakdown = document.getElementById('rv-breakdown');
+  if(schedule.tampilkanNilai){
+    rvBreakdown.style.display = '';
+    rvBreakdown.innerHTML = `
+      <div><span>Jawaban benar (otomatis)</span><strong>${p.correctCount ?? 0}</strong></div>
+      <div><span>Jawaban kurang tepat</span><strong>${p.incorrectCount ?? 0}</strong></div>
+      <div><span>Menunggu penilaian manual</span><strong>${(p.manualQids||[]).length}</strong></div>
+    `;
+  } else {
+    // Nilai disembunyikan oleh guru -> jumlah benar/salah juga tidak ditampilkan
+    rvBreakdown.style.display = 'none';
+    rvBreakdown.innerHTML = '';
+  }
+  if(liveExam && liveExam.autoSubmitted){
+    document.getElementById('rv-sub').textContent += ' (Waktu habis, jawaban dikumpulkan otomatis.)';
+  }
+  stopExamHeartbeat();
+  liveExam = null;
+  document.getElementById('examView').classList.remove('locked');
+}
+
+function backToList(){
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('examView').style.display = 'none';
+  document.getElementById('examView').classList.remove('locked');
+  document.getElementById('listView').style.display = 'block';
+  closeSubmitModal();
+  closeTabLeaveModal();
+  closeExitNoSubmitModal();
+  resetHeaderCompact();
+  document.body.classList.remove('exam-active');
+  renderExamList();
+  updatePendingBanner();
+}
+
+window.addEventListener('beforeunload', e => {
+  if(liveExam){ e.preventDefault(); e.returnValue = ''; }
+});
+
+init();
+</script>
+
+<script>
+/* ---------- Teks Arab & Aksara Jawa: font khusus (waqaf terbaca) + ukuran 3x ---------- */
+(function(){
+  var AR = '\u0600-\u06FF\u0750-\u077F\u0870-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF';
+  var JV = '\uA980-\uA9DF';
+  var CH = AR + JV;
+  var JOIN = '\\s\u00A0\u200B-\u200F\u202A-\u202E\u2066-\u2069\u0640';
+  var HAS = new RegExp('[' + CH + ']');
+  var HAS_AR = new RegExp('[' + AR + ']');
+  var RUN = new RegExp('[' + CH + '][' + CH + JOIN + ']*', 'g');
+  var SKIP_SEL = 'textarea,input,select,option,script,style,noscript,svg,title,[contenteditable="true"],[contenteditable=""],.txt-ar,.txt-jv';
+
+  // Pecah teks jadi potongan biasa dan potongan Arab/Aksara Jawa
+  function splitRuns(text){
+    var out = [], last = 0, m;
+    RUN.lastIndex = 0;
+    while((m = RUN.exec(text))){
+      var run = m[0].replace(/[\s\u00A0]+$/, '');
+      var start = m.index;
+      if(start > last) out.push({ t: text.slice(last, start), s: null });
+      out.push({ t: run, s: HAS_AR.test(run) ? 'ar' : 'jv' });
+      last = start + run.length;
+      RUN.lastIndex = last;
+    }
+    if(last < text.length) out.push({ t: text.slice(last), s: null });
+    return out;
+  }
+  if(typeof window === 'undefined'){ module.exports = { splitRuns: splitRuns }; return; }
+
+  function wrapTextNode(node){
+    var text = node.nodeValue;
+    if(!text || !HAS.test(text)) return;
+    var parent = node.parentNode;
+    if(!parent || !parent.closest || parent.closest(SKIP_SEL)) return;
+    var frag = document.createDocumentFragment();
+    splitRuns(text).forEach(function(p){
+      if(!p.s){ frag.appendChild(document.createTextNode(p.t)); return; }
+      var span = document.createElement('span');
+      span.className = p.s === 'ar' ? 'txt-ar' : 'txt-jv';
+      span.setAttribute('lang', p.s === 'ar' ? 'ar' : 'jv');
+      if(p.s === 'ar') span.setAttribute('dir', 'rtl');
+      span.textContent = p.t;
+      frag.appendChild(span);
+    });
+    parent.replaceChild(frag, node);
+  }
+
+  function scan(root){
+    if(!root) return;
+    if(root.nodeType === 3){ wrapTextNode(root); return; }
+    if(root.nodeType !== 1 || !HAS.test(root.textContent || '')) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var list = [], n;
+    while((n = walker.nextNode())) list.push(n);
+    list.forEach(wrapTextNode);
+  }
+
+  var queue = [], scheduled = false;
+  function flush(){
+    scheduled = false;
+    var items = queue; queue = [];
+    items.forEach(function(n){ if(n.isConnected) scan(n); });
+  }
+  function start(){
+    scan(document.body);
+    new MutationObserver(function(recs){
+      recs.forEach(function(r){
+        if(r.type === 'characterData') queue.push(r.target);
+        else for(var i = 0; i < r.addedNodes.length; i++) queue.push(r.addedNodes[i]);
+      });
+      if(queue.length && !scheduled){ scheduled = true; requestAnimationFrame(flush); }
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
+</body>
+</html>
