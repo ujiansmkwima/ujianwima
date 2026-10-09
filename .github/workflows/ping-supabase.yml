@@ -12,5 +12,5 @@ jobs:
       - name: Query tabel profiles
         run: |
           curl -sS --fail-with-body \
-            "https://iejpwxmcqwecejsrezry.supabase.co/rest/v1/profiles?select=id&limit=1" \
-            -H "apikey: sb_publishable_dZfvfiSsA-JAndPn172VSg_sq_zRWqS"
+            "https://cnciipsdowdcljjnacxy.supabase.co/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: sb_publishable_CQGkFmLScFhSKf-u3H-piw_-NrzPaw4"
